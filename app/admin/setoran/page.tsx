@@ -99,12 +99,15 @@ export default function SetoranAdmin() {
       <section className="dsh__card" aria-label="Formulir Penimbangan Setoran">
         <div className="dsh__cardhead">
           <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+              <span className="dsh__tagbadge">Petugas Jaga Piket</span>
+              <span className="dsh__meta">Pos Meja Timbang</span>
+            </div>
             <h2 className="dsh__h2">Input Timbangan & Kalkulator Pintar</h2>
-            <p className="dsh__carddesc">
+            <p className="dsh__carddesc" style={{ marginBottom: 0 }}>
               Pilih nasabah yang sedang berada di meja timbang, lalu masukkan hasil timbangan.
             </p>
           </div>
-          <span className="dsh__tagbadge">Petugas Jaga Piket</span>
         </div>
 
         <div className="dsh__formsection">

@@ -172,18 +172,18 @@ export default function RingkasanPengelolaPage() {
     return (
       <div className="dsh__page">
         <header className="dsh__head" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px" }}>
-          <div>
+          <div style={{ flex: "1 1 280px", minWidth: 0 }}>
             <div className="dsh__headrole">
               <span className="dsh__tagbadge">Petugas Jaga Piket</span>
               <span className="dsh__dot" aria-hidden="true">•</span>
               <span className="dsh__meta">Pos Timbangan BSS FEBI UINSA</span>
             </div>
-            <h1 className="dsh__h1">Dasbor Pencatatan Petugas Jaga</h1>
+            <h1 className="dsh__h1" style={{ wordBreak: "break-word" }}>Dasbor Pencatatan Petugas Jaga</h1>
             <p className="dsh__sub">
               Input penimbangan sampah di meja timbang serta pantau riwayat pencatatan lengkap dengan filter waktu.
             </p>
           </div>
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", maxWidth: "100%" }}>
             <button
               type="button"
               onClick={() => setBukaFormCatat(!bukaFormCatat)}
@@ -197,9 +197,11 @@ export default function RingkasanPengelolaPage() {
                 gap: "6px",
                 fontWeight: 600,
                 cursor: "pointer",
+                padding: "8px 12px",
+                fontSize: "13px",
               }}
             >
-              <span>{bukaFormCatat ? "− Sembunyikan Form Catat" : "+ Tambah Pencatatan"}</span>
+              <span>{bukaFormCatat ? "− Sembunyikan Form" : "+ Tambah Pencatatan"}</span>
             </button>
             <Link
               href="/admin/setoran"
@@ -212,6 +214,8 @@ export default function RingkasanPengelolaPage() {
                 fontWeight: 600,
                 color: "#158ab7",
                 borderColor: "#158ab7",
+                padding: "8px 12px",
+                fontSize: "13px",
               }}
             >
               Layar Penuh Meja Timbang →
@@ -230,17 +234,17 @@ export default function RingkasanPengelolaPage() {
           <section className="dsh__card" aria-label="Tambah Pencatatan Setoran" style={{ marginBottom: "24px" }}>
             <div className="dsh__cardhead">
               <div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                  <span className="dsh__tagbadge">Meja Timbang Aktif</span>
+                </div>
                 <h2 className="dsh__h2">Tambah Pencatatan (Meja Timbang)</h2>
-                <p className="dsh__carddesc">
+                <p className="dsh__carddesc" style={{ marginBottom: 0 }}>
                   Pilih nasabah yang menyetor sampah di meja timbang, tentukan jenis sampah & berat timbangannya.
                 </p>
               </div>
-              <span className="dsh__tagbadge" style={{ background: "#edf7ee", color: "#27632e", borderColor: "#c2e2c5" }}>
-                Meja Timbang Aktif
-              </span>
             </div>
 
-            <div style={{ padding: "0 20px 20px" }}>
+            <div style={{ padding: "0 4px 16px" }}>
               <div style={{ marginBottom: "16px" }}>
                 <label
                   htmlFor="pilih-nasabah-dsh"
@@ -312,11 +316,12 @@ export default function RingkasanPengelolaPage() {
               display: "flex",
               flexWrap: "wrap",
               gap: "12px",
-              padding: "16px 20px",
+              padding: "14px 16px",
               background: "#faf9f5",
               borderTop: "1px solid #ebe8df",
               borderBottom: "1px solid #ebe8df",
               alignItems: "center",
+              boxSizing: "border-box",
             }}
           >
             {/* Filter Hari / Tanggal */}

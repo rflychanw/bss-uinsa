@@ -102,23 +102,23 @@ const ICONS: Record<string, ReactNode> = {
 };
 
 const NAV_NASABAH = [
-  { href: "/nasabah", label: "Ringkasan", icon: "home" },
-  { href: "/nasabah/riwayat", label: "Riwayat Transaksi", icon: "list" },
-  { href: "/nasabah/kalkulator", label: "Kalkulator Pintar", icon: "calc" },
-  { href: "/nasabah/profil", label: "Buku Tabungan", icon: "user" },
+  { href: "/nasabah", label: "Ringkasan", mobileLabel: "Ringkasan", icon: "home" },
+  { href: "/nasabah/riwayat", label: "Riwayat Transaksi", mobileLabel: "Riwayat", icon: "list" },
+  { href: "/nasabah/kalkulator", label: "Kalkulator Pintar", mobileLabel: "Kalkulator", icon: "calc" },
+  { href: "/nasabah/profil", label: "Buku Tabungan", mobileLabel: "Tabungan", icon: "user" },
 ];
 
 const NAV_PETUGAS = [
-  { href: "/admin", label: "Riwayat Pencatatan", icon: "list" },
-  { href: "/admin/setoran", label: "Tambah Pencatatan", icon: "scale" },
+  { href: "/admin", label: "Riwayat Pencatatan", mobileLabel: "Riwayat", icon: "list" },
+  { href: "/admin/setoran", label: "Tambah Pencatatan", mobileLabel: "Tambah Catat", icon: "scale" },
 ];
 
 const NAV_BENDAHARA = [
-  { href: "/admin", label: "Ringkasan Keuangan", icon: "home" },
-  { href: "/admin/pengepul", label: "Alur Pengepul & Bagi Hasil", icon: "flow" },
-  { href: "/admin/rekap", label: "Rekap & Ekspor CSV", icon: "report" },
-  { href: "/admin/nasabah", label: "Buku Tabungan Nasabah", icon: "user" },
-  { href: "/admin/pricelist", label: "Daftar Harga (Pricelist)", icon: "price" },
+  { href: "/admin", label: "Ringkasan Keuangan", mobileLabel: "Ringkasan", icon: "home" },
+  { href: "/admin/pengepul", label: "Alur Pengepul & Bagi Hasil", mobileLabel: "Pengepul", icon: "flow" },
+  { href: "/admin/rekap", label: "Rekap & Ekspor CSV", mobileLabel: "Rekap", icon: "report" },
+  { href: "/admin/nasabah", label: "Buku Tabungan Nasabah", mobileLabel: "Nasabah", icon: "user" },
+  { href: "/admin/pricelist", label: "Daftar Harga (Pricelist)", mobileLabel: "Pricelist", icon: "price" },
 ];
 
 export default function AppShell({
@@ -185,6 +185,37 @@ export default function AppShell({
 
   return (
     <div className="dsh">
+      {/* Bar atas (ponsel / tablet < 940px) */}
+      <header className="dsh__top">
+        <Link className="dsh__topbrand" href="/">
+          <img src="/logo-96.png" alt="" width={28} height={28} />
+          <span>
+            Bank Sampah Syariah <em>UINSA</em>
+          </span>
+        </Link>
+        <div className="dsh__topwho">
+          <span>{namaUser.split(" ")[0]}</span>
+          <button
+            type="button"
+            onClick={onKeluar}
+            style={{
+              background: "#ffffff",
+              border: "1px solid #d4cebe",
+              borderRadius: "4px",
+              padding: "4px 10px",
+              fontSize: "12px",
+              cursor: "pointer",
+              color: "#333",
+              fontWeight: 600,
+            }}
+            aria-label="Keluar dari akun"
+          >
+            Keluar
+          </button>
+        </div>
+      </header>
+
+      {/* Sidebar (desktop >= 940px) */}
       <aside className="dsh__side">
         <Link className="dsh__brand" href="/">
           <img src="/logo-96.png" alt="" width={34} height={34} />
@@ -246,7 +277,24 @@ export default function AppShell({
         </button>
       </aside>
 
+      {/* Isi konten halaman */}
       <main className="dsh__main">{children}</main>
+
+      {/* Navigasi bawah ponsel (Bottom Navigation Bar < 940px) */}
+      <nav className="dsh__bottom" aria-label="Menu navigasi bawah ponsel">
+        {items.map((it) => (
+          <Link
+            key={it.href}
+            href={it.href}
+            className="dsh__bottomlink"
+            data-active={isActive(it.href)}
+            aria-current={isActive(it.href) ? "page" : undefined}
+          >
+            <span className="dsh__ico">{ICONS[it.icon]}</span>
+            <span className="dsh__bottomlabel">{it.mobileLabel || it.label}</span>
+          </Link>
+        ))}
+      </nav>
     </div>
   );
 }

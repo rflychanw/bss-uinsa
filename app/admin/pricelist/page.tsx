@@ -157,8 +157,10 @@ export default function PricelistAdmin() {
           {/* Form Perbarui Harga */}
           <section className="dsh__card" aria-label="Perbarui Harga Terpilih">
             <div className="dsh__cardhead">
-              <h2 className="dsh__h2">Perbarui Harga Acuan</h2>
-              <span className="dsh__tagbadge">Edit Cepat</span>
+              <div>
+                <span className="dsh__tagbadge" style={{ marginBottom: "6px" }}>Edit Cepat</span>
+                <h2 className="dsh__h2">Perbarui Harga Acuan</h2>
+              </div>
             </div>
             <form onSubmit={handleUpdateHarga} className="dsh__form">
               <div className="dsh__field">
@@ -199,8 +201,10 @@ export default function PricelistAdmin() {
           {/* Form Tambah Jenis Baru */}
           <section className="dsh__card" aria-label="Tambah Jenis Sampah Baru">
             <div className="dsh__cardhead">
-              <h2 className="dsh__h2">Tambah Jenis Sampah Baru</h2>
-              <span className="dsh__tagbadge">Admin Utama</span>
+              <div>
+                <span className="dsh__tagbadge" style={{ marginBottom: "6px" }}>Baru</span>
+                <h2 className="dsh__h2">Tambah Jenis Sampah</h2>
+              </div>
             </div>
             <form onSubmit={handleTambahJenis} className="dsh__form">
               <div className="dsh__field">
