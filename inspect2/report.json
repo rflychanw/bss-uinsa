@@ -1,0 +1,2651 @@
+{
+ "url": "http://localhost:3210",
+ "at": "2026-11-01T12:10:12.455Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 8,
+   "filled": [
+    0.38,
+    0.27,
+    0.35,
+    0.19,
+    0.83,
+    0.16,
+    0.59,
+    0.96
+   ],
+   "motion": {
+    "elements": 33,
+    "css": 4,
+    "transitions": 29,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 6952,
+     "screens": 7.7,
+     "words": 585,
+     "img": 10,
+     "video": 0,
+     "canvas": 0,
+     "svg": 5,
+     "sections": 8,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 5,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "plastik.jpg",
+      "setor.jpg",
+      "kaleng.jpg",
+      "setor.jpg",
+      "tempat.jpg"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Sampah kampus, jadi saldo.",
+     "words": 4,
+     "chars": 26,
+     "lines": 3,
+     "size": 70.2,
+     "vw": 4.9,
+     "font": "Roundo",
+     "weight": 600,
+     "tracking": -0.022,
+     "leading": 1.04,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "left",
+     "widthRatio": 0.37,
+     "top": 293,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Sampah kampus, jadi saldo.",
+     "words": 4,
+     "lines": 3,
+     "size": 70.2,
+     "font": "Roundo"
+    },
+    "headings": [
+     {
+      "text": "Sampah kampus, jadi saldo.",
+      "words": 4,
+      "chars": 26,
+      "lines": 3,
+      "size": 70.2,
+      "vw": 4.9,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.37,
+      "top": 293,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Empat langkah, satu putaran.",
+      "words": 4,
+      "chars": 28,
+      "lines": 2,
+      "size": 50,
+      "vw": 3.5,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.34,
+      "top": 1215,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Hitung dulu, baru berangkat.",
+      "words": 4,
+      "chars": 28,
+      "lines": 2,
+      "size": 50,
+      "vw": 3.5,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.29,
+      "top": 2182,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Rp 0",
+      "words": 2,
+      "chars": 4,
+      "lines": 1,
+      "size": 41.6,
+      "vw": 2.9,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.03,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.41,
+      "top": 2710,
+      "tag": "strong",
+      "kind": "heading"
+     },
+     {
+      "text": "Menabung sampah dari kantin dan kos , menyedekahkan hasil timbangan , dan mengolah plastik bersih jadi kerajinan bersama tim pengurus.",
+      "words": 20,
+      "chars": 134,
+      "lines": 3,
+      "size": 36,
+      "vw": 2.5,
+      "font": "Roundo",
+      "weight": 500,
+      "tracking": -0.022,
+      "leading": 1.34,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.63,
+      "top": 3176,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Syariah itu cara menimbang, bukan label.",
+      "words": 6,
+      "chars": 40,
+      "lines": 2,
+      "size": 50,
+      "vw": 3.5,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.49,
+      "top": 3721,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Bawa sampahmu ke FEBI.",
+      "words": 4,
+      "chars": 22,
+      "lines": 2,
+      "size": 50,
+      "vw": 3.5,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.34,
+      "top": 4555,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Yang sering ditanya.",
+      "words": 3,
+      "chars": 20,
+      "lines": 2,
+      "size": 50,
+      "vw": 3.5,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.28,
+      "top": 5371,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Mulai dari satu kantong.",
+      "words": 4,
+      "chars": 24,
+      "lines": 1,
+      "size": 50,
+      "vw": 3.5,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.03,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.44,
+      "top": 6058,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 9,
+     "maxLines": 3,
+     "over2Lines": 1,
+     "statements": 1,
+     "centered": 0,
+     "medianWords": 4,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Roundo",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      20,
+      22,
+      36,
+      42,
+      50,
+      70
+     ],
+     "sizeCount": 12,
+     "notLoaded": [],
+     "body": {
+      "font": "Roundo",
+      "size": 17,
+      "leading": 1.6,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 7.3
+     },
+     "measureChars": 81,
+     "max": {
+      "size": 70.2,
+      "vw": 4.9,
+      "font": "Roundo",
+      "text": "Sampah kampus, jadi saldo."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.01,
+     "centerShare": 0.01,
+     "smallText": 0
+    },
+    "eyebrows": [
+     {
+      "text": "Tembaga",
+      "above": "Rp 0",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 17,
+      "top": 2616
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f2eee4",
+     "bodyBgHsl": {
+      "h": 43,
+      "s": 0.35,
+      "l": 0.92
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#e5dfd0",
+       "top": 132,
+       "hsl": {
+        "h": 43,
+        "s": 0.29,
+        "l": 0.86
+       }
+      },
+      {
+       "color": "#fbf8f0",
+       "top": 2182,
+       "hsl": {
+        "h": 44,
+        "s": 0.58,
+        "l": 0.96
+       }
+      },
+      {
+       "color": "#12301d",
+       "top": 3606,
+       "hsl": {
+        "h": 142,
+        "s": 0.45,
+        "l": 0.13
+       }
+      },
+      {
+       "color": "#de9f36",
+       "top": 5893,
+       "hsl": {
+        "h": 38,
+        "s": 0.72,
+        "l": 0.54
+       }
+      },
+      {
+       "color": "#17140f",
+       "top": 6211,
+       "hsl": {
+        "h": 38,
+        "s": 0.21,
+        "l": 0.07
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#17140f",
+       "share": 0.43
+      },
+      {
+       "color": "#4a4436",
+       "share": 0.31
+      },
+      {
+       "color": "#f2eee4",
+       "share": 0.14
+      },
+      {
+       "color": "#f2ede4",
+       "share": 0.05
+      },
+      {
+       "color": "#f7f3e7",
+       "share": 0.04
+      }
+     ],
+     "button": {
+      "bg": "#17140f",
+      "hsl": {
+       "h": 38,
+       "s": 0.21,
+       "l": 0.07
+      },
+      "fg": "#f2eee4"
+     },
+     "lowContrast": [
+      {
+       "text": "Buka Instagram",
+       "ratio": 4.4,
+       "need": 4.5,
+       "size": 17,
+       "fg": "#f2eee4",
+       "bg": "#2f7d3a"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 5,
+     "inHero": 1,
+     "radius": "pill",
+     "height": 54,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Hitung nilai sampahmu"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 1,
+     "boxRadius": 50,
+     "squareMedia": 0,
+     "roundedMedia": 6,
+     "mediaRadius": 50,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.37
+     },
+     {
+      "type": "img",
+      "ratio": 0.34
+     },
+     {
+      "type": "img",
+      "ratio": 0.34
+     },
+     {
+      "type": "img",
+      "ratio": 0.34
+     }
+    ],
+    "nav": {
+     "links": 6,
+     "fixed": true,
+     "height": 76,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "roundo"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 6952,
+    "margins": {
+     "left": 100,
+     "right": 100
+    },
+    "sections": [
+     {
+      "sel": "section.hero",
+      "tag": "section",
+      "top": 76,
+      "height": 988,
+      "words": 59,
+      "media": 2,
+      "middle": 53,
+      "heading": {
+       "text": "Sampah kampus, jadi saldo.",
+       "size": 70,
+       "tag": "h1"
+      },
+      "left": 100,
+      "right": 0,
+      "textLeft": 100,
+      "textRight": 374,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#cara.cara",
+      "tag": "section",
+      "top": 1064,
+      "height": 966,
+      "words": 121,
+      "media": 1,
+      "middle": 97,
+      "heading": {
+       "text": "Empat langkah, satu putaran.",
+       "size": 50,
+       "tag": "h2"
+      },
+      "left": 100,
+      "right": 240,
+      "textLeft": 100,
+      "textRight": 240,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#hitung.hitung",
+      "tag": "section",
+      "top": 2030,
+      "height": 995,
+      "words": 112,
+      "media": 0,
+      "middle": 133,
+      "heading": {
+       "text": "Hitung dulu, baru berangkat.",
+       "size": 50,
+       "tag": "h2"
+      },
+      "left": 100,
+      "right": 135,
+      "textLeft": 100,
+      "textRight": 173,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#program.program",
+      "tag": "section",
+      "top": 3025,
+      "height": 581,
+      "words": 42,
+      "media": 0,
+      "middle": 42,
+      "heading": {
+       "text": "Menabung sampah dari kantin dan kos",
+       "size": 36,
+       "tag": "p"
+      },
+      "left": 100,
+      "right": 344,
+      "textLeft": 100,
+      "textRight": 344,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#syariah.syariah",
+      "tag": "section",
+      "top": 3606,
+      "height": 798,
+      "words": 78,
+      "media": 1,
+      "middle": 78,
+      "heading": {
+       "text": "Syariah itu cara menimbang, bukan label.",
+       "size": 50,
+       "tag": "h2"
+      },
+      "left": 100,
+      "right": 100,
+      "textLeft": 100,
+      "textRight": 125,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#kunjungi.kunjungi",
+      "tag": "section",
+      "top": 4404,
+      "height": 816,
+      "words": 50,
+      "media": 1,
+      "middle": 446,
+      "heading": {
+       "text": "Bawa sampahmu ke FEBI.",
+       "size": 50,
+       "tag": "h2"
+      },
+      "left": 100,
+      "right": 100,
+      "textLeft": 100,
+      "textRight": 210,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#tanya.faq",
+      "tag": "section",
+      "top": 5220,
+      "height": 673,
+      "words": 132,
+      "media": 0,
+      "middle": 235,
+      "heading": {
+       "text": "Yang sering ditanya.",
+       "size": 50,
+       "tag": "h2"
+      },
+      "left": 100,
+      "right": 206,
+      "textLeft": 100,
+      "textRight": 206,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section.cta",
+      "tag": "section",
+      "top": 5893,
+      "height": 318,
+      "words": 19,
+      "media": 0,
+      "middle": 393,
+      "heading": {
+       "text": "Mulai dari satu kantong.",
+       "size": 50,
+       "tag": "h2"
+      },
+      "left": 100,
+      "right": 103,
+      "textLeft": 100,
+      "textRight": 103,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "footer.ftr",
+      "tag": "footer",
+      "top": 6211,
+      "height": 741,
+      "words": 93,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Halaman",
+       "size": 14,
+       "tag": "h3"
+      },
+      "left": 100,
+      "right": 100,
+      "textLeft": 115,
+      "textRight": 110,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Sampah kampus, jadi saldo.",
+      "size": 70,
+      "top": 293,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 100,
+      "n": 15
+     },
+     {
+      "x": 603,
+      "n": 5
+     },
+     {
+      "x": 524,
+      "n": 2
+     },
+     {
+      "x": 948,
+      "n": 2
+     },
+     {
+      "x": 680,
+      "n": 1
+     },
+     {
+      "x": 1027,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 26,
+    "bodySize": 17,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0.1,
+    "voidBox": {
+     "x": 420,
+     "y": 120,
+     "w": 300,
+     "h": 420
+    }
+   },
+   "app": null,
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 7,
+   "filled": [
+    0.38,
+    0.33,
+    0.41,
+    0.5,
+    0.71,
+    0.61,
+    0.92
+   ],
+   "motion": {
+    "elements": 33,
+    "css": 4,
+    "transitions": 29,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 6886,
+     "screens": 6.7,
+     "words": 580,
+     "img": 10,
+     "video": 0,
+     "canvas": 0,
+     "svg": 5,
+     "sections": 8,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 5,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "plastik.jpg",
+      "setor.jpg",
+      "kaleng.jpg",
+      "setor.jpg",
+      "tempat.jpg"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Sampah kampus, jadi saldo.",
+     "words": 4,
+     "chars": 26,
+     "lines": 1,
+     "size": 49.4,
+     "vw": 6.4,
+     "font": "Roundo",
+     "weight": 600,
+     "tracking": -0.022,
+     "leading": 1.04,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "center",
+     "widthRatio": 0.87,
+     "top": 107,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Sampah kampus, jadi saldo.",
+     "words": 4,
+     "lines": 1,
+     "size": 49.4,
+     "font": "Roundo"
+    },
+    "headings": [
+     {
+      "text": "Sampah kampus, jadi saldo.",
+      "words": 4,
+      "chars": 26,
+      "lines": 1,
+      "size": 49.4,
+      "vw": 6.4,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.87,
+      "top": 107,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Empat langkah, satu putaran.",
+      "words": 4,
+      "chars": 28,
+      "lines": 1,
+      "size": 36.1,
+      "vw": 4.7,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.73,
+      "top": 1219,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Hitung dulu, baru berangkat.",
+      "words": 4,
+      "chars": 28,
+      "lines": 1,
+      "size": 36.1,
+      "vw": 4.7,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.73,
+      "top": 2374,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Rp 0",
+      "words": 2,
+      "chars": 4,
+      "lines": 1,
+      "size": 30.4,
+      "vw": 4,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.03,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.77,
+      "top": 3147,
+      "tag": "strong",
+      "kind": "heading"
+     },
+     {
+      "text": "Menabung sampah dari kantin dan kos , menyedekahkan hasil timbangan , dan mengolah plastik bersih jadi kerajinan bersama tim pengurus.",
+      "words": 20,
+      "chars": 134,
+      "lines": 4,
+      "size": 29.1,
+      "vw": 3.8,
+      "font": "Roundo",
+      "weight": 500,
+      "tracking": -0.022,
+      "leading": 1.34,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.87,
+      "top": 3458,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Syariah itu cara menimbang, bukan label.",
+      "words": 6,
+      "chars": 40,
+      "lines": 2,
+      "size": 36.1,
+      "vw": 4.7,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.8,
+      "top": 3952,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Bawa sampahmu ke FEBI.",
+      "words": 4,
+      "chars": 22,
+      "lines": 2,
+      "size": 36.1,
+      "vw": 4.7,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.41,
+      "top": 4751,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Yang sering ditanya.",
+      "words": 3,
+      "chars": 20,
+      "lines": 1,
+      "size": 36.1,
+      "vw": 4.7,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.73,
+      "top": 5430,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Mulai dari satu kantong.",
+      "words": 4,
+      "chars": 24,
+      "lines": 1,
+      "size": 36.1,
+      "vw": 4.7,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.03,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.6,
+      "top": 5961,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 9,
+     "maxLines": 4,
+     "over2Lines": 0,
+     "statements": 1,
+     "centered": 0,
+     "medianWords": 4,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Roundo",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      14,
+      15,
+      16,
+      17,
+      18,
+      20,
+      22,
+      29,
+      30,
+      36,
+      49
+     ],
+     "sizeCount": 11,
+     "notLoaded": [],
+     "body": {
+      "font": "Roundo",
+      "size": 17,
+      "leading": 1.6,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 7.3
+     },
+     "measureChars": 79,
+     "max": {
+      "size": 49.4,
+      "vw": 6.4,
+      "font": "Roundo",
+      "text": "Sampah kampus, jadi saldo."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.01,
+     "centerShare": 0.01,
+     "smallText": 0
+    },
+    "eyebrows": [
+     {
+      "text": "Rp 54.000/kg",
+      "above": "Rp 0",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 14,
+      "top": 3068
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f2eee4",
+     "bodyBgHsl": {
+      "h": 43,
+      "s": 0.35,
+      "l": 0.92
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#fbf8f0",
+       "top": 2643,
+       "hsl": {
+        "h": 44,
+        "s": 0.58,
+        "l": 0.96
+       }
+      },
+      {
+       "color": "#12301d",
+       "top": 3888,
+       "hsl": {
+        "h": 142,
+        "s": 0.45,
+        "l": 0.13
+       }
+      },
+      {
+       "color": "#17140f",
+       "top": 6201,
+       "hsl": {
+        "h": 38,
+        "s": 0.21,
+        "l": 0.07
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#17140f",
+       "share": 0.43
+      },
+      {
+       "color": "#4a4436",
+       "share": 0.3
+      },
+      {
+       "color": "#f2eee4",
+       "share": 0.14
+      },
+      {
+       "color": "#f2ede4",
+       "share": 0.05
+      },
+      {
+       "color": "#f7f3e7",
+       "share": 0.04
+      }
+     ],
+     "button": {
+      "bg": "#17140f",
+      "hsl": {
+       "h": 38,
+       "s": 0.21,
+       "l": 0.07
+      },
+      "fg": "#f2eee4"
+     },
+     "lowContrast": [
+      {
+       "text": "Buka Instagram",
+       "ratio": 4.4,
+       "need": 4.5,
+       "size": 17,
+       "fg": "#f2eee4",
+       "bg": "#2f7d3a"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 5,
+     "inHero": 1,
+     "radius": "pill",
+     "height": 54,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Hitung nilai sampahmu"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 1,
+     "boxRadius": 50,
+     "squareMedia": 0,
+     "roundedMedia": 6,
+     "mediaRadius": 50,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.31
+     },
+     {
+      "type": "img",
+      "ratio": 0.27
+     },
+     {
+      "type": "img",
+      "ratio": 0.27
+     },
+     {
+      "type": "img",
+      "ratio": 0.27
+     }
+    ],
+    "nav": {
+     "links": 2,
+     "fixed": true,
+     "height": 76,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "roundo"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 6886,
+    "margins": {
+     "left": 50,
+     "right": 63
+    },
+    "sections": [
+     {
+      "sel": "section.hero",
+      "tag": "section",
+      "top": 76,
+      "height": 1055,
+      "words": 59,
+      "media": 2,
+      "middle": 0,
+      "heading": {
+       "text": "Sampah kampus, jadi saldo.",
+       "size": 49,
+       "tag": "h1"
+      },
+      "left": 50,
+      "right": 110,
+      "textLeft": 50,
+      "textRight": 110,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#cara.cara",
+      "tag": "section",
+      "top": 1131,
+      "height": 1155,
+      "words": 121,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Empat langkah, satu putaran.",
+       "size": 36,
+       "tag": "h2"
+      },
+      "left": 50,
+      "right": 174,
+      "textLeft": 50,
+      "textRight": 174,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#hitung.hitung",
+      "tag": "section",
+      "top": 2286,
+      "height": 1083,
+      "words": 112,
+      "media": 0,
+      "middle": 14,
+      "heading": {
+       "text": "Hitung dulu, baru berangkat.",
+       "size": 36,
+       "tag": "h2"
+      },
+      "left": 50,
+      "right": 73,
+      "textLeft": 50,
+      "textRight": 112,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#program.program",
+      "tag": "section",
+      "top": 3370,
+      "height": 518,
+      "words": 42,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Menabung sampah dari kantin dan kos",
+       "size": 29,
+       "tag": "p"
+      },
+      "left": 50,
+      "right": 110,
+      "textLeft": 50,
+      "textRight": 110,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#syariah.syariah",
+      "tag": "section",
+      "top": 3888,
+      "height": 775,
+      "words": 78,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Syariah itu cara menimbang, bukan label.",
+       "size": 36,
+       "tag": "h2"
+      },
+      "left": 50,
+      "right": 63,
+      "textLeft": 50,
+      "textRight": 63,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#kunjungi.kunjungi",
+      "tag": "section",
+      "top": 4663,
+      "height": 679,
+      "words": 50,
+      "media": 1,
+      "middle": 122,
+      "heading": {
+       "text": "Bawa sampahmu ke FEBI.",
+       "size": 36,
+       "tag": "h2"
+      },
+      "left": 50,
+      "right": 50,
+      "textLeft": 50,
+      "textRight": 50,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#tanya.faq",
+      "tag": "section",
+      "top": 5342,
+      "height": 563,
+      "words": 132,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Yang sering ditanya.",
+       "size": 36,
+       "tag": "h2"
+      },
+      "left": 50,
+      "right": 70,
+      "textLeft": 50,
+      "textRight": 70,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section.cta",
+      "tag": "section",
+      "top": 5905,
+      "height": 296,
+      "words": 19,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Mulai dari satu kantong.",
+       "size": 36,
+       "tag": "h2"
+      },
+      "left": 50,
+      "right": 332,
+      "textLeft": 50,
+      "textRight": 332,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "footer.ftr",
+      "tag": "footer",
+      "top": 6201,
+      "height": 685,
+      "words": 93,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Halaman",
+       "size": 14,
+       "tag": "h3"
+      },
+      "left": 50,
+      "right": 50,
+      "textLeft": 50,
+      "textRight": 123,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Sampah kampus, jadi saldo.",
+      "size": 49,
+      "top": 107,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 50,
+      "n": 16
+     },
+     {
+      "x": 66,
+      "n": 5
+     },
+     {
+      "x": 394,
+      "n": 4
+     },
+     {
+      "x": 184,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 26,
+    "bodySize": 17,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": null,
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 10,
+   "filled": [
+    0.57,
+    0.46,
+    0.51,
+    0.74,
+    0.62,
+    0.93,
+    0.44,
+    0.45,
+    0.92,
+    1
+   ],
+   "motion": {
+    "elements": 33,
+    "css": 4,
+    "transitions": 29,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 8252,
+     "screens": 9.8,
+     "words": 579,
+     "img": 10,
+     "video": 0,
+     "canvas": 0,
+     "svg": 5,
+     "sections": 8,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 5,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "plastik.jpg",
+      "setor.jpg",
+      "kaleng.jpg",
+      "setor.jpg",
+      "tempat.jpg"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Sampah kampus, jadi saldo.",
+     "words": 4,
+     "chars": 26,
+     "lines": 2,
+     "size": 40,
+     "vw": 10.3,
+     "font": "Roundo",
+     "weight": 600,
+     "tracking": -0.022,
+     "leading": 1.04,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "center",
+     "widthRatio": 0.9,
+     "top": 104,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Sampah kampus, jadi saldo.",
+     "words": 4,
+     "lines": 2,
+     "size": 40,
+     "font": "Roundo"
+    },
+    "headings": [
+     {
+      "text": "Sampah kampus, jadi saldo.",
+      "words": 4,
+      "chars": 26,
+      "lines": 2,
+      "size": 40,
+      "vw": 10.3,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 104,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Empat langkah, satu putaran.",
+      "words": 4,
+      "chars": 28,
+      "lines": 2,
+      "size": 29.6,
+      "vw": 7.6,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 1168,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Pilah di rumah atau di kos",
+      "words": 6,
+      "chars": 26,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.015,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.83,
+      "top": 1781,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Setor sekretariat BSS, FEBI",
+      "words": 4,
+      "chars": 27,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.015,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.83,
+      "top": 1926,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Timbang di depan nasabah",
+      "words": 4,
+      "chars": 24,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.015,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.83,
+      "top": 2070,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Saldo masuk buku tabungan",
+      "words": 4,
+      "chars": 25,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.015,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.83,
+      "top": 2214,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Hitung dulu, baru berangkat.",
+      "words": 4,
+      "chars": 28,
+      "lines": 2,
+      "size": 29.6,
+      "vw": 7.6,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 2517,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Rp 0",
+      "words": 2,
+      "chars": 4,
+      "lines": 1,
+      "size": 30.4,
+      "vw": 7.8,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.03,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.7,
+      "top": 3507,
+      "tag": "strong",
+      "kind": "heading"
+     },
+     {
+      "text": "Menabung sampah dari kantin dan kos , menyedekahkan hasil timbangan , dan mengolah plastik bersih jadi kerajinan bersama tim pengurus.",
+      "words": 20,
+      "chars": 134,
+      "lines": 6,
+      "size": 24,
+      "vw": 6.2,
+      "font": "Roundo",
+      "weight": 500,
+      "tracking": -0.022,
+      "leading": 1.34,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 3841,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Syariah itu cara menimbang, bukan label.",
+      "words": 6,
+      "chars": 40,
+      "lines": 2,
+      "size": 29.6,
+      "vw": 7.6,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 4371,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Timbangan terbuka",
+      "words": 2,
+      "chars": 17,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.015,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 4781,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Nilai tanpa bunga",
+      "words": 3,
+      "chars": 17,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.015,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 4915,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Akad titip jual",
+      "words": 3,
+      "chars": 15,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.015,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 5048,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Bawa sampahmu ke FEBI.",
+      "words": 4,
+      "chars": 22,
+      "lines": 2,
+      "size": 29.6,
+      "vw": 7.6,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.75,
+      "top": 5396,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Yang sering ditanya.",
+      "words": 3,
+      "chars": 20,
+      "lines": 1,
+      "size": 29.6,
+      "vw": 7.6,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.022,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 6516,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Sampah apa saja yang diterima?",
+      "words": 5,
+      "chars": 30,
+      "lines": 2,
+      "size": 22,
+      "vw": 5.6,
+      "font": "Roundo",
+      "weight": 500,
+      "tracking": -0.015,
+      "leading": 1.3,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 6577,
+      "tag": "summary",
+      "kind": "heading"
+     },
+     {
+      "text": "Harus mahasiswa UINSA?",
+      "words": 3,
+      "chars": 22,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "Roundo",
+      "weight": 500,
+      "tracking": -0.015,
+      "leading": 1.3,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 6688,
+      "tag": "summary",
+      "kind": "heading"
+     },
+     {
+      "text": "Ada minimal setoran?",
+      "words": 3,
+      "chars": 20,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "Roundo",
+      "weight": 500,
+      "tracking": -0.015,
+      "leading": 1.3,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 6730,
+      "tag": "summary",
+      "kind": "heading"
+     },
+     {
+      "text": "Kapan saldo bisa diambil?",
+      "words": 4,
+      "chars": 25,
+      "lines": 1,
+      "size": 22,
+      "vw": 5.6,
+      "font": "Roundo",
+      "weight": 500,
+      "tracking": -0.015,
+      "leading": 1.3,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 6793,
+      "tag": "summary",
+      "kind": "heading"
+     },
+     {
+      "text": "Kenapa disebut bank sampah syariah?",
+      "words": 5,
+      "chars": 35,
+      "lines": 2,
+      "size": 22,
+      "vw": 5.6,
+      "font": "Roundo",
+      "weight": 500,
+      "tracking": -0.015,
+      "leading": 1.3,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 6856,
+      "tag": "summary",
+      "kind": "heading"
+     },
+     {
+      "text": "Mulai dari satu kantong.",
+      "words": 4,
+      "chars": 24,
+      "lines": 1,
+      "size": 29.6,
+      "vw": 7.6,
+      "font": "Roundo",
+      "weight": 600,
+      "tracking": -0.03,
+      "leading": 1.04,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.9,
+      "top": 7089,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 21,
+     "maxLines": 6,
+     "over2Lines": 0,
+     "statements": 1,
+     "centered": 0,
+     "medianWords": 4,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Roundo",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      14,
+      15,
+      16,
+      17,
+      18,
+      20,
+      22,
+      24,
+      30,
+      40
+     ],
+     "sizeCount": 10,
+     "notLoaded": [],
+     "body": {
+      "font": "Roundo",
+      "size": 17,
+      "leading": 1.6,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 7.3
+     },
+     "measureChars": 41,
+     "max": {
+      "size": 40,
+      "vw": 10.3,
+      "font": "Roundo",
+      "text": "Sampah kampus, jadi saldo."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.01,
+     "centerShare": 0.01,
+     "smallText": 0
+    },
+    "eyebrows": [
+     {
+      "text": "Rp 54.000/kg",
+      "above": "Rp 0",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 14,
+      "top": 3437
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#f2eee4",
+     "bodyBgHsl": {
+      "h": 43,
+      "s": 0.35,
+      "l": 0.92
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#e5dfd0",
+       "top": 536,
+       "hsl": {
+        "h": 43,
+        "s": 0.29,
+        "l": 0.86
+       }
+      },
+      {
+       "color": "#fbf8f0",
+       "top": 2880,
+       "hsl": {
+        "h": 44,
+        "s": 0.58,
+        "l": 0.96
+       }
+      },
+      {
+       "color": "#12301d",
+       "top": 4307,
+       "hsl": {
+        "h": 142,
+        "s": 0.45,
+        "l": 0.13
+       }
+      },
+      {
+       "color": "#de9f36",
+       "top": 7033,
+       "hsl": {
+        "h": 38,
+        "s": 0.72,
+        "l": 0.54
+       }
+      },
+      {
+       "color": "#17140f",
+       "top": 7320,
+       "hsl": {
+        "h": 38,
+        "s": 0.21,
+        "l": 0.07
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#17140f",
+       "share": 0.43
+      },
+      {
+       "color": "#4a4436",
+       "share": 0.3
+      },
+      {
+       "color": "#f2eee4",
+       "share": 0.14
+      },
+      {
+       "color": "#f2ede4",
+       "share": 0.05
+      },
+      {
+       "color": "#f7f3e7",
+       "share": 0.04
+      }
+     ],
+     "button": {
+      "bg": "#17140f",
+      "hsl": {
+       "h": 38,
+       "s": 0.21,
+       "l": 0.07
+      },
+      "fg": "#f2eee4"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 5,
+     "inHero": 1,
+     "radius": "pill",
+     "height": 54,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Hitung nilai sampahmu"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 1,
+     "boxRadius": 50,
+     "squareMedia": 0,
+     "roundedMedia": 5,
+     "mediaRadius": 50,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.33
+     },
+     {
+      "type": "img",
+      "ratio": 0.31
+     },
+     {
+      "type": "img",
+      "ratio": 0.31
+     },
+     {
+      "type": "img",
+      "ratio": 0.31
+     }
+    ],
+    "nav": {
+     "links": 2,
+     "fixed": true,
+     "height": 76,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "roundo"
+    ]
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 8252,
+    "margins": {
+     "left": 20,
+     "right": 23
+    },
+    "sections": [
+     {
+      "sel": "section.hero",
+      "tag": "section",
+      "top": 76,
+      "height": 1004,
+      "words": 59,
+      "media": 2,
+      "middle": 0,
+      "heading": {
+       "text": "Sampah kampus, jadi saldo.",
+       "size": 40,
+       "tag": "h1"
+      },
+      "left": 20,
+      "right": 20,
+      "textLeft": 20,
+      "textRight": 20,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#cara.cara",
+      "tag": "section",
+      "top": 1080,
+      "height": 1349,
+      "words": 121,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Empat langkah, satu putaran.",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 20,
+      "right": 22,
+      "textLeft": 20,
+      "textRight": 22,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#hitung.hitung",
+      "tag": "section",
+      "top": 2429,
+      "height": 1324,
+      "words": 112,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Hitung dulu, baru berangkat.",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 20,
+      "right": 43,
+      "textLeft": 20,
+      "textRight": 46,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#program.program",
+      "tag": "section",
+      "top": 3753,
+      "height": 555,
+      "words": 42,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Menabung sampah dari kantin dan kos",
+       "size": 24,
+       "tag": "p"
+      },
+      "left": 20,
+      "right": 23,
+      "textLeft": 20,
+      "textRight": 23,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#syariah.syariah",
+      "tag": "section",
+      "top": 4307,
+      "height": 1001,
+      "words": 78,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Syariah itu cara menimbang, bukan label.",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 20,
+      "right": 24,
+      "textLeft": 20,
+      "textRight": 24,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#kunjungi.kunjungi",
+      "tag": "section",
+      "top": 5308,
+      "height": 1120,
+      "words": 50,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Bawa sampahmu ke FEBI.",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 20,
+      "right": 26,
+      "textLeft": 20,
+      "textRight": 26,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section#tanya.faq",
+      "tag": "section",
+      "top": 6428,
+      "height": 605,
+      "words": 77,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Yang sering ditanya.",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 20,
+      "right": 37,
+      "textLeft": 20,
+      "textRight": 37,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "section.cta",
+      "tag": "section",
+      "top": 7033,
+      "height": 287,
+      "words": 19,
+      "media": 0,
+      "middle": 0,
+      "heading": {
+       "text": "Mulai dari satu kantong.",
+       "size": 30,
+       "tag": "h2"
+      },
+      "left": 20,
+      "right": 54,
+      "textLeft": 20,
+      "textRight": 54,
+      "fullBleed": false,
+      "footer": false,
+      "hero": false,
+      "continues": true,
+      "pinned": false
+     },
+     {
+      "sel": "footer.ftr",
+      "tag": "footer",
+      "top": 7320,
+      "height": 932,
+      "words": 93,
+      "media": 1,
+      "middle": 0,
+      "heading": {
+       "text": "Halaman",
+       "size": 14,
+       "tag": "h3"
+      },
+      "left": 20,
+      "right": 20,
+      "textLeft": 20,
+      "textRight": 23,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Sampah kampus, jadi saldo.",
+      "size": 40,
+      "top": 104,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 20,
+      "n": 20
+     },
+     {
+      "x": 31,
+      "n": 5
+     }
+    ],
+    "leftBlocks": 25,
+    "bodySize": 17,
+    "stage": false,
+    "explains": true,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": null,
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "FAIL",
+   "id": "headline-lines",
+   "width": 1440,
+   "message": "1 headline(s) wrap past two lines at 1440px: \"Sampah kampus, jadi saldo.\" → 3 lines (4 words, 70.2px)",
+   "fix": "Cut words first (a headline is a title, not a sentence). Then give it a wider measure. Lower the size only as a last resort and never below the scale you chose. A real statement paragraph belongs in a <p> or <blockquote> at 36px or less."
+  },
+  {
+   "level": "FAIL",
+   "id": "eyebrow",
+   "width": 1440,
+   "message": "1 eyebrow/kicker label(s) above headings: \"Tembaga\" above \"Rp 0\"",
+   "fix": "Delete them. If the label carried real information, fold it into the headline or the supporting sentence.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "palette-cream",
+   "width": 1440,
+   "message": "Yellow-cream background (page background #f2eee4, section #fbf8f0, text #f2eee4).",
+   "fix": "Use the drawn palette. If you want warmth, take a low-chroma stone or bone, not a yellow cream.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "contrast",
+   "width": 1440,
+   "message": "Low-contrast text: \"Buka Instagram\" 4.4:1 needs 4.5:1",
+   "fix": "Darken or lighten the text colour.",
+   "alsoAt": [
+    768
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "size-count",
+   "width": 1440,
+   "message": "12 different font sizes (13, 14, 15, 16, 17, 18, 20, 22, 36, 42, 50, 70).",
+   "fix": "A page needs about five: display, heading, lead, body, small.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "no-footage",
+   "width": 1440,
+   "message": "No video anywhere on the page.",
+   "fix": "Look for one honest clip with scripts/assets.mjs --video (the place, the material, the process) and use it as a muted loop with a poster frame. Defend its absence only if no clip fits the subject."
+  },
+  {
+   "level": "FAIL",
+   "id": "empty-screens",
+   "width": 1440,
+   "message": "2 of 8 desktop screens are almost empty ground (under 20% of the screen holds text, a picture or a colour field): screens 4, 6.",
+   "fix": "An empty screen is a rest only once per page. Elsewhere it means the section is underbuilt: set its content larger, give it the full information, put it on a colour field, or cut it."
+  },
+  {
+   "level": "WARN",
+   "id": "statement-length",
+   "width": 768,
+   "message": "1 large-set statement(s) run past 3 lines at 768px: \"Menabung sampah dari kantin dan kos , me…\" → 4 lines at 29.1px",
+   "fix": "A statement set large is about 30 words. Cut it, or set the rest as ordinary body text.",
+   "alsoAt": [
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "lopsided",
+   "width": 768,
+   "message": "A section keeps its content on one side and leaves 332px of the width empty: \"Mulai dari satu kantong.\".",
+   "fix": "Fill the other side with what the section has (its picture, a second column, the figure), or defend the void in one sentence."
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "C:\\Users\\Lenovo\\bss-uinsa\\inspect2\\desktop-fold.jpg",
+   "pages": [
+    "C:\\Users\\Lenovo\\bss-uinsa\\inspect2\\desktop-page-01.jpg",
+    "C:\\Users\\Lenovo\\bss-uinsa\\inspect2\\desktop-page-02.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "C:\\Users\\Lenovo\\bss-uinsa\\inspect2\\tablet-fold.jpg",
+   "pages": [
+    "C:\\Users\\Lenovo\\bss-uinsa\\inspect2\\tablet-page-01.jpg",
+    "C:\\Users\\Lenovo\\bss-uinsa\\inspect2\\tablet-page-02.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "C:\\Users\\Lenovo\\bss-uinsa\\inspect2\\mobile-fold.jpg",
+   "pages": [
+    "C:\\Users\\Lenovo\\bss-uinsa\\inspect2\\mobile-page-01.jpg",
+    "C:\\Users\\Lenovo\\bss-uinsa\\inspect2\\mobile-page-02.jpg"
+   ],
+   "film": []
+  }
+ ]
+}
