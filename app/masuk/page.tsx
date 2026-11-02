@@ -54,14 +54,14 @@ export default function MasukPage() {
 
   return (
     <AuthShell
-      judul="Masuk"
-      sub="Pakai akun nasabah atau petugas. Semua akun di sini masih demo, jadi tidak ada data sungguhan yang tersimpan."
-      catatan="Mode demo — akun contoh tersedia di formulir ini. Sesi hanya tersimpan di browser kamu."
+      judul="Masuk Akun"
+      sub="Silakan masuk sesuai peran Anda (Nasabah, Petugas Jaga, Bendahara, atau Admin) sesuai SRS Bank Sampah Syariah UINSA."
+      catatan="Mode demo — akun contoh tersedia di formulir ini. Sesi tersimpan di browser Anda."
     >
       <form className="auth__fields" onSubmit={onSubmit} noValidate>
         <div className="auth__field">
           <label className="auth__label" htmlFor="email">
-            Email
+            Alamat Email
           </label>
           <input
             className="auth__input"
@@ -79,7 +79,7 @@ export default function MasukPage() {
 
         <div className="auth__field">
           <label className="auth__label" htmlFor="sandi">
-            Kata sandi
+            Kata Sandi
           </label>
           <span className="auth__peekwrap">
             <input
@@ -111,16 +111,16 @@ export default function MasukPage() {
         ) : null}
 
         <button className="auth__btn" type="submit" disabled={kirim}>
-          {kirim ? "Memeriksa…" : "Masuk"}
+          {kirim ? "Memeriksa kredensial…" : "Masuk"}
         </button>
       </form>
 
       <div className="auth__demo">
-        <p className="auth__demotitle">Akun hardcode</p>
-        {AKUN_DEMO.map((akun) => (
+        <p className="auth__demotitle">Akun demo siap pakai (sesuai Use Case)</p>
+        {AKUN_DEMO.filter((a) => a.role !== "admin").map((akun) => (
           <div className="auth__demorow" key={akun.email}>
             <div className="auth__demoinfo">
-              <b>{akun.role === "admin" ? "Petugas" : "Nasabah"}</b>
+              <b>{akun.jabatan || akun.role.toUpperCase()}</b>
               <code>{akun.email}</code>
               <code>{akun.sandi}</code>
             </div>
@@ -128,6 +128,7 @@ export default function MasukPage() {
               type="button"
               className="auth__fill"
               onClick={() => isiDemo(akun)}
+              title={`Isi otomatis ${akun.nama}`}
             >
               Isi
             </button>
@@ -136,7 +137,7 @@ export default function MasukPage() {
       </div>
 
       <p className="auth__alt">
-        Belum punya akun? <a href="/daftar">Daftar jadi nasabah</a>
+        Belum punya akun? <a href="/daftar">Daftar jadi nasabah baru</a>
       </p>
     </AuthShell>
   );

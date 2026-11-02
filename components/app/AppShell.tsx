@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { keluar, sesiSekarang, type Sesi } from "../../lib/auth";
 
-type Role = "nasabah" | "admin";
+type Role = "nasabah" | "petugas" | "bendahara" | "admin";
 
 const ICONS: Record<string, ReactNode> = {
   home: (
@@ -31,6 +31,12 @@ const ICONS: Record<string, ReactNode> = {
       <circle cx="3.5" cy="14.5" r="1" fill="currentColor" />
     </svg>
   ),
+  calc: (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <rect x="3.5" y="2.5" width="13" height="15" rx="2" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M6.5 6.5h7M6.5 10.5h2M11.5 10.5h2M6.5 13.5h2M11.5 13.5h2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  ),
   user: (
     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <circle cx="10" cy="7" r="3.1" stroke="currentColor" strokeWidth="1.4" />
@@ -53,54 +59,129 @@ const ICONS: Record<string, ReactNode> = {
       />
     </svg>
   ),
+  flow: (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M3 13.5h10.5a3.5 3.5 0 0 0 0-7H6"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M5.5 4 3 6.5l2.5 2.5M14.5 11l2.5 2.5-2.5 2.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  report: (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M4.5 3.5h7l4 4V16a1.5 1.5 0 0 1-1.5 1.5h-9.5A1.5 1.5 0 0 1 3 16V5a1.5 1.5 0 0 1 1.5-1.5Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path d="M11.5 3.5V7.5H15.5M6.5 10.5h7M6.5 13.5h5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  ),
+  price: (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M3.5 10.5V4.5h6l7 7-6 6-7-7Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="7" cy="7" r="1.2" fill="currentColor" />
+    </svg>
+  ),
 };
 
-const NAV: Record<Role, { href: string; label: string; icon: string }[]> = {
-  nasabah: [
-    { href: "/nasabah", label: "Ringkasan", icon: "home" },
-    { href: "/nasabah/riwayat", label: "Riwayat", icon: "list" },
-    { href: "/nasabah/profil", label: "Profil", icon: "user" },
-  ],
-  admin: [
-    { href: "/admin", label: "Ringkasan", icon: "home" },
-    { href: "/admin/setoran", label: "Setoran", icon: "scale" },
-    { href: "/admin/nasabah", label: "Nasabah", icon: "user" },
-  ],
-};
+const NAV_NASABAH = [
+  { href: "/nasabah", label: "Ringkasan", icon: "home" },
+  { href: "/nasabah/riwayat", label: "Riwayat Transaksi", icon: "list" },
+  { href: "/nasabah/kalkulator", label: "Kalkulator Pintar", icon: "calc" },
+  { href: "/nasabah/profil", label: "Buku Tabungan", icon: "user" },
+];
 
-const WHO: Record<Role, { name: string; meta: string }> = {
-  nasabah: { name: "Aisyah Rahmawati", meta: "BSS-0142" },
-  admin: { name: "Petugas sekretariat", meta: "FEBI UINSA" },
-};
+const NAV_PETUGAS = [
+  { href: "/admin", label: "Riwayat Pencatatan", icon: "list" },
+  { href: "/admin/setoran", label: "Tambah Pencatatan", icon: "scale" },
+];
+
+const NAV_BENDAHARA = [
+  { href: "/admin", label: "Ringkasan Keuangan", icon: "home" },
+  { href: "/admin/pengepul", label: "Alur Pengepul & Bagi Hasil", icon: "flow" },
+  { href: "/admin/rekap", label: "Rekap & Ekspor CSV", icon: "report" },
+  { href: "/admin/nasabah", label: "Buku Tabungan Nasabah", icon: "user" },
+  { href: "/admin/pricelist", label: "Daftar Harga (Pricelist)", icon: "price" },
+];
 
 export default function AppShell({
   role,
   children,
 }: {
-  role: Role;
+  role: "nasabah" | "admin";
   children: ReactNode;
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const items = NAV[role];
   const [sesi, setSesi] = useState<Sesi | null>(null);
 
   useEffect(() => {
     setSesi(sesiSekarang());
   }, []);
 
-  const who =
-    sesi && sesi.role === role
-      ? { name: sesi.nama, meta: sesi.nomor }
-      : WHO[role];
-  const initial = who.name.charAt(0);
+  const roleAktif = sesi?.role || (role === "nasabah" ? "nasabah" : "bendahara");
+
+  const items =
+    roleAktif === "nasabah"
+      ? NAV_NASABAH
+      : roleAktif === "petugas"
+      ? NAV_PETUGAS
+      : NAV_BENDAHARA;
+
+  const namaUser =
+    sesi?.nama ||
+    (roleAktif === "nasabah"
+      ? "Aisyah Rahmawati"
+      : roleAktif === "petugas"
+      ? "Rizal Fauzi"
+      : "Siti Fatimah, S.E.");
+
+  const subUser =
+    sesi?.jabatan ||
+    sesi?.nomor ||
+    (roleAktif === "nasabah"
+      ? "BSS-0142"
+      : roleAktif === "petugas"
+      ? "Petugas Jaga Pos"
+      : "Bendahara Keuangan");
+
+  const initial = namaUser.charAt(0);
+
+  const roleLabel =
+    roleAktif === "petugas"
+      ? "Ruang Petugas Jaga"
+      : roleAktif === "bendahara" || roleAktif === "admin"
+      ? "Ruang Bendahara Keuangan"
+      : "Ruang Nasabah";
 
   const onKeluar = () => {
     keluar();
     router.replace("/masuk");
   };
 
-  const isActive = (href: string) => pathname === href;
+  const isActive = (href: string) => {
+    if (href === "/admin" || href === "/nasabah") {
+      return pathname === href;
+    }
+    return pathname.startsWith(href);
+  };
 
   return (
     <div className="dsh">
@@ -112,9 +193,7 @@ export default function AppShell({
           </span>
         </Link>
 
-        <p className="dsh__role">
-          {role === "nasabah" ? "Ruang nasabah" : "Ruang petugas"}
-        </p>
+        <p className="dsh__role">{roleLabel}</p>
 
         <nav className="dsh__nav" aria-label="Menu utama">
           {items.map((it) => (
@@ -136,68 +215,38 @@ export default function AppShell({
             {initial}
           </span>
           <span className="dsh__mewho">
-            <strong>{who.name}</strong>
-            <em>{who.meta}</em>
+            <strong>{namaUser}</strong>
+            <em>{subUser}</em>
           </span>
         </div>
 
-        <div className="dsh__footact">
-          <button
-            type="button"
-            className="dsh__logout"
-            onClick={onKeluar}
-            aria-label="Keluar dari akun ini"
+        <button
+          type="button"
+          onClick={onKeluar}
+          className="dsh__logoutbtn"
+          aria-label="Keluar dari akun"
+        >
+          <svg
+            viewBox="0 0 20 20"
+            fill="none"
+            aria-hidden="true"
+            className="dsh__logoutico"
+            width={15}
+            height={15}
           >
-            Keluar
-          </button>
-          <span className="dsh__footsep" aria-hidden="true">
-            ·
-          </span>
-          <Link className="dsh__exit" href="/">
-            Situs
-          </Link>
-        </div>
+            <path
+              d="M7.5 17.5h-3a2 2 0 0 1-2-2V4.5a2 2 0 0 1 2-2h3M13.5 14.5l4-4.5-4-4.5M17.5 10H7.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Keluar
+        </button>
       </aside>
 
-      <div className="dsh__body">
-        <header className="dsh__top">
-          <Link className="dsh__topbrand" href="/">
-            <img src="/logo-96.png" alt="" width={28} height={28} />
-            <span>BSS UINSA</span>
-          </Link>
-          <span className="dsh__topwho">
-            <span className="dsh__avatar dsh__avatar--sm" aria-hidden="true">
-              {initial}
-            </span>
-            {who.meta}
-            <button
-              type="button"
-              className="dsh__toplogout"
-              onClick={onKeluar}
-              aria-label="Keluar"
-            >
-              Keluar
-            </button>
-          </span>
-        </header>
-
-        <main className="dsh__main">{children}</main>
-      </div>
-
-      <nav className="dsh__bottom" aria-label="Menu utama">
-        {items.map((it) => (
-          <Link
-            key={it.href}
-            href={it.href}
-            className="dsh__bottomlink"
-            data-active={isActive(it.href)}
-            aria-current={isActive(it.href) ? "page" : undefined}
-          >
-            <span className="dsh__ico">{ICONS[it.icon]}</span>
-            {it.label}
-          </Link>
-        ))}
-      </nav>
+      <main className="dsh__main">{children}</main>
     </div>
   );
 }

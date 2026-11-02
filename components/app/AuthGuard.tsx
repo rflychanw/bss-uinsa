@@ -5,9 +5,9 @@ import { useEffect, useState, type ReactNode } from "react";
 import { beranda, sesiSekarang, type Role } from "../../lib/auth";
 
 /**
- * Penjaga halaman dashboard. Karena autentikasi demo berjalan di klien
- * (localStorage), pengecekan terjadi setelah mount — jadi jangan pernah
- * mengandalkan ini untuk melindungi data sungguhan.
+ * Penjaga rute dashboard.
+ * - Untuk halaman nasabah: hanya role nasabah yang diizinkan.
+ * - Untuk halaman admin/pengelola: role admin, petugas, dan bendahara diizinkan.
  */
 export default function AuthGuard({
   role,
@@ -29,7 +29,12 @@ export default function AuthGuard({
       return;
     }
 
-    if (sesi.role !== role) {
+    const diizinkan =
+      role === "nasabah"
+        ? sesi.role === "nasabah"
+        : ["admin", "petugas", "bendahara"].includes(sesi.role);
+
+    if (!diizinkan) {
       router.replace(beranda(sesi.role));
       return;
     }

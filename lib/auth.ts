@@ -1,15 +1,17 @@
 /**
  * Autentikasi demo BSS UINSA.
  *
- * Akun di-hardcode di berkas ini (lihat AKUN_DEMO) — tidak ada backend, tidak
- * ada request jaringan. Sesi disimpan di localStorage perangkat, jadi begitu
- * tab ditutup lalu dibuka lagi statusnya tetap.
+ * Mengakomodasi 4 Peran Pengguna sesuai SRS v1.1:
+ * 1. nasabah   - Mengakses /nasabah (informasi saldo, kalkulator, riwayat transaksi)
+ * 2. petugas   - Mengakses /admin (pencatatan setoran & kalkulator pintar)
+ * 3. bendahara - Mengakses /admin (rekapitulasi keuangan, alur penjualan pengepul, ekspor)
+ * 4. admin     - Mengakses /admin (pemantauan menyeluruh, data master, audit trail)
  *
- * Untuk produksi: ganti masuk()/daftar() dengan pemanggilan API, dan pindahkan
- * verifikasi kata sandi ke server (jangan pernah percaya klien).
+ * Akun di-hardcode di berkas ini (lihat AKUN_DEMO).
+ * Sesi disimpan di localStorage perangkat browser.
  */
 
-export type Role = "nasabah" | "admin";
+export type Role = "nasabah" | "petugas" | "bendahara" | "admin";
 
 export type Akun = {
   email: string;
@@ -17,6 +19,7 @@ export type Akun = {
   role: Role;
   nama: string;
   nomor: string;
+  jabatan?: string;
 };
 
 export type Sesi = {
@@ -24,9 +27,10 @@ export type Sesi = {
   nama: string;
   nomor: string;
   role: Role;
+  jabatan?: string;
 };
 
-/** Akun demo yang selalu tersedia. */
+/** Akun demo yang selalu tersedia mengacu pada SRS v1.1. */
 export const AKUN_DEMO: Akun[] = [
   {
     email: "nasabah@bss.test",
@@ -34,13 +38,31 @@ export const AKUN_DEMO: Akun[] = [
     role: "nasabah",
     nama: "Aisyah Rahmawati",
     nomor: "BSS-0142",
+    jabatan: "Nasabah (Mahasiswa FEBI)",
+  },
+  {
+    email: "petugas@bss.test",
+    sandi: "petugas123",
+    role: "petugas",
+    nama: "Ahmad Fauzi",
+    nomor: "PETUGAS-01",
+    jabatan: "Petugas Jaga Piket BSS",
+  },
+  {
+    email: "bendahara@bss.test",
+    sandi: "bendahara123",
+    role: "bendahara",
+    nama: "Siti Nurhaliza",
+    nomor: "BENDAHARA-01",
+    jabatan: "Bendahara Pengelola BSS",
   },
   {
     email: "admin@bss.test",
     sandi: "admin123",
     role: "admin",
-    nama: "Petugas sekretariat",
-    nomor: "FEBI UINSA",
+    nama: "Petugas Sekretariat",
+    nomor: "ADMIN-BSS",
+    jabatan: "Administrator Sistem BSS",
   },
 ];
 
@@ -111,6 +133,7 @@ export function masuk(
     nama: akun.nama,
     nomor: akun.nomor,
     role: akun.role,
+    jabatan: akun.jabatan,
   };
   tulis(SESI_KEY, sesi);
   return { ok: true, sesi };
@@ -134,10 +157,17 @@ export function daftar(input: {
   }
 
   const nomor = nomorNasabahBaru();
-  const akun: Akun = { email, sandi: input.sandi, role: "nasabah", nama, nomor };
+  const akun: Akun = {
+    email,
+    sandi: input.sandi,
+    role: "nasabah",
+    nama,
+    nomor,
+    jabatan: "Nasabah Baru",
+  };
   tulis(AKUN_KEY, [...akunLokal(), akun]);
 
-  const sesi: Sesi = { email, nama, nomor, role: "nasabah" };
+  const sesi: Sesi = { email, nama, nomor, role: "nasabah", jabatan: "Nasabah Baru" };
   tulis(SESI_KEY, sesi);
   return { ok: true, sesi, nomor };
 }
@@ -145,7 +175,8 @@ export function daftar(input: {
 export function sesiSekarang(): Sesi | null {
   const sesi = baca<Sesi>(SESI_KEY);
   if (!sesi || typeof sesi !== "object") return null;
-  if (sesi.role !== "nasabah" && sesi.role !== "admin") return null;
+  const roles: Role[] = ["nasabah", "petugas", "bendahara", "admin"];
+  if (!roles.includes(sesi.role)) return null;
   if (!sesi.nama) return null;
   return sesi;
 }
@@ -160,4 +191,4 @@ export function keluar() {
 }
 
 /** Halaman tujuan bawaan untuk sebuah peran. */
-export const beranda = (role: Role) => (role === "admin" ? "/admin" : "/nasabah");
+export const beranda = (role: Role) => (role === "nasabah" ? "/nasabah" : "/admin");
