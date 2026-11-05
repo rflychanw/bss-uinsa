@@ -1,15 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthShell from "../../components/app/AuthShell";
 import { beranda, daftar, sesiSekarang } from "../../lib/auth";
 
-type Sukses = { nama: string; email: string; nomor: string };
+type Sukses = {
+  nama: string;
+  email: string;
+  nomor: string;
+  metode: MetodeBayar;
+  namaFileBukti?: string;
+  buktiUrl?: string;
+};
 type MetodeBayar = "qris" | "va" | "tunai";
 
 export default function DaftarPage() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [tahap, setTahap] = useState<"formulir" | "pembayaran" | "berhasil">("formulir");
   const [nama, setNama] = useState("");
   const [email, setEmail] = useState("");
@@ -18,6 +26,10 @@ export default function DaftarPage() {
   const [lihat, setLihat] = useState(false);
   const [pesan, setPesan] = useState("");
   const [metode, setMetode] = useState<MetodeBayar>("qris");
+  const [fileBukti, setFileBukti] = useState<File | null>(null);
+  const [buktiUrl, setBuktiUrl] = useState<string>("");
+  const [isDragging, setIsDragging] = useState(false);
+  const [pesanBayar, setPesanBayar] = useState("");
   const [sukses, setSukses] = useState<Sukses | null>(null);
 
   useEffect(() => {
@@ -49,24 +61,73 @@ export default function DaftarPage() {
     setTahap("pembayaran");
   };
 
+  const prosesFile = (file: File) => {
+    setPesanBayar("");
+    if (file.size > 1 * 1024 * 1024) {
+      setPesanBayar("Ukuran gambar bukti maksimal 1MB.");
+      return;
+    }
+    const tipeValid = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+    if (!file.type.startsWith("image/") || !tipeValid.includes(file.type)) {
+      setPesanBayar("Format berkas harus berupa gambar (JPG, PNG, atau WEBP).");
+      return;
+    }
+
+    setFileBukti(file);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setBuktiUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const hapusFile = () => {
+    setFileBukti(null);
+    setBuktiUrl("");
+    setPesanBayar("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const onKonfirmasiPembayaran = () => {
-    const hasil = daftar({ nama, email, sandi });
+    setPesanBayar("");
+
+    if (metode !== "tunai" && !fileBukti) {
+      setPesanBayar("Harap unggah bukti pembayaran / transfer sebelum melanjutkan.");
+      return;
+    }
+
+    const hasil = daftar({
+      nama,
+      email,
+      sandi,
+      buktiBayar: buktiUrl || (fileBukti ? fileBukti.name : undefined),
+      namaFileBukti: fileBukti?.name,
+      metodeBayar: metode,
+    });
     if (!hasil.ok) {
       setPesan(hasil.pesan);
       setTahap("formulir");
       return;
     }
 
-    setSukses({
-      nama: hasil.sesi.nama,
-      email: hasil.sesi.email,
-      nomor: hasil.nomor,
-    });
-    setTahap("berhasil");
+    router.push(
+      `/masuk?verifikasi=sukses&nomor=${encodeURIComponent(
+        hasil.nomor
+      )}&email=${encodeURIComponent(hasil.email)}`
+    );
   };
 
   /* ------------------------------------------------ TAHAP 3: SELESAI / AKUN DIAKTIFKAN */
   if (tahap === "berhasil" && sukses) {
+    const labelMetode =
+      sukses.metode === "qris"
+        ? "QRIS BSS UINSA"
+        : sukses.metode === "va"
+        ? "Virtual Account BSI"
+        : "Tunai di Meja Timbang";
+
     return (
       <AuthShell
         judul="Akun Nasabah Aktif"
@@ -89,7 +150,7 @@ export default function DaftarPage() {
               gap: "8px",
             }}
           >
-            ✓ Pembayaran Berlangganan Rp 10.000 Lunas (Sekali Bayar)
+            ✓ Pembayaran Berlangganan Rp 10.000 Berhasil Diverifikasi
           </div>
 
           <dl className="auth__donelist">
@@ -108,10 +169,63 @@ export default function DaftarPage() {
               <dd>{sukses.email}</dd>
             </div>
             <div>
+              <dt>Metode Bayar</dt>
+              <dd>{labelMetode}</dd>
+            </div>
+            <div>
+              <dt>Bukti Bayar</dt>
+              <dd>
+                {sukses.namaFileBukti ? (
+                  <span style={{ color: "#25632d", fontWeight: 600 }}>
+                    ✓ {sukses.namaFileBukti}
+                  </span>
+                ) : (
+                  <span style={{ color: "#736b5d" }}>Bayar Tunai di Meja</span>
+                )}
+              </dd>
+            </div>
+            <div>
               <dt>Status Keanggotaan</dt>
               <dd>Nasabah Wadiah (Aktif Seumur Hidup)</dd>
             </div>
           </dl>
+
+          {sukses.buktiUrl && (
+            <div
+              style={{
+                background: "#fbfaf7",
+                border: "1px solid #e0ddd3",
+                borderRadius: "6px",
+                padding: "12px",
+                textAlign: "center",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "11px",
+                  color: "#736b5d",
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: 600,
+                }}
+              >
+                Pratinjau Bukti Pembayaran:
+              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={sukses.buktiUrl}
+                alt="Bukti pembayaran"
+                style={{
+                  maxHeight: "140px",
+                  maxWidth: "100%",
+                  borderRadius: "4px",
+                  border: "1px solid #dcd7cc",
+                  objectFit: "contain",
+                }}
+              />
+            </div>
+          )}
+
           <a className="auth__btn" href="/nasabah">
             Buka Ruang Nasabah
           </a>
@@ -340,6 +454,264 @@ export default function DaftarPage() {
             </div>
           )}
 
+          {/* Komponen Unggah Bukti Pembayaran */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+              }}
+            >
+              <label
+                className="auth__label"
+                htmlFor="input-bukti-bayar"
+                style={{ cursor: "pointer", marginBottom: 0 }}
+              >
+                Unggah Bukti Pembayaran{" "}
+                {metode !== "tunai" ? (
+                  <span style={{ color: "#a31c1c" }}>*</span>
+                ) : (
+                  <span
+                    style={{
+                      color: "#7a7469",
+                      fontWeight: 400,
+                      fontSize: "12px",
+                    }}
+                  >
+                    (Opsional untuk Tunai)
+                  </span>
+                )}
+              </label>
+              <span style={{ fontSize: "11px", color: "#7a7469" }}>
+                JPG, PNG, WEBP (Maks. 1MB)
+              </span>
+            </div>
+
+            <input
+              id="input-bukti-bayar"
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                if (e.target.files?.[0]) {
+                  prosesFile(e.target.files[0]);
+                }
+              }}
+            />
+
+            {!fileBukti ? (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  if (e.dataTransfer.files?.[0]) {
+                    prosesFile(e.dataTransfer.files[0]);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    fileInputRef.current?.click();
+                  }
+                }}
+                style={{
+                  border: `2px dashed ${
+                    isDragging ? "#2f7d3a" : pesanBayar ? "#c74949" : "#d8d3c5"
+                  }`,
+                  background: isDragging ? "#f4faf4" : "#fbfaf7",
+                  borderRadius: "8px",
+                  padding: "18px 16px",
+                  textAlign: "center",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  outline: "none",
+                }}
+              >
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    background: "#edeae1",
+                    marginBottom: "8px",
+                    color: "#544e43",
+                  }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                </div>
+                <div
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#221f19",
+                  }}
+                >
+                  Klik atau seret struk transfer ke sini
+                </div>
+                <p
+                  style={{
+                    fontSize: "11px",
+                    color: "#736b5d",
+                    margin: "4px 0 0 0",
+                  }}
+                >
+                  {metode === "tunai"
+                    ? "Lampirkan tanda terima / titipan jika ada"
+                    : "Wajib lampirkan screenshot struk transfer berhasil"}
+                </p>
+              </div>
+            ) : (
+              <div
+                style={{
+                  border: "1px solid #c2e2c5",
+                  background: "#f4faf4",
+                  borderRadius: "8px",
+                  padding: "10px 14px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "12px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    minWidth: 0,
+                  }}
+                >
+                  {buktiUrl && fileBukti.type.startsWith("image/") ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={buktiUrl}
+                      alt="Thumbnail bukti"
+                      style={{
+                        width: "44px",
+                        height: "44px",
+                        objectFit: "cover",
+                        borderRadius: "4px",
+                        border: "1px solid #c2e2c5",
+                        flexShrink: 0,
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: "44px",
+                        height: "44px",
+                        borderRadius: "4px",
+                        background: "#e2efe4",
+                        color: "#25632d",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 700,
+                        fontSize: "11px",
+                        flexShrink: 0,
+                      }}
+                    >
+                      FILE
+                    </div>
+                  )}
+                  <div style={{ minWidth: 0 }}>
+                    <strong
+                      style={{
+                        display: "block",
+                        fontSize: "13px",
+                        color: "#221f19",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                      title={fileBukti.name}
+                    >
+                      {fileBukti.name}
+                    </strong>
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        color: "#25632d",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {(fileBukti.size / 1024).toFixed(0)} KB • ✓ Bukti terpasang
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{
+                      background: "#fff",
+                      border: "1px solid #dcd7cc",
+                      borderRadius: "4px",
+                      padding: "4px 8px",
+                      fontSize: "11px",
+                      color: "#444",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Ganti
+                  </button>
+                  <button
+                    type="button"
+                    onClick={hapusFile}
+                    style={{
+                      background: "transparent",
+                      border: "1px solid transparent",
+                      borderRadius: "4px",
+                      padding: "4px 6px",
+                      fontSize: "11px",
+                      color: "#a31c1c",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Hapus
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {pesanBayar && (
+              <p
+                className="auth__err"
+                role="alert"
+                style={{ margin: "2px 0 0 0" }}
+              >
+                {pesanBayar}
+              </p>
+            )}
+          </div>
+
           {/* Tombol Aksi Pembayaran */}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <button
@@ -347,8 +719,19 @@ export default function DaftarPage() {
               className="auth__btn"
               onClick={onKonfirmasiPembayaran}
             >
-              Saya Sudah Bayar (Aktivasi Akun Rp 10.000)
+              Kirim Bukti & Selesaikan Pendaftaran
             </button>
+            <p
+              style={{
+                fontSize: "12px",
+                color: "#736b5d",
+                textAlign: "center",
+                margin: "-2px 0 2px 0",
+                lineHeight: 1.4,
+              }}
+            >
+              Setelah dikirim, Anda akan dialihkan ke halaman login dan akun menunggu verifikasi admin.
+            </p>
             <button
               type="button"
               onClick={() => setTahap("formulir")}
@@ -389,7 +772,7 @@ export default function DaftarPage() {
             lineHeight: 1.45,
           }}
         >
-          💳 <strong>Biaya Berlangganan:</strong> Rp 10.000 (sekali bayar seumur hidup untuk administrasi buku tabungan & rekening wadiah).
+          💳 <strong>Biaya Berlangganan:</strong> Rp 10.000 (sekali bayar seumur hidup untuk administrasi buku tabungan & rekening wadiah). Bukti transfer/pembayaran diunggah pada tahap selanjutnya.
         </div>
 
         <div className="auth__field">

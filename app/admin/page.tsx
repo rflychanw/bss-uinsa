@@ -178,47 +178,26 @@ export default function RingkasanPengelolaPage() {
               <span className="dsh__dot" aria-hidden="true">•</span>
               <span className="dsh__meta">Pos Timbangan BSS FEBI UINSA</span>
             </div>
-            <h1 className="dsh__h1" style={{ wordBreak: "break-word" }}>Dasbor Pencatatan Petugas Jaga</h1>
+            <h1 className="dsh__h1" style={{ wordBreak: "break-word" }}>Riwayat Pencatatan Setoran</h1>
             <p className="dsh__sub">
-              Input penimbangan sampah di meja timbang serta pantau riwayat pencatatan lengkap dengan filter waktu.
+              Daftar seluruh riwayat penimbangan sampah pos meja timbang dengan filter hari, bulan, dan tahun.
             </p>
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", maxWidth: "100%" }}>
-            <button
-              type="button"
-              onClick={() => setBukaFormCatat(!bukaFormCatat)}
-              className="dsh__filterbtn"
-              style={{
-                background: bukaFormCatat ? "#2e7d32" : "#ffffff",
-                color: bukaFormCatat ? "#ffffff" : "#17140f",
-                borderColor: bukaFormCatat ? "#2e7d32" : "#ccc",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                fontWeight: 600,
-                cursor: "pointer",
-                padding: "8px 12px",
-                fontSize: "13px",
-              }}
-            >
-              <span>{bukaFormCatat ? "− Sembunyikan Form" : "+ Tambah Pencatatan"}</span>
-            </button>
             <Link
               href="/admin/setoran"
-              className="dsh__filterbtn"
+              className="dsh__btn"
               style={{
                 textDecoration: "none",
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "6px",
                 fontWeight: 600,
-                color: "#158ab7",
-                borderColor: "#158ab7",
-                padding: "8px 12px",
                 fontSize: "13px",
+                padding: "8px 14px",
               }}
             >
-              Layar Penuh Meja Timbang →
+              + Tambah Pencatatan
             </Link>
           </div>
         </header>
@@ -229,55 +208,7 @@ export default function RingkasanPengelolaPage() {
           </div>
         )}
 
-        {/* 1. SEKSI TAMBAH PENCATATAN (MEJA TIMBANG) */}
-        {bukaFormCatat && (
-          <section className="dsh__card" aria-label="Tambah Pencatatan Setoran" style={{ marginBottom: "24px" }}>
-            <div className="dsh__cardhead">
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-                  <span className="dsh__tagbadge">Meja Timbang Aktif</span>
-                </div>
-                <h2 className="dsh__h2">Tambah Pencatatan (Meja Timbang)</h2>
-                <p className="dsh__carddesc" style={{ marginBottom: 0 }}>
-                  Pilih nasabah yang menyetor sampah di meja timbang, tentukan jenis sampah & berat timbangannya.
-                </p>
-              </div>
-            </div>
-
-            <div style={{ padding: "0 4px 16px" }}>
-              <div style={{ marginBottom: "16px" }}>
-                <label
-                  htmlFor="pilih-nasabah-dsh"
-                  className="dsh__label"
-                  style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
-                >
-                  Pilih Nasabah Penyetor:
-                </label>
-                <select
-                  id="pilih-nasabah-dsh"
-                  className="dsh__select"
-                  style={{ maxWidth: "480px", width: "100%" }}
-                  value={nasabahNomor}
-                  onChange={(e) => setNasabahNomor(e.target.value)}
-                >
-                  {DAFTAR_NASABAH_MASTER.map((n) => (
-                    <option key={n.nomor} value={n.nomor}>
-                      {n.nama} ({n.nomor}) — {n.fakultas}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Kalkulator Multi-Item BSS */}
-              <KalkulatorPintar
-                mode="petugas"
-                onPilih={handleSimpanSetoranPetugas}
-              />
-            </div>
-          </section>
-        )}
-
-        {/* 2. KARTU RINGKASAN DATA LAPANGAN */}
+        {/* KARTU RINGKASAN DATA LAPANGAN */}
         <div className="dsh__statsgrid">
           <div className="dsh__statcard dsh__statcard--primary">
             <p className="dsh__statlabel">Total Setoran Terfilter</p>

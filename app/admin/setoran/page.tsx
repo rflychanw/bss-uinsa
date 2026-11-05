@@ -1,12 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useId, useState } from "react";
 import KalkulatorPintar from "../../../components/app/KalkulatorPintar";
 import {
   DAFTAR_NASABAH_MASTER,
   kg,
-  PRICELIST_AWAL,
-  RIWAYAT_SETORAN_AWAL,
   rp,
   type JenisSampah,
   type SetoranNasabah,
@@ -14,8 +13,6 @@ import {
 import { sesiSekarang } from "../../../lib/auth";
 
 export default function SetoranAdmin() {
-  const [daftarSetoran, setDaftarSetoran] =
-    useState<SetoranNasabah[]>(RIWAYAT_SETORAN_AWAL);
   const [nasabahTerpilih, setNasabahTerpilih] = useState(
     DAFTAR_NASABAH_MASTER[0].nomor
   );
@@ -46,33 +43,13 @@ export default function SetoranAdmin() {
     const sesi = sesiSekarang();
     const namaPencatat = sesi?.nama || "Ahmad Fauzi (Petugas Piket)";
 
-    const tanggalHariIni = new Intl.DateTimeFormat("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }).format(new Date());
-
-    const newEntries: SetoranNasabah[] = validItems.map((it, idx) => ({
-      id: `S-0${913 + daftarSetoran.length - 7 + idx}`,
-      nomorNasabah: targetNasabah.nomor,
-      namaNasabah: targetNasabah.nama,
-      tanggal: tanggalHariIni,
-      jenisSampahId: it.jenis.id,
-      jenisSampahNama: `[${it.jenis.kode}] ${it.jenis.nama}`,
-      beratKg: it.beratKg,
-      estimasiNilai: it.estimasiRp,
-      status: "belum_terjual",
-      dicatatOleh: namaPencatat,
-    }));
-
-    setDaftarSetoran([...newEntries, ...daftarSetoran]);
     const totalEst = validItems.reduce((acc, c) => acc + c.estimasiRp, 0);
     const totalKgVal = validItems.reduce((acc, c) => acc + c.beratKg, 0);
 
     setSuksesMsg(
       `${validItems.length} jenis sampah (${kg(totalKgVal)} = ${rp(
         totalEst
-      )}) berhasil dicatat untuk ${targetNasabah.nama} dengan status "Belum Terjual".`
+      )}) berhasil dicatat untuk ${targetNasabah.nama} (${targetNasabah.nomor}) dan otomatis masuk ke Riwayat Pencatatan.`
     );
 
     setTimeout(() => {
@@ -82,15 +59,38 @@ export default function SetoranAdmin() {
 
   return (
     <div className="dsh__page">
-      <header className="dsh__head">
-        <h1 className="dsh__h1">Pencatatan Setoran Sampah</h1>
-        <p className="dsh__sub">
-          Modul petugas meja timbang — input timbangan, kalkulasi otomatis via Kalkulator Pintar, dan penerbitan bukti setoran (FR-008 s.d FR-013).
-        </p>
+      <header className="dsh__head" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px" }}>
+        <div style={{ flex: "1 1 280px", minWidth: 0 }}>
+          <div className="dsh__headrole">
+            <span className="dsh__tagbadge">Petugas Jaga Piket</span>
+            <span className="dsh__dot" aria-hidden="true">•</span>
+            <span className="dsh__meta">Pos Meja Timbang BSS FEBI UINSA</span>
+          </div>
+          <h1 className="dsh__h1">Tambah Pencatatan Setoran</h1>
+          <p className="dsh__sub">
+            Input hasil penimbangan sampah nasabah di meja timbang dengan kalkulasi otomatis.
+          </p>
+        </div>
+        <div>
+          <Link
+            href="/admin"
+            className="dsh__btnoutline"
+            style={{
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "13px",
+              padding: "8px 14px",
+            }}
+          >
+            ← Lihat Riwayat Pencatatan
+          </Link>
+        </div>
       </header>
 
       {suksesMsg && (
-        <div className="dsh__alert dsh__alert--success" role="alert">
+        <div className="dsh__alert dsh__alert--success" role="alert" style={{ marginBottom: "20px" }}>
           <strong>Berhasil Disimpan:</strong> {suksesMsg}
         </div>
       )}
@@ -99,10 +99,6 @@ export default function SetoranAdmin() {
       <section className="dsh__card" aria-label="Formulir Penimbangan Setoran">
         <div className="dsh__cardhead">
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-              <span className="dsh__tagbadge">Petugas Jaga Piket</span>
-              <span className="dsh__meta">Pos Meja Timbang</span>
-            </div>
             <h2 className="dsh__h2">Input Timbangan & Kalkulator Pintar</h2>
             <p className="dsh__carddesc" style={{ marginBottom: 0 }}>
               Pilih nasabah yang sedang berada di meja timbang, lalu masukkan hasil timbangan.
@@ -133,68 +129,6 @@ export default function SetoranAdmin() {
             mode="petugas"
             onPilih={(data) => handleSimpanSetoran(data)}
           />
-        </div>
-      </section>
-
-      {/* Tabel Riwayat Seluruh Setoran Masuk */}
-      <section className="dsh__card" aria-label="Daftar Setoran Sampah">
-        <div className="dsh__cardhead">
-          <div>
-            <h2 className="dsh__h2">Daftar Setoran Masuk</h2>
-            <span className="dsh__meta">
-              Total {daftarSetoran.length} transaksi tercatat di sistem
-            </span>
-          </div>
-        </div>
-
-        <div className="dsh__tablewrap">
-          <table className="dsh__table">
-            <thead>
-              <tr>
-                <th>No. ID</th>
-                <th>Nasabah</th>
-                <th>Tanggal</th>
-                <th>Jenis Sampah</th>
-                <th>Berat (kg)</th>
-                <th>Estimasi Nilai</th>
-                <th>Status (SRS)</th>
-                <th>Dicatat Oleh</th>
-              </tr>
-            </thead>
-            <tbody>
-              {daftarSetoran.map((s) => (
-                <tr key={s.id}>
-                  <td>
-                    <code className="dsh__code">{s.id}</code>
-                  </td>
-                  <td>
-                    <strong>{s.namaNasabah}</strong>
-                    <span className="dsh__subtext">{s.nomorNasabah}</span>
-                  </td>
-                  <td>{s.tanggal}</td>
-                  <td>{s.jenisSampahNama}</td>
-                  <td>
-                    <strong>{kg(s.beratKg)}</strong>
-                  </td>
-                  <td>{rp(s.estimasiNilai)}</td>
-                  <td>
-                    <span
-                      className={`dsh__chip ${
-                        s.status === "disalurkan"
-                          ? "dsh__chip--green"
-                          : "dsh__chip--amber"
-                      }`}
-                    >
-                      {s.status === "disalurkan"
-                        ? "Uang Disalurkan"
-                        : "Belum Terjual"}
-                    </span>
-                  </td>
-                  <td className="dsh__small">{s.dicatatOleh}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </section>
     </div>

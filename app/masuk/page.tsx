@@ -18,11 +18,28 @@ export default function MasukPage() {
   const [lihat, setLihat] = useState(false);
   const [pesan, setPesan] = useState("");
   const [kirim, setKirim] = useState(false);
+  const [infoVerifikasi, setInfoVerifikasi] = useState<{
+    nomor?: string;
+    email?: string;
+  } | null>(null);
 
   /* sudah punya sesi? langsung ke ruangnya */
   useEffect(() => {
     const sesi = sesiSekarang();
     if (sesi) router.replace(beranda(sesi.role));
+
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (
+        params.get("verifikasi") === "sukses" ||
+        params.get("status") === "verifikasi"
+      ) {
+        const no = params.get("nomor") || "";
+        const em = params.get("email") || "";
+        setInfoVerifikasi({ nomor: no, email: em });
+        if (em) setEmail(em);
+      }
+    }
   }, [router]);
 
   const isiDemo = (akun: Akun) => {
@@ -58,6 +75,51 @@ export default function MasukPage() {
       sub="Silakan masuk sesuai peran Anda (Nasabah, Petugas Jaga, Bendahara, atau Admin) sesuai SRS Bank Sampah Syariah UINSA."
       catatan="Mode demo — akun contoh tersedia di formulir ini. Sesi tersimpan di browser Anda."
     >
+      {infoVerifikasi && (
+        <div
+          style={{
+            background: "#f4faf4",
+            border: "1px solid #95d59c",
+            borderRadius: "6px",
+            padding: "12px 14px",
+            marginBottom: "16px",
+            fontSize: "13px",
+            color: "#1d5823",
+            lineHeight: 1.5,
+          }}
+          role="status"
+        >
+          <div
+            style={{
+              fontWeight: 700,
+              marginBottom: "4px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+            <span>✓</span> Pendaftaran & Bukti Bayar Terkirim!
+          </div>
+          <div>
+            Akun Anda{" "}
+            {infoVerifikasi.nomor ? (
+              <strong>({infoVerifikasi.nomor})</strong>
+            ) : null}{" "}
+            berhasil didaftarkan dan saat ini{" "}
+            <strong>sedang menunggu proses verifikasi oleh Admin BSS</strong>.
+          </div>
+          <div
+            style={{
+              marginTop: "4px",
+              fontSize: "12px",
+              color: "#2d6a34",
+            }}
+          >
+            Admin akan memeriksa bukti pembayaran terlebih dahulu. Silakan tunggu hingga status aktivasi disetujui sebelum masuk.
+          </div>
+        </div>
+      )}
+
       <form className="auth__fields" onSubmit={onSubmit} noValidate>
         <div className="auth__field">
           <label className="auth__label" htmlFor="email">

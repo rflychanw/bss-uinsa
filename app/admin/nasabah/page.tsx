@@ -1,16 +1,28 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import {
   DAFTAR_NASABAH_MASTER,
   kg,
   rp,
   type NasabahMaster,
 } from "../../../lib/bss";
+import {
+  akunLokal,
+  verifikasiAkun,
+  type Akun,
+} from "../../../lib/auth";
 
 export default function NasabahAdmin() {
   const [daftar, setDaftar] =
     useState<NasabahMaster[]>(DAFTAR_NASABAH_MASTER);
+  const [antrean, setAntrean] = useState<Akun[]>([]);
+  const [modalBukti, setModalBukti] = useState<{
+    nama: string;
+    nomor: string;
+    foto?: string;
+    metode?: string;
+  } | null>(null);
   const [cari, setCari] = useState<string>("");
   const [namaBaru, setNamaBaru] = useState<string>("");
   const [emailBaru, setEmailBaru] = useState<string>("");
@@ -18,6 +30,42 @@ export default function NasabahAdmin() {
     "Sains & Teknologi / Sistem Informasi"
   );
   const [sukses, setSukses] = useState<string>("");
+
+  const muatData = () => {
+    const lokal = akunLokal();
+    const menunggu = lokal.filter((a) => a.statusVerifikasi === "menunggu");
+    setAntrean(menunggu);
+
+    const aktifLokal = lokal.filter((a) => a.statusVerifikasi === "aktif");
+    const masterBaru: NasabahMaster[] = aktifLokal.map((a) => ({
+      nomor: a.nomor,
+      nama: a.nama,
+      email: a.email,
+      fakultas: "Pendaftar Mandiri (Verifikasi)",
+      totalBeratKg: 0,
+      totalDisalurkan: 0,
+      estimasiGudang: 0,
+      status: "aktif",
+      terdaftar: a.tanggalDaftar || "28 Okt 2026",
+    }));
+
+    // Gabungkan dengan DAFTAR_NASABAH_MASTER unik berdasarkan nomor
+    const nomorAda = new Set(DAFTAR_NASABAH_MASTER.map((m) => m.nomor));
+    const tambahan = masterBaru.filter((m) => !nomorAda.has(m.nomor));
+    setDaftar([...tambahan, ...DAFTAR_NASABAH_MASTER]);
+  };
+
+  useEffect(() => {
+    muatData();
+  }, []);
+
+  const handleVerifikasiNasabah = (a: Akun) => {
+    verifikasiAkun(a.email);
+    muatData();
+    setSukses(`Akun nasabah ${a.nama} (${a.nomor}) berhasil diverifikasi dan diaktifkan.`);
+    if (modalBukti?.nomor === a.nomor) setModalBukti(null);
+    setTimeout(() => setSukses(""), 5000);
+  };
 
   const idCari = useId();
   const idNama = useId();
@@ -73,6 +121,243 @@ export default function NasabahAdmin() {
       {sukses && (
         <div className="dsh__alert dsh__alert--success" role="alert">
           {sukses}
+        </div>
+      )}
+
+      {/* Antrean Verifikasi Pendaftar Baru */}
+      {antrean.length > 0 && (
+        <section
+          className="dsh__card"
+          style={{
+            border: "1px solid #d4a754",
+            background: "#fffdf9",
+            marginBottom: "20px",
+          }}
+          aria-label="Antrean Verifikasi Nasabah Baru"
+        >
+          <div className="dsh__cardhead">
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span
+                  style={{
+                    display: "inline-block",
+                    width: "10px",
+                    height: "10px",
+                    borderRadius: "50%",
+                    background: "#c9820c",
+                  }}
+                />
+                <h2 className="dsh__h2" style={{ margin: 0 }}>
+                  Antrean Verifikasi Pendaftar Baru
+                </h2>
+              </div>
+              <p className="dsh__carddesc" style={{ marginTop: "4px" }}>
+                Terdapat <strong>{antrean.length}</strong> nasabah baru yang telah melakukan pembayaran dan menunggu verifikasi aktivasi akun oleh Admin.
+              </p>
+            </div>
+            <span
+              className="dsh__chip dsh__chip--amber"
+              style={{ fontWeight: 600 }}
+            >
+              {antrean.length} Perlu Tindakan
+            </span>
+          </div>
+
+          <div className="dsh__tablewrap">
+            <table className="dsh__table">
+              <thead>
+                <tr>
+                  <th>Nomor Registrasi</th>
+                  <th>Nama & Email</th>
+                  <th>Metode Bayar</th>
+                  <th>Bukti Pembayaran</th>
+                  <th>Aksi Verifikasi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {antrean.map((a) => (
+                  <tr key={a.email}>
+                    <td>
+                      <code className="dsh__code">{a.nomor}</code>
+                    </td>
+                    <td>
+                      <strong>{a.nama}</strong>
+                      <span className="dsh__subtext">{a.email}</span>
+                    </td>
+                    <td>
+                      <span style={{ textTransform: "uppercase", fontSize: "12px", fontWeight: 600 }}>
+                        {a.metodeBayar || "qris"}
+                      </span>
+                    </td>
+                    <td>
+                      {a.buktiBayar ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          {a.buktiBayar.startsWith("data:image/") && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={a.buktiBayar}
+                              alt="Bukti"
+                              style={{
+                                width: "32px",
+                                height: "32px",
+                                objectFit: "cover",
+                                borderRadius: "4px",
+                                border: "1px solid #ddd",
+                              }}
+                            />
+                          )}
+                          <button
+                            type="button"
+                            className="dsh__btnoutline"
+                            style={{ padding: "4px 8px", fontSize: "11px" }}
+                            onClick={() =>
+                              setModalBukti({
+                                nama: a.nama,
+                                nomor: a.nomor,
+                                foto: a.buktiBayar,
+                                metode: a.metodeBayar,
+                              })
+                            }
+                          >
+                            👁 Lihat Bukti
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="dsh__subtext">Bayar Tunai</span>
+                      )}
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="dsh__btn"
+                        style={{
+                          padding: "6px 12px",
+                          fontSize: "12px",
+                          background: "#25632d",
+                          borderColor: "#1e5225",
+                        }}
+                        onClick={() => handleVerifikasiNasabah(a)}
+                      >
+                        ✓ Verifikasi & Aktifkan
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {/* Modal Preview Bukti Pembayaran */}
+      {modalBukti && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.65)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: "20px",
+          }}
+          onClick={() => setModalBukti(null)}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "8px",
+              maxWidth: "500px",
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              padding: "20px",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "14px",
+              }}
+            >
+              <div>
+                <h3 style={{ margin: 0, fontSize: "16px", color: "#1f1b13" }}>
+                  Bukti Pembayaran Registrasi
+                </h3>
+                <span style={{ fontSize: "12px", color: "#6e685d" }}>
+                  {modalBukti.nama} ({modalBukti.nomor}) • Metode: {modalBukti.metode?.toUpperCase()}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalBukti(null)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  fontSize: "18px",
+                  cursor: "pointer",
+                  color: "#6e685d",
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div
+              style={{
+                textAlign: "center",
+                background: "#f7f6f2",
+                padding: "12px",
+                borderRadius: "6px",
+                marginBottom: "16px",
+              }}
+            >
+              {modalBukti.foto ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={modalBukti.foto}
+                  alt={`Bukti bayar ${modalBukti.nama}`}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "360px",
+                    objectFit: "contain",
+                    borderRadius: "4px",
+                    border: "1px solid #d9d6cd",
+                  }}
+                />
+              ) : (
+                <p style={{ color: "#777", fontSize: "13px" }}>
+                  Tidak ada berkas gambar bukti bayar.
+                </p>
+              )}
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+              <button
+                type="button"
+                className="dsh__btnoutline"
+                onClick={() => setModalBukti(null)}
+              >
+                Tutup
+              </button>
+              <button
+                type="button"
+                className="dsh__btn"
+                style={{ background: "#25632d", borderColor: "#1e5225" }}
+                onClick={() => {
+                  const target = antrean.find((a) => a.nomor === modalBukti.nomor);
+                  if (target) handleVerifikasiNasabah(target);
+                }}
+              >
+                ✓ Setujui & Aktifkan Akun
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

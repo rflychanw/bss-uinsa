@@ -99,6 +99,23 @@ const ICONS: Record<string, ReactNode> = {
       <circle cx="7" cy="7" r="1.2" fill="currentColor" />
     </svg>
   ),
+  verify: (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M10 2.5 4 5v5.5c0 4.2 2.6 7.5 6 8.5 3.4-1 6-4.3 6-8.5V5l-6-2.5Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m7.5 10 2 2 3.5-4"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
 };
 
 const NAV_NASABAH = [
@@ -110,13 +127,15 @@ const NAV_NASABAH = [
 
 const NAV_PETUGAS = [
   { href: "/admin", label: "Riwayat Pencatatan", mobileLabel: "Riwayat", icon: "list" },
-  { href: "/admin/setoran", label: "Tambah Pencatatan", mobileLabel: "Tambah Catat", icon: "scale" },
+  { href: "/admin/setoran", label: "Tambah Pencatatan", mobileLabel: "Tambah", icon: "scale" },
+  { href: "/admin/aktivasi", label: "Aktivasi Akun", mobileLabel: "Aktivasi", icon: "verify" },
 ];
 
 const NAV_BENDAHARA = [
   { href: "/admin", label: "Ringkasan Keuangan", mobileLabel: "Ringkasan", icon: "home" },
   { href: "/admin/pengepul", label: "Alur Pengepul & Bagi Hasil", mobileLabel: "Pengepul", icon: "flow" },
   { href: "/admin/rekap", label: "Rekap & Ekspor CSV", mobileLabel: "Rekap", icon: "report" },
+  { href: "/admin/aktivasi", label: "Aktivasi Akun", mobileLabel: "Aktivasi", icon: "verify" },
   { href: "/admin/nasabah", label: "Buku Tabungan Nasabah", mobileLabel: "Nasabah", icon: "user" },
   { href: "/admin/pricelist", label: "Daftar Harga (Pricelist)", mobileLabel: "Pricelist", icon: "price" },
 ];
