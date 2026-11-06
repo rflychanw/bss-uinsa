@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
   BATCH_PENGEPUL_AWAL,
   kg,
@@ -8,8 +8,10 @@ import {
   type BatchPenjualanPengepul,
   type TahapAlur,
 } from "../../../lib/bss";
+import { sesiSekarang, type Sesi } from "../../../lib/auth";
 
 export default function PengepulAdmin() {
+  const [sesi, setSesi] = useState<Sesi | null>(null);
   const [batches, setBatches] =
     useState<BatchPenjualanPengepul[]>(BATCH_PENGEPUL_AWAL);
   const [filterTahap, setFilterTahap] = useState<string>("semua");
@@ -17,6 +19,10 @@ export default function PengepulAdmin() {
     BATCH_PENGEPUL_AWAL[1]
   );
   const [notif, setNotif] = useState<string>("");
+
+  useEffect(() => {
+    setSesi(sesiSekarang());
+  }, []);
 
   const idTahapSelect = useId();
 
@@ -119,37 +125,84 @@ export default function PengepulAdmin() {
             </span>
           </div>
 
-          <p className="dsh__carddesc">
-            Sistem secara otomatis menghitung persentase kontribusi timbangan tiap nasabah terhadap total berat batch (FR-033).
-          </p>
+          <div
+            style={{
+              background: "#fdf8ee",
+              border: "1px solid #ebd9b5",
+              borderRadius: "6px",
+              padding: "12px 14px",
+              fontSize: "13px",
+              color: "#774a06",
+              marginBottom: "16px",
+              lineHeight: 1.5,
+            }}
+          >
+            <strong>Transparansi Rumus Bagi Hasil Proporsional (FR-033 & BR-017):</strong>
+            <p style={{ margin: "4px 0 0 0" }}>
+              Pendapatan nasabah tidak dipatok di awal, melainkan dihitung otomatis saat uang penjualan dari pengepul diterima:
+              <br />
+              <code style={{ background: "#f3e7cf", padding: "2px 6px", borderRadius: "4px", display: "inline-block", marginTop: "4px" }}>
+                Hak Nasabah = (Berat Setoran Nasabah / Total Berat Batch) × Total Dana Alokasi Nasabah
+              </code>
+            </p>
+          </div>
 
           <div className="dsh__tablewrap">
             <table className="dsh__table">
               <thead>
                 <tr>
-                  <th>Nasabah</th>
+                  <th>Nasabah Penyetor</th>
                   <th>Berat Setor</th>
-                  <th>Proporsi (%)</th>
+                  <th>Proporsi Kontribusi</th>
+                  <th>Formula Perhitungan</th>
                   <th>Hak Uang Nasabah (Rp)</th>
                 </tr>
               </thead>
               <tbody>
-                {batchAktif.penyaluran.map((p) => (
-                  <tr key={p.nomorNasabah}>
-                    <td>
-                      <strong>{p.namaNasabah}</strong>
-                      <span className="dsh__subtext">{p.nomorNasabah}</span>
-                    </td>
-                    <td>{kg(p.beratKg)}</td>
-                    <td>
-                      <span className="dsh__badgepct">{p.proporsiPersen}%</span>
-                    </td>
-                    <td>
-                      <strong className="dsh__green">{rp(p.hakUang)}</strong>
-                    </td>
-                  </tr>
-                ))}
+                {batchAktif.penyaluran.map((p) => {
+                  const totalDana =
+                    batchAktif.totalDisalurkan && batchAktif.totalDisalurkan > 0
+                      ? batchAktif.totalDisalurkan
+                      : batchAktif.penyaluran.reduce((a, b) => a + b.hakUang, 0);
+
+                  return (
+                    <tr key={p.nomorNasabah}>
+                      <td>
+                        <strong>{p.namaNasabah}</strong>
+                        <span className="dsh__subtext">{p.nomorNasabah}</span>
+                      </td>
+                      <td>
+                        <strong>{kg(p.beratKg)}</strong>
+                      </td>
+                      <td>
+                        <span className="dsh__badgepct">{p.proporsiPersen}%</span>
+                        <span className="dsh__subtext">dari {kg(batchAktif.totalBeratKg)}</span>
+                      </td>
+                      <td>
+                        <code style={{ fontSize: "11px", color: "#444" }}>
+                          ({p.beratKg} kg / {batchAktif.totalBeratKg} kg) × {rp(totalDana)}
+                        </code>
+                      </td>
+                      <td>
+                        <strong className="dsh__green">{rp(p.hakUang)}</strong>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
+              <tfoot>
+                <tr style={{ background: "#f7f6f2", fontWeight: 700 }}>
+                  <td>TOTAL BATCH</td>
+                  <td>{kg(batchAktif.totalBeratKg)}</td>
+                  <td>100%</td>
+                  <td>Alokasi Bersih Nasabah</td>
+                  <td>
+                    <strong className="dsh__green">
+                      {rp(batchAktif.penyaluran.reduce((a, b) => a + b.hakUang, 0))}
+                    </strong>
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
 
@@ -159,7 +212,7 @@ export default function PengepulAdmin() {
               <strong>{rp(batchAktif.uangDiterima)}</strong>
             </div>
             <div className="dsh__calcrow">
-              <span>Total Disalurkan ke Nasabah:</span>
+              <span>Total Disalurkan ke Nasabah (Hak Bagi Hasil):</span>
               <strong className="dsh__green">
                 {rp(
                   batchAktif.penyaluran.reduce((a, b) => a + b.hakUang, 0)
@@ -179,18 +232,34 @@ export default function PengepulAdmin() {
 
           <div className="dsh__actiongroup">
             {batchAktif.tahap !== "disalurkan_ke_nasabah" ? (
-              <button
-                type="button"
-                className="dsh__btn"
-                onClick={() =>
-                  handleUpdateTahap(
-                    batchAktif.id,
-                    "disalurkan_ke_nasabah"
-                  )
-                }
-              >
-                Tandai Uang Telah Disalurkan ke Nasabah (FR-028)
-              </button>
+              sesi?.role === "admin" ? (
+                <div
+                  style={{
+                    background: "#f4f6f8",
+                    border: "1px solid #d0d7de",
+                    borderRadius: "6px",
+                    padding: "10px 14px",
+                    fontSize: "12px",
+                    color: "#57606a",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  ℹ️ <strong>Hak Akses Pemantauan Admin (BR-011):</strong> Administrator memantau alur penyaluran dana secara read-only. Perubahan status menjadi <em>"Uang Telah Disalurkan"</em> dicatat oleh Bendahara (BR-012).
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="dsh__btn"
+                  onClick={() =>
+                    handleUpdateTahap(
+                      batchAktif.id,
+                      "disalurkan_ke_nasabah"
+                    )
+                  }
+                >
+                  Tandai Uang Telah Disalurkan ke Nasabah (FR-028)
+                </button>
+              )
             ) : (
               <span className="dsh__successlabel">
                 ✓ Batch ini telah selesai disalurkan ke seluruh nasabah terkait.

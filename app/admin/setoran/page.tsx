@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useId, useState } from "react";
-import KalkulatorPintar from "../../../components/app/KalkulatorPintar";
+import KalkulatorPintar, { type ItemKalkulatorHasil } from "../../../components/app/KalkulatorPintar";
 import {
   DAFTAR_NASABAH_MASTER,
+  getDaftarSetoran,
   kg,
   rp,
+  tambahBanyakSetoranBaru,
   type JenisSampah,
   type SetoranNasabah,
 } from "../../../lib/bss";
@@ -21,18 +23,27 @@ export default function SetoranAdmin() {
   const idSelectNasabah = useId();
 
   const handleSimpanSetoran = (data: {
-    items?: { jenis: JenisSampah; beratKg: number; estimasiRp: number }[];
+    items?: ItemKalkulatorHasil[];
+    langsungVerifikasi?: boolean;
     jenis: JenisSampah;
     beratKg: number;
     estimasiRp: number;
   }) => {
-    const list = data.items && data.items.length > 0
-      ? data.items
-      : [{ jenis: data.jenis, beratKg: data.beratKg, estimasiRp: data.estimasiRp }];
+    const list: ItemKalkulatorHasil[] =
+      data.items && data.items.length > 0
+        ? data.items
+        : [
+            {
+              jenis: data.jenis,
+              beratKg: data.beratKg,
+              jumlahSatuan: `${data.beratKg} kg`,
+              estimasiRp: data.estimasiRp,
+            },
+          ];
 
     const validItems = list.filter((it) => it.beratKg > 0);
     if (validItems.length === 0) {
-      alert("Berat timbangan harus lebih besar dari 0.");
+      alert("Berat / jumlah sampah harus lebih besar dari 0.");
       return;
     }
 
@@ -42,19 +53,57 @@ export default function SetoranAdmin() {
 
     const sesi = sesiSekarang();
     const namaPencatat = sesi?.nama || "Ahmad Fauzi (Petugas Piket)";
+    const statusVerif =
+      data.langsungVerifikasi === false ? "menunggu_verifikasi" : "terverifikasi";
+
+    const tanggalHariIni = new Intl.DateTimeFormat("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(new Date());
+
+    const currentLen = getDaftarSetoran().length;
+    const newEntries: SetoranNasabah[] = validItems.map((it, idx) => ({
+      id: `S-0${914 + currentLen + idx}`,
+      nomorNasabah: targetNasabah.nomor,
+      namaNasabah: targetNasabah.nama,
+      tanggal: tanggalHariIni,
+      jenisSampahId: it.jenis.id,
+      jenisSampahNama: `[${it.jenis.kode}] ${it.jenis.nama}`,
+      beratKg: it.beratKg,
+      jumlahSatuan: it.jumlahSatuan,
+      estimasiNilai: it.estimasiRp,
+      status: "belum_terjual",
+      statusVerifikasi: statusVerif,
+      dicatatOleh: namaPencatat,
+    }));
+
+    tambahBanyakSetoranBaru(newEntries);
 
     const totalEst = validItems.reduce((acc, c) => acc + c.estimasiRp, 0);
     const totalKgVal = validItems.reduce((acc, c) => acc + c.beratKg, 0);
 
-    setSuksesMsg(
-      `${validItems.length} jenis sampah (${kg(totalKgVal)} = ${rp(
-        totalEst
-      )}) berhasil dicatat untuk ${targetNasabah.nama} (${targetNasabah.nomor}) dan otomatis masuk ke Riwayat Pencatatan.`
-    );
+    if (statusVerif === "terverifikasi") {
+      setSuksesMsg(
+        `${validItems.length} jenis sampah (${kg(totalKgVal)} = ${rp(
+          totalEst
+        )}) telah DIVERIFIKASI oleh Petugas Jaga dan langsung masuk sebagai Saldo Valid ${
+          targetNasabah.nama
+        } (${targetNasabah.nomor}).`
+      );
+    } else {
+      setSuksesMsg(
+        `${validItems.length} jenis sampah (${kg(totalKgVal)} = ${rp(
+          totalEst
+        )}) dicatat dengan status MENUNGGU VERIFIKASI untuk ${
+          targetNasabah.nama
+        } (${targetNasabah.nomor}). Silakan verifikasi di tabel Riwayat Pencatatan agar masuk ke saldo.`
+      );
+    }
 
     setTimeout(() => {
       setSuksesMsg("");
-    }, 6000);
+    }, 7000);
   };
 
   return (

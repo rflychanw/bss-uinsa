@@ -178,8 +178,8 @@ export default function MasukPage() {
       </form>
 
       <div className="auth__demo">
-        <p className="auth__demotitle">Akun demo siap pakai (sesuai Use Case)</p>
-        {AKUN_DEMO.filter((a) => a.role !== "admin").map((akun) => (
+        <p className="auth__demotitle">Akun demo siap pakai (sesuai Use Case & RBAC SRS v1.0)</p>
+        {AKUN_DEMO.map((akun) => (
           <div className="auth__demorow" key={akun.email}>
             <div className="auth__demoinfo">
               <b>{akun.jabatan || akun.role.toUpperCase()}</b>

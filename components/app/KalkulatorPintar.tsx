@@ -1,18 +1,19 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
-import { PRICELIST_AWAL, rp, type JenisSampah } from "../../lib/bss";
+import { useEffect, useId, useMemo, useState } from "react";
+import { getPricelist, PRICELIST_AWAL, rp, type JenisSampah } from "../../lib/bss";
 
 export interface ItemKalkulatorInput {
   uid: string;
   jenisId: string;
   nilaiInput: string;
-  satuan: "kg" | "gram";
+  satuan: "kg" | "gram" | "pcs";
 }
 
 export interface ItemKalkulatorHasil {
   jenis: JenisSampah;
   beratKg: number;
+  jumlahSatuan: string;
   estimasiRp: number;
 }
 
@@ -25,12 +26,19 @@ export default function KalkulatorPintar({
     items: ItemKalkulatorHasil[];
     totalBeratKg: number;
     totalEstimasiRp: number;
+    langsungVerifikasi?: boolean;
     // kompatibilitas single-item
     jenis: JenisSampah;
     beratKg: number;
     estimasiRp: number;
   }) => void;
 }) {
+  const [daftarPricelist, setDaftarPricelist] = useState<JenisSampah[]>(PRICELIST_AWAL);
+
+  useEffect(() => {
+    setDaftarPricelist(getPricelist());
+  }, []);
+
   const [items, setItems] = useState<ItemKalkulatorInput[]>([
     {
       uid: "item-1",
@@ -47,7 +55,7 @@ export default function KalkulatorPintar({
     // Pilih jenis sampah berikutnya yang belum terpilih jika memungkinkan
     const jenisTerpakai = new Set(items.map((it) => it.jenisId));
     const jenisBaru =
-      PRICELIST_AWAL.find((j) => !jenisTerpakai.has(j.id)) || PRICELIST_AWAL[0];
+      daftarPricelist.find((j) => !jenisTerpakai.has(j.id)) || daftarPricelist[0] || PRICELIST_AWAL[0];
 
     const newUid = `item-${Date.now()}-${items.length + 1}`;
     setItems((prev) => [
@@ -81,17 +89,30 @@ export default function KalkulatorPintar({
   const hasilItems: ItemKalkulatorHasil[] = useMemo(() => {
     return items.map((it) => {
       const jenis =
-        PRICELIST_AWAL.find((j) => j.id === it.jenisId) || PRICELIST_AWAL[0];
+        daftarPricelist.find((j) => j.id === it.jenisId) || daftarPricelist[0] || PRICELIST_AWAL[0];
       const raw = parseFloat(it.nilaiInput.replace(",", "."));
-      const berat = isNaN(raw) || raw <= 0 ? 0 : it.satuan === "gram" ? raw / 1000 : raw;
+      const val = isNaN(raw) || raw <= 0 ? 0 : raw;
+      const berat =
+        it.satuan === "gram"
+          ? val / 1000
+          : it.satuan === "pcs"
+          ? val * 1
+          : val;
+      const jumlahSatuan =
+        it.satuan === "pcs"
+          ? `${val} pcs (Satuan)`
+          : it.satuan === "gram"
+          ? `${val} gram (${berat.toFixed(2)} kg)`
+          : `${val} kg`;
       const estimasi = Math.round(berat * jenis.hargaPerKg);
       return {
         jenis,
         beratKg: berat,
+        jumlahSatuan,
         estimasiRp: estimasi,
       };
     });
-  }, [items]);
+  }, [items, daftarPricelist]);
 
   const totalBeratKg = useMemo(() => {
     return hasilItems.reduce((acc, cur) => acc + cur.beratKg, 0);
@@ -148,7 +169,7 @@ export default function KalkulatorPintar({
                       handleUpdateItem(it.uid, { jenisId: e.target.value })
                     }
                   >
-                    {PRICELIST_AWAL.map((j) => (
+                    {daftarPricelist.map((j) => (
                       <option key={j.id} value={j.id}>
                         [{j.kode}] {j.nama} — {rp(j.hargaPerKg)}/kg
                       </option>
@@ -159,7 +180,7 @@ export default function KalkulatorPintar({
 
                 <div className="dsh__calcfield">
                   <label className="dsh__calclabel" htmlFor={inputId}>
-                    Berat Timbangan
+                    Berat / Jumlah (Kiloan / Satuan)
                   </label>
                   <div className="dsh__calcinputgroup">
                     <input
@@ -176,7 +197,7 @@ export default function KalkulatorPintar({
                     <div
                       className="dsh__unitbtns"
                       role="group"
-                      aria-label="Satuan berat"
+                      aria-label="Satuan berat atau jumlah"
                     >
                       <button
                         type="button"
@@ -198,11 +219,23 @@ export default function KalkulatorPintar({
                       >
                         gram
                       </button>
+                      <button
+                        type="button"
+                        className="dsh__unitbtn"
+                        data-active={it.satuan === "pcs"}
+                        onClick={() =>
+                          handleUpdateItem(it.uid, { satuan: "pcs" })
+                        }
+                      >
+                        pcs (satuan)
+                      </button>
                     </div>
                   </div>
                   <small className="dsh__calcsub">
                     {it.satuan === "gram"
-                      ? `Setara dengan ${(res?.beratKg || 0).toFixed(3)} kg`
+                      ? `Setara dengan ${(res?.beratKg || 0).toFixed(3)} kg × ${rp(jenisObj.hargaPerKg)}/kg`
+                      : it.satuan === "pcs"
+                      ? `${it.nilaiInput || 0} pcs (satuan) × ${rp(jenisObj.hargaPerKg)}/satuan`
                       : `${(res?.beratKg || 0).toFixed(2)} kg × ${rp(
                           jenisObj.hargaPerKg
                         )}/kg`}
@@ -232,15 +265,15 @@ export default function KalkulatorPintar({
         <div className="dsh__calcresinfo">
           <span className="dsh__calcrestitle">
             {items.length > 1
-              ? `Estimasi Total (${items.length} Jenis Sampah)`
-              : "Estimasi Nilai Setoran"}
+              ? `Nilai Total (${items.length} Jenis Sampah)`
+              : "Nilai Setoran Sampah"}
           </span>
           <span className="dsh__calcresdetail">
-            Total berat: <strong>{totalBeratKg.toFixed(2)} kg</strong>
+            Total bobot/ekuivalen: <strong>{totalBeratKg.toFixed(2)} kg</strong>
             {items.length > 1 && (
               <span className="dsh__calcresbreakdown">
                 {" "}
-                ({hasilItems.map((h) => `${h.jenis.nama.split(" ")[0]} ${h.beratKg}kg`).join(" + ")})
+                ({hasilItems.map((h) => `${h.jenis.nama.split(" ")[0]} ${h.jumlahSatuan}`).join(" + ")})
               </span>
             )}
           </span>
@@ -249,25 +282,52 @@ export default function KalkulatorPintar({
       </div>
 
       {mode === "petugas" && onPilih && (
-        <button
-          type="button"
-          className="dsh__calcapply"
-          onClick={() =>
-            onPilih({
-              items: hasilItems,
-              totalBeratKg,
-              totalEstimasiRp,
-              // fallback single item kompatibel
-              jenis: hasilItems[0].jenis,
-              beratKg: hasilItems[0].beratKg,
-              estimasiRp: hasilItems[0].estimasiRp,
-            })
-          }
-        >
-          {items.length > 1
-            ? `Simpan Setoran (${items.length} Jenis Sampah — ${rp(totalEstimasiRp)})`
-            : "Simpan Setoran Ini"}
-        </button>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "8px" }}>
+          <button
+            type="button"
+            className="dsh__calcapply"
+            style={{ flex: "1 1 260px" }}
+            onClick={() =>
+              onPilih({
+                items: hasilItems,
+                totalBeratKg,
+                totalEstimasiRp,
+                langsungVerifikasi: true,
+                jenis: hasilItems[0].jenis,
+                beratKg: hasilItems[0].beratKg,
+                estimasiRp: hasilItems[0].estimasiRp,
+              })
+            }
+          >
+            ✓ Verifikasi & Simpan (Langsung Masuk Saldo {rp(totalEstimasiRp)})
+          </button>
+          <button
+            type="button"
+            className="dsh__btnoutline"
+            style={{
+              flex: "0 1 auto",
+              padding: "12px 16px",
+              fontWeight: 600,
+              cursor: "pointer",
+              background: "#fffaf0",
+              borderColor: "#d9b978",
+              color: "#8a5a00",
+            }}
+            onClick={() =>
+              onPilih({
+                items: hasilItems,
+                totalBeratKg,
+                totalEstimasiRp,
+                langsungVerifikasi: false,
+                jenis: hasilItems[0].jenis,
+                beratKg: hasilItems[0].beratKg,
+                estimasiRp: hasilItems[0].estimasiRp,
+              })
+            }
+          >
+            ⏳ Catat Tanpa Verifikasi Dulu
+          </button>
+        </div>
       )}
     </div>
   );

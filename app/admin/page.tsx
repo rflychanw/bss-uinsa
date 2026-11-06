@@ -7,10 +7,12 @@ import {
   admin,
   BATCH_PENGEPUL_AWAL,
   DAFTAR_NASABAH_MASTER,
+  getDaftarSetoran,
   kg,
-  PRICELIST_AWAL,
   RIWAYAT_SETORAN_AWAL,
   rp,
+  tambahBanyakSetoranBaru,
+  verifikasiSetoran,
   type JenisSampah,
   type SetoranNasabah,
 } from "../../lib/bss";
@@ -20,6 +22,7 @@ export default function RingkasanPengelolaPage() {
   const [sesi, setSesi] = useState<Sesi | null>(null);
 
   // State untuk filter & pencatatan petugas
+  const [cari, setCari] = useState<string>("");
   const [filterHari, setFilterHari] = useState<string>("semua");
   const [filterBulan, setFilterBulan] = useState<string>("semua");
   const [filterTahun, setFilterTahun] = useState<string>("semua");
@@ -30,27 +33,40 @@ export default function RingkasanPengelolaPage() {
 
   useEffect(() => {
     setSesi(sesiSekarang());
+    setRiwayat(getDaftarSetoran());
   }, []);
 
   const roleAktif = sesi?.role || "bendahara";
   const isPetugas = roleAktif === "petugas";
+
+  const handleVerifikasiItem = (item: SetoranNasabah) => {
+    const namaPetugas = sesi?.nama || "Ahmad Fauzi (Petugas Piket)";
+    const updated = verifikasiSetoran(item.id, namaPetugas);
+    setRiwayat(updated);
+    setSuksesMsg(
+      `Setoran ${item.id} (${rp(item.estimasiNilai)}) atas nama ${item.namaNasabah} berhasil DIVERIFIKASI oleh Petugas Jaga dan langsung masuk ke Saldo Valid Nasabah.`
+    );
+    setTimeout(() => setSuksesMsg(null), 6000);
+  };
 
   // Simpan setoran baru dari meja timbang petugas jaga
   const handleSimpanSetoranPetugas = (dataCalc: {
     items: ItemKalkulatorHasil[];
     totalBeratKg: number;
     totalEstimasiRp: number;
+    langsungVerifikasi?: boolean;
     jenis: JenisSampah;
     beratKg: number;
     estimasiRp: number;
   }) => {
-    const list =
+    const list: ItemKalkulatorHasil[] =
       dataCalc.items && dataCalc.items.length > 0
         ? dataCalc.items
         : [
             {
               jenis: dataCalc.jenis,
               beratKg: dataCalc.beratKg,
+              jumlahSatuan: `${dataCalc.beratKg} kg`,
               estimasiRp: dataCalc.estimasiRp,
             },
           ];
@@ -71,27 +87,33 @@ export default function RingkasanPengelolaPage() {
       year: "numeric",
     }).format(new Date());
 
+    const statusVerif =
+      dataCalc.langsungVerifikasi === false ? "menunggu_verifikasi" : "terverifikasi";
+
     const newEntries: SetoranNasabah[] = validItems.map((it, idx) => ({
-      id: `S-0${913 + riwayat.length - 7 + idx}`,
+      id: `S-0${914 + riwayat.length + idx}`,
       nomorNasabah: nasabahNomor,
       namaNasabah: nasabahPilihan.nama,
       tanggal: tanggalHariIni,
       jenisSampahId: it.jenis.id,
       jenisSampahNama: `[${it.jenis.kode}] ${it.jenis.nama}`,
       beratKg: it.beratKg,
+      jumlahSatuan: it.jumlahSatuan,
       estimasiNilai: it.estimasiRp,
       status: "belum_terjual",
+      statusVerifikasi: statusVerif,
       dicatatOleh: sesi?.nama || "Ahmad Fauzi (Petugas Piket)",
     }));
 
-    setRiwayat([...newEntries, ...riwayat]);
+    const updated = tambahBanyakSetoranBaru(newEntries);
+    setRiwayat(updated);
     const totalEst = validItems.reduce((acc, c) => acc + c.estimasiRp, 0);
     const totalKgVal = validItems.reduce((acc, c) => acc + c.beratKg, 0);
 
     setSuksesMsg(
       `${validItems.length} jenis sampah (${kg(totalKgVal)} = ${rp(
         totalEst
-      )}) berhasil dicatat untuk ${nasabahPilihan.nama} dan otomatis masuk ke Riwayat Pencatatan.`
+      )}) berhasil dicatat untuk ${nasabahPilihan.nama} dan masuk ke Riwayat Pencatatan.`
     );
     setTimeout(() => setSuksesMsg(null), 6000);
   };
@@ -134,6 +156,16 @@ export default function RingkasanPengelolaPage() {
     const listHariUnik = Array.from(new Set(riwayat.map((r) => r.tanggal)));
 
     const filteredRiwayatPetugas = riwayat.filter((item) => {
+      if (cari.trim()) {
+        const q = cari.toLowerCase();
+        const match =
+          item.id.toLowerCase().includes(q) ||
+          item.namaNasabah.toLowerCase().includes(q) ||
+          item.nomorNasabah.toLowerCase().includes(q) ||
+          item.jenisSampahNama.toLowerCase().includes(q) ||
+          (item.dicatatOleh && item.dicatatOleh.toLowerCase().includes(q));
+        if (!match) return false;
+      }
       if (filterTahun !== "semua" && !item.tanggal.includes(filterTahun)) {
         return false;
       }
@@ -165,8 +197,8 @@ export default function RingkasanPengelolaPage() {
       (sum, s) => sum + s.estimasiNilai,
       0
     );
-    const totalBelumTerjual = filteredRiwayatPetugas.filter(
-      (s) => s.status === "belum_terjual"
+    const totalBelumDiverifikasi = filteredRiwayatPetugas.filter(
+      (s) => s.statusVerifikasi === "menunggu_verifikasi"
     ).length;
 
     return (
@@ -178,9 +210,9 @@ export default function RingkasanPengelolaPage() {
               <span className="dsh__dot" aria-hidden="true">•</span>
               <span className="dsh__meta">Pos Timbangan BSS FEBI UINSA</span>
             </div>
-            <h1 className="dsh__h1" style={{ wordBreak: "break-word" }}>Riwayat Pencatatan Setoran</h1>
+            <h1 className="dsh__h1" style={{ wordBreak: "break-word" }}>Riwayat & Verifikasi Setoran</h1>
             <p className="dsh__sub">
-              Daftar seluruh riwayat penimbangan sampah pos meja timbang dengan filter hari, bulan, dan tahun.
+              Verifikasi setoran sampah satuan/kiloan nasabah agar nilainya sah dan langsung masuk ke Saldo Valid Nasabah.
             </p>
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", maxWidth: "100%" }}>
@@ -204,7 +236,7 @@ export default function RingkasanPengelolaPage() {
 
         {suksesMsg && (
           <div className="dsh__alert dsh__alert--success" role="alert" style={{ marginBottom: "20px" }}>
-            <strong>Berhasil Tersimpan:</strong> {suksesMsg}
+            <strong>Berhasil:</strong> {suksesMsg}
           </div>
         )}
 
@@ -213,20 +245,28 @@ export default function RingkasanPengelolaPage() {
           <div className="dsh__statcard dsh__statcard--primary">
             <p className="dsh__statlabel">Total Setoran Terfilter</p>
             <p className="dsh__big dsh__big--green">{totalFilterTransaksi} Transaksi</p>
-            <p className="dsh__statsmall">Pencatatan sesuai filter hari, bulan, dan tahun</p>
+            <p className="dsh__statsmall">Pencatatan sesuai filter pencarian, hari, bulan & tahun</p>
           </div>
 
           <div className="dsh__statcard">
             <p className="dsh__statlabel">Total Berat Timbangan</p>
             <p className="dsh__big">{kg(totalFilterKg)}</p>
-            <p className="dsh__statsmall">Bobot fisik sampah terpilah civitas kampus</p>
+            <p className="dsh__statsmall">Bobot fisik sampah satuan & kiloan civitas kampus</p>
           </div>
 
           <div className="dsh__statcard dsh__statcard--accent">
-            <span className="dsh__statbadge">Akumulasi Nilai</span>
-            <p className="dsh__statlabel">Estimasi Nilai Setoran</p>
+            <span className="dsh__statbadge">
+              {totalBelumDiverifikasi > 0
+                ? `${totalBelumDiverifikasi} Perlu Verifikasi`
+                : "Semua Terverifikasi"}
+            </span>
+            <p className="dsh__statlabel">Nilai Saldo Setoran</p>
             <p className="dsh__big dsh__big--amber">{rp(totalFilterRp)}</p>
-            <p className="dsh__statsmall">{totalBelumTerjual} setoran siap disalurkan ke pengepul</p>
+            <p className="dsh__statsmall">
+              {totalBelumDiverifikasi > 0
+                ? `${totalBelumDiverifikasi} setoran menunggu klik verifikasi petugas`
+                : "Seluruh setoran sudah valid & masuk saldo nasabah"}
+            </p>
           </div>
         </div>
 
@@ -241,7 +281,7 @@ export default function RingkasanPengelolaPage() {
             </div>
           </div>
 
-          {/* Bilah Filter Interaktif */}
+          {/* Bilah Filter & Pencarian Interaktif */}
           <div
             style={{
               display: "flex",
@@ -251,10 +291,25 @@ export default function RingkasanPengelolaPage() {
               background: "#faf9f5",
               borderTop: "1px solid #ebe8df",
               borderBottom: "1px solid #ebe8df",
-              alignItems: "center",
+              alignItems: "flex-end",
               boxSizing: "border-box",
             }}
           >
+            {/* Input Pencarian Cepat */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: "1 1 220px", minWidth: "180px" }}>
+              <label style={{ fontSize: "11px", fontWeight: 700, color: "#666", textTransform: "uppercase" }}>
+                🔍 Cari Riwayat Pencatatan
+              </label>
+              <input
+                type="search"
+                className="dsh__input"
+                style={{ padding: "7px 12px", fontSize: "13px" }}
+                placeholder="Ketik ID setoran, nama nasabah, nomor BSS, jenis sampah..."
+                value={cari}
+                onChange={(e) => setCari(e.target.value)}
+              />
+            </div>
+
             {/* Filter Hari / Tanggal */}
             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
               <label style={{ fontSize: "11px", fontWeight: 700, color: "#666", textTransform: "uppercase" }}>
@@ -283,7 +338,7 @@ export default function RingkasanPengelolaPage() {
               </label>
               <select
                 className="dsh__select"
-                style={{ padding: "6px 12px", fontSize: "13px", minWidth: "150px" }}
+                style={{ padding: "6px 12px", fontSize: "13px", minWidth: "140px" }}
                 value={filterBulan}
                 onChange={(e) => setFilterBulan(e.target.value)}
               >
@@ -302,7 +357,7 @@ export default function RingkasanPengelolaPage() {
               </label>
               <select
                 className="dsh__select"
-                style={{ padding: "6px 12px", fontSize: "13px", minWidth: "120px" }}
+                style={{ padding: "6px 12px", fontSize: "13px", minWidth: "110px" }}
                 value={filterTahun}
                 onChange={(e) => setFilterTahun(e.target.value)}
               >
@@ -313,16 +368,16 @@ export default function RingkasanPengelolaPage() {
             </div>
 
             {/* Reset Filter Button */}
-            {(filterHari !== "semua" || filterBulan !== "semua" || filterTahun !== "semua") && (
+            {(filterHari !== "semua" || filterBulan !== "semua" || filterTahun !== "semua" || cari.trim() !== "") && (
               <button
                 type="button"
                 onClick={() => {
+                  setCari("");
                   setFilterHari("semua");
                   setFilterBulan("semua");
                   setFilterTahun("semua");
                 }}
                 style={{
-                  alignSelf: "flex-end",
                   padding: "7px 12px",
                   fontSize: "12px",
                   borderRadius: "6px",
@@ -331,6 +386,7 @@ export default function RingkasanPengelolaPage() {
                   cursor: "pointer",
                   color: "#a33",
                   fontWeight: 600,
+                  height: "36px",
                 }}
               >
                 Reset Filter ✕
@@ -346,10 +402,10 @@ export default function RingkasanPengelolaPage() {
                   <th scope="col">No. Setoran & Tanggal</th>
                   <th scope="col">Nasabah Penyetor</th>
                   <th scope="col">Kode & Jenis Sampah</th>
-                  <th scope="col">Berat Bersih</th>
-                  <th scope="col">Estimasi (Rp)</th>
-                  <th scope="col">Status Penyaluran</th>
-                  <th scope="col">Petugas Pencatat</th>
+                  <th scope="col">Jumlah / Berat</th>
+                  <th scope="col">Nilai Saldo (Rp)</th>
+                  <th scope="col">Status Verifikasi & Saldo</th>
+                  <th scope="col">Petugas Jaga</th>
                 </tr>
               </thead>
               <tbody>
@@ -360,39 +416,76 @@ export default function RingkasanPengelolaPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredRiwayatPetugas.map((item) => (
-                    <tr key={item.id}>
-                      <td>
-                        <strong>{item.id}</strong>
-                        <span className="dsh__subtext">{item.tanggal}</span>
-                      </td>
-                      <td>
-                        <strong>{item.namaNasabah}</strong>
-                        <span className="dsh__subtext">{item.nomorNasabah}</span>
-                      </td>
-                      <td>
-                        <span style={{ fontWeight: 600, color: "#2f5c35" }}>
-                          {item.jenisSampahNama}
-                        </span>
-                      </td>
-                      <td>
-                        <strong>{kg(item.beratKg)}</strong>
-                      </td>
-                      <td>{rp(item.estimasiNilai)}</td>
-                      <td>
-                        {item.status === "disalurkan" ? (
-                          <span className="dsh__chip dsh__chip--green">Disalurkan</span>
-                        ) : (
-                          <span className="dsh__chip dsh__chip--amber">Belum Terjual</span>
-                        )}
-                      </td>
-                      <td>
-                        <span className="dsh__subtext" style={{ color: "#444" }}>
-                          {item.dicatatOleh || "Ahmad Fauzi (Petugas Piket)"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
+                  filteredRiwayatPetugas.map((item) => {
+                    const perluVerifikasi = item.statusVerifikasi === "menunggu_verifikasi";
+                    const nilaiRp = item.nilaiRealisasi ?? item.estimasiNilai;
+                    return (
+                      <tr key={item.id}>
+                        <td>
+                          <strong>{item.id}</strong>
+                          <span className="dsh__subtext">{item.tanggal}</span>
+                        </td>
+                        <td>
+                          <strong>{item.namaNasabah}</strong>
+                          <span className="dsh__subtext">{item.nomorNasabah}</span>
+                        </td>
+                        <td>
+                          <span style={{ fontWeight: 600, color: "#2f5c35" }}>
+                            {item.jenisSampahNama}
+                          </span>
+                        </td>
+                        <td>
+                          <strong>{item.jumlahSatuan || kg(item.beratKg)}</strong>
+                          {item.jumlahSatuan && !item.jumlahSatuan.includes("kg") && (
+                            <span className="dsh__subtext">Ekuivalen: {kg(item.beratKg)}</span>
+                          )}
+                        </td>
+                        <td>
+                          <strong className={perluVerifikasi ? "dsh__amber" : "dsh__green"}>
+                            {rp(nilaiRp)}
+                          </strong>
+                        </td>
+                        <td>
+                          {perluVerifikasi ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "flex-start" }}>
+                              <span className="dsh__chip dsh__chip--amber">
+                                ⏳ Menunggu Verifikasi
+                              </span>
+                              <button
+                                type="button"
+                                className="dsh__btn"
+                                style={{
+                                  padding: "5px 10px",
+                                  fontSize: "12px",
+                                  fontWeight: 700,
+                                  cursor: "pointer",
+                                }}
+                                onClick={() => handleVerifikasiItem(item)}
+                              >
+                                ✓ Verifikasi Setoran
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-start" }}>
+                              <span className="dsh__chip dsh__chip--green">
+                                ✓ Terverifikasi (Saldo Aktif)
+                              </span>
+                              <span className="dsh__subtext" style={{ fontSize: "11px" }}>
+                                {item.status === "disalurkan"
+                                  ? "Sudah laku di pengepul"
+                                  : "Valid masuk saldo nasabah"}
+                              </span>
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          <span className="dsh__subtext" style={{ color: "#444" }}>
+                            {item.dicatatOleh || "Ahmad Fauzi (Petugas Piket)"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -403,19 +496,29 @@ export default function RingkasanPengelolaPage() {
   }
 
   /* ==============================================================
-     TAMPILAN 2: DASHBOARD BENDAHARA (Ringkasan Keuangan Wadiah)
+     TAMPILAN 2: DASHBOARD BENDAHARA & ADMINISTRATOR SISTEM
      ============================================================== */
+  const isAdmin = roleAktif === "admin";
+
   return (
     <div className="dsh__page">
       <header className="dsh__head">
         <div className="dsh__headrole">
-          <span className="dsh__tagbadge">Bendahara & Pengelola</span>
+          <span className="dsh__tagbadge">
+            {isAdmin ? "Administrator Sistem BSS" : "Bendahara & Pengelola"}
+          </span>
           <span className="dsh__dot" aria-hidden="true">•</span>
-          <span className="dsh__meta">Keuangan & Alur Pengepul</span>
+          <span className="dsh__meta">
+            {isAdmin ? "Pemantauan Menyeluruh & Master Data" : "Keuangan & Alur Pengepul"}
+          </span>
         </div>
-        <h1 className="dsh__h1">Ringkasan Pengelola BSS</h1>
+        <h1 className="dsh__h1">
+          {isAdmin ? "Monitoring Sistem BSS UINSA" : "Ringkasan Pengelola BSS"}
+        </h1>
         <p className="dsh__sub">
-          Monitor saldo wadiah nasabah, stok gudang belum terjual, dan bagi hasil penjualan pengepul.
+          {isAdmin
+            ? "Pemantauan terpadu pangkalan data nasabah, alur penyaluran pengepul, dan audit kas syariah."
+            : "Monitor saldo wadiah nasabah, stok gudang belum terjual, dan bagi hasil penjualan pengepul."}
         </p>
       </header>
 
@@ -488,6 +591,10 @@ export default function RingkasanPengelolaPage() {
             </div>
           </div>
           <div className="dsh__quicklinks">
+            <Link className="dsh__quickcard" href="/admin/tarik">
+              <strong>Pencatatan Tarik Tunai</strong>
+              <span>Layanan pencairan tabungan nasabah di pos meja pelayanan.</span>
+            </Link>
             <Link className="dsh__quickcard" href="/admin/pengepul">
               <strong>Kelola Penjualan Pengepul</strong>
               <span>Hitung bagi hasil otomatis antara hak nasabah & kas BSS.</span>
@@ -504,6 +611,12 @@ export default function RingkasanPengelolaPage() {
               <strong>Daftar Harga Acuan (Pricelist)</strong>
               <span>Atur nilai acuan per kg sampah terpilah (A1 s/d D7).</span>
             </Link>
+            {isAdmin && (
+              <Link className="dsh__quickcard" href="/admin/aktivasi">
+                <strong>Verifikasi & Aktivasi Akun</strong>
+                <span>Validasi berkas bukti bayar registrasi pendaftar baru.</span>
+              </Link>
+            )}
           </div>
         </section>
       </div>

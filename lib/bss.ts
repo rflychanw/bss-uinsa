@@ -11,7 +11,24 @@
  */
 
 export type StatusSetoran = "belum_terjual" | "disalurkan";
+export type StatusVerifikasiSetoran = "menunggu_verifikasi" | "terverifikasi";
 export type Status = "selesai" | "menunggu";
+export type MetodePenarikan = "tunai" | "bank" | "ewallet" | "transfer";
+
+export const MINIMAL_PENARIKAN_RP = 2000;
+
+export type PenarikanUang = {
+  id: string;
+  nomorNasabah: string;
+  namaNasabah: string;
+  tanggal: string;
+  nominal: number;
+  metode: MetodePenarikan;
+  tujuan?: string;
+  catatan?: string;
+  status: "selesai" | "menunggu";
+  petugas: string;
+};
 
 export type Setoran = {
   id: string;
@@ -58,9 +75,11 @@ export type SetoranNasabah = {
   jenisSampahId: string;
   jenisSampahNama: string;
   beratKg: number;
+  jumlahSatuan?: string;
   estimasiNilai: number;
   nilaiRealisasi?: number;
   status: StatusSetoran;
+  statusVerifikasi?: StatusVerifikasiSetoran;
   batchPengepulId?: string;
   dicatatOleh: string;
 };
@@ -231,15 +250,31 @@ export const NASABAH_DEMO: NasabahProfil = {
 
 export const RIWAYAT_SETORAN_AWAL: SetoranNasabah[] = [
   {
+    id: "S-0913",
+    nomorNasabah: "BSS-0142",
+    namaNasabah: "Aisyah Rahmawati",
+    tanggal: "29 Okt 2026",
+    jenisSampahId: "G1",
+    jenisSampahNama: "[G1] Galon Utuh (Aqua / Club / Bahan Sejenis)",
+    beratKg: 3.0,
+    jumlahSatuan: "3 pcs (Satuan)",
+    estimasiNilai: 18000,
+    status: "belum_terjual",
+    statusVerifikasi: "menunggu_verifikasi",
+    dicatatOleh: "Ahmad Fauzi (Petugas Piket)",
+  },
+  {
     id: "S-0912",
     nomorNasabah: "BSS-0142",
     namaNasabah: "Aisyah Rahmawati",
     tanggal: "28 Okt 2026",
     jenisSampahId: "B1",
-    jenisSampahNama: "[B1] Putihan/HD",
+    jenisSampahNama: "[B1] Botol PET Bening Bersih",
     beratKg: 4.2,
+    jumlahSatuan: "4,2 kg",
     estimasiNilai: 16800,
     status: "belum_terjual",
+    statusVerifikasi: "terverifikasi",
     dicatatOleh: "Ahmad Fauzi (Petugas Piket)",
   },
   {
@@ -250,8 +285,10 @@ export const RIWAYAT_SETORAN_AWAL: SetoranNasabah[] = [
     jenisSampahId: "A1",
     jenisSampahNama: "[A1] Kardus Bagus",
     beratKg: 9.5,
+    jumlahSatuan: "9,5 kg",
     estimasiNilai: 19000,
     status: "belum_terjual",
+    statusVerifikasi: "menunggu_verifikasi",
     dicatatOleh: "Ahmad Fauzi (Petugas Piket)",
   },
   {
@@ -259,11 +296,13 @@ export const RIWAYAT_SETORAN_AWAL: SetoranNasabah[] = [
     nomorNasabah: "BSS-0210",
     namaNasabah: "Nadia Salma",
     tanggal: "27 Okt 2026",
-    jenisSampahId: "C5",
-    jenisSampahNama: "[C5] Aluminium",
+    jenisSampahId: "L4",
+    jenisSampahNama: "[L4] Aluminium",
     beratKg: 2.1,
-    estimasiNilai: 29400,
+    jumlahSatuan: "2,1 kg",
+    estimasiNilai: 25200,
     status: "belum_terjual",
+    statusVerifikasi: "terverifikasi",
     dicatatOleh: "Ahmad Fauzi (Petugas Piket)",
   },
   {
@@ -274,11 +313,13 @@ export const RIWAYAT_SETORAN_AWAL: SetoranNasabah[] = [
     jenisSampahId: "A1",
     jenisSampahNama: "[A1] Kardus Bagus",
     beratKg: 6.8,
+    jumlahSatuan: "6,8 kg",
     estimasiNilai: 13600,
     nilaiRealisasi: 14200,
     status: "disalurkan",
+    statusVerifikasi: "terverifikasi",
     batchPengepulId: "BATCH-2026-10A",
-    dicatatOleh: "Siti Nurhaliza (Bendahara)",
+    dicatatOleh: "Ahmad Fauzi (Petugas Piket)",
   },
   {
     id: "S-0900",
@@ -288,25 +329,29 @@ export const RIWAYAT_SETORAN_AWAL: SetoranNasabah[] = [
     jenisSampahId: "A4",
     jenisSampahNama: "[A4] HVS",
     beratKg: 4.4,
+    jumlahSatuan: "4,4 kg",
     estimasiNilai: 11000,
     nilaiRealisasi: 11500,
     status: "disalurkan",
+    statusVerifikasi: "terverifikasi",
     batchPengepulId: "BATCH-2026-10A",
-    dicatatOleh: "Siti Nurhaliza (Bendahara)",
+    dicatatOleh: "Ahmad Fauzi (Petugas Piket)",
   },
   {
     id: "S-0887",
     nomorNasabah: "BSS-0142",
     namaNasabah: "Aisyah Rahmawati",
     tanggal: "14 Okt 2026",
-    jenisSampahId: "C5",
-    jenisSampahNama: "[C5] Aluminium",
-    beratKg: 1.4,
-    estimasiNilai: 19600,
-    nilaiRealisasi: 19600,
+    jenisSampahId: "L4",
+    jenisSampahNama: "[L4] Aluminium (siku, panci, kaleng)",
+    beratKg: 4.5,
+    jumlahSatuan: "4,5 kg",
+    estimasiNilai: 54000,
+    nilaiRealisasi: 54000,
     status: "disalurkan",
+    statusVerifikasi: "terverifikasi",
     batchPengepulId: "BATCH-2026-10A",
-    dicatatOleh: "Siti Nurhaliza (Bendahara)",
+    dicatatOleh: "Ahmad Fauzi (Petugas Piket)",
   },
   {
     id: "S-0870",
@@ -315,12 +360,30 @@ export const RIWAYAT_SETORAN_AWAL: SetoranNasabah[] = [
     tanggal: "7 Okt 2026",
     jenisSampahId: "A4",
     jenisSampahNama: "[A4] HVS",
-    beratKg: 3.5,
-    estimasiNilai: 8750,
-    nilaiRealisasi: 9000,
+    beratKg: 16.0,
+    jumlahSatuan: "16 kg",
+    estimasiNilai: 40000,
+    nilaiRealisasi: 40000,
     status: "disalurkan",
+    statusVerifikasi: "terverifikasi",
     batchPengepulId: "BATCH-2026-09C",
-    dicatatOleh: "Siti Nurhaliza (Bendahara)",
+    dicatatOleh: "Ahmad Fauzi (Petugas Piket)",
+  },
+  {
+    id: "S-0852",
+    nomorNasabah: "BSS-0142",
+    namaNasabah: "Aisyah Rahmawati",
+    tanggal: "25 Sep 2026",
+    jenisSampahId: "K1",
+    jenisSampahNama: "[K1] Besi Tebal",
+    beratKg: 17.4,
+    jumlahSatuan: "17,4 kg",
+    estimasiNilai: 78300,
+    nilaiRealisasi: 78300,
+    status: "disalurkan",
+    statusVerifikasi: "terverifikasi",
+    batchPengepulId: "BATCH-2026-09B",
+    dicatatOleh: "Ahmad Fauzi (Petugas Piket)",
   },
 ];
 
@@ -419,23 +482,23 @@ export const BATCH_PENGEPUL_AWAL: BatchPenjualanPengepul[] = [
       {
         nomorNasabah: "BSS-0142",
         namaNasabah: "Aisyah Rahmawati",
-        beratKg: 8.2,
-        proporsiPersen: 51.9,
-        hakUang: 317000,
+        beratKg: 82.5,
+        proporsiPersen: 44.59,
+        hakUang: 272000,
       },
       {
         nomorNasabah: "BSS-0033",
         namaNasabah: "Rizal Hamdani",
-        beratKg: 4.4,
-        proporsiPersen: 27.8,
-        hakUang: 170000,
+        beratKg: 58.0,
+        proporsiPersen: 31.35,
+        hakUang: 191000,
       },
       {
         nomorNasabah: "BSS-0087",
         namaNasabah: "Bagus Prakoso",
-        beratKg: 3.2,
-        proporsiPersen: 20.3,
-        hakUang: 123000,
+        beratKg: 44.5,
+        proporsiPersen: 24.06,
+        hakUang: 147000,
       },
     ],
   },
@@ -449,7 +512,7 @@ export const BATCH_PENGEPUL_AWAL: BatchPenjualanPengepul[] = [
     nilaiJualPengepul: 430000,
     uangDiterima: 430000,
     totalDisalurkan: 0,
-    selisihKasBss: 430000,
+    selisihKasBss: 25000,
     tanggalTerkumpul: "24 Okt 2026",
     tanggalJual: "26 Okt 2026",
     tanggalUangDiterima: "27 Okt 2026",
@@ -459,20 +522,318 @@ export const BATCH_PENGEPUL_AWAL: BatchPenjualanPengepul[] = [
       {
         nomorNasabah: "BSS-0087",
         namaNasabah: "Bagus Prakoso",
-        beratKg: 9.5,
-        proporsiPersen: 81.9,
-        hakUang: 335000,
+        beratKg: 98.5,
+        proporsiPersen: 81.74,
+        hakUang: 331000,
       },
       {
         nomorNasabah: "BSS-0210",
         namaNasabah: "Nadia Salma",
-        beratKg: 2.1,
-        proporsiPersen: 18.1,
-        hakUang: 75000,
+        beratKg: 22.0,
+        proporsiPersen: 18.26,
+        hakUang: 74000,
       },
     ],
   },
 ];
+
+/* --------------------------------- Data Riwayat Penarikan Saldo (Tarik Tunai) */
+
+export const DAFTAR_PENARIKAN_AWAL: PenarikanUang[] = [
+  {
+    id: "TRK-0023",
+    nomorNasabah: "BSS-0087",
+    namaNasabah: "Bagus Prakoso",
+    tanggal: "29 Okt 2026",
+    nominal: 20000,
+    metode: "tunai",
+    tujuan: "Tunai di Pos Meja Timbang",
+    catatan: "Pengajuan penarikan tunai menunggu validasi petugas jaga",
+    status: "menunggu",
+    petugas: "Menunggu Validasi Petugas Jaga",
+  },
+  {
+    id: "TRK-0022",
+    nomorNasabah: "BSS-0142",
+    namaNasabah: "Aisyah Rahmawati",
+    tanggal: "28 Okt 2026",
+    nominal: 15000,
+    metode: "ewallet",
+    tujuan: "DANA — 0812-3456-7890",
+    catatan: "Pencairan saldo otomatis ke E-Wallet DANA",
+    status: "selesai",
+    petugas: "Otomatis Sistem BSS (E-Wallet)",
+  },
+  {
+    id: "TRK-0021",
+    nomorNasabah: "BSS-0142",
+    namaNasabah: "Aisyah Rahmawati",
+    tanggal: "24 Okt 2026",
+    nominal: 50000,
+    metode: "tunai",
+    tujuan: "Tunai di Pos Meja Timbang",
+    catatan: "Penarikan tabungan wadiah tunai di pos meja timbang",
+    status: "selesai",
+    petugas: "Ahmad Fauzi (Petugas Piket)",
+  },
+  {
+    id: "TRK-0019",
+    nomorNasabah: "BSS-0087",
+    namaNasabah: "Bagus Prakoso",
+    tanggal: "22 Okt 2026",
+    nominal: 100000,
+    metode: "tunai",
+    tujuan: "Tunai di Pos Meja Timbang",
+    catatan: "Pencairan tabungan tunai di sekretariat BSS FEBI",
+    status: "selesai",
+    petugas: "Ahmad Fauzi (Petugas Piket)",
+  },
+  {
+    id: "TRK-0015",
+    nomorNasabah: "BSS-0142",
+    namaNasabah: "Aisyah Rahmawati",
+    tanggal: "10 Okt 2026",
+    nominal: 60000,
+    metode: "bank",
+    tujuan: "Bank BSI — 7182930412",
+    catatan: "Pencairan saldo tabungan via Transfer Bank BSI",
+    status: "selesai",
+    petugas: "Otomatis Sistem BSS (Transfer Bank)",
+  },
+  {
+    id: "TRK-0012",
+    nomorNasabah: "BSS-0033",
+    namaNasabah: "Rizal Hamdani",
+    tanggal: "15 Okt 2026",
+    nominal: 80000,
+    metode: "bank",
+    tujuan: "Bank Mandiri — 14200981234",
+    catatan: "Pencairan saldo via transfer rekening bank",
+    status: "selesai",
+    petugas: "Otomatis Sistem BSS (Transfer Bank)",
+  },
+];
+
+/* --------------------------------- Storage Helpers untuk Sinkronisasi Dinamis & Persisten */
+
+const PENARIKAN_KEY = "bss:penarikan:v2";
+const PRICELIST_KEY = "bss:pricelist";
+const SETORAN_KEY = "bss:setoran:v2";
+
+const adaJendela = () => typeof window !== "undefined";
+
+export function formatMetodePenarikan(metode: MetodePenarikan): string {
+  if (metode === "tunai") return "💵 Tunai di Pos Jaga";
+  if (metode === "ewallet") return "📱 Saldo E-Wallet";
+  return "🏦 Saldo Bank";
+}
+
+export function getDaftarPenarikan(): PenarikanUang[] {
+  if (!adaJendela()) return DAFTAR_PENARIKAN_AWAL;
+  try {
+    const raw = window.localStorage.getItem(PENARIKAN_KEY);
+    return raw ? JSON.parse(raw) : DAFTAR_PENARIKAN_AWAL;
+  } catch {
+    return DAFTAR_PENARIKAN_AWAL;
+  }
+}
+
+export function simpanPenarikan(list: PenarikanUang[]) {
+  if (!adaJendela()) return;
+  try {
+    window.localStorage.setItem(PENARIKAN_KEY, JSON.stringify(list));
+  } catch {
+    /* abaikan */
+  }
+}
+
+export function tambahPenarikan(input: Omit<PenarikanUang, "id">): PenarikanUang {
+  const list = getDaftarPenarikan();
+  const idBaru = `TRK-00${list.length + 24}`;
+  const baru: PenarikanUang = { ...input, id: idBaru };
+  const updated = [baru, ...list];
+  simpanPenarikan(updated);
+  return baru;
+}
+
+export function validasiPenarikanTunai(id: string, namaPetugas: string): PenarikanUang[] {
+  const list = getDaftarPenarikan();
+  const updated = list.map((p) =>
+    p.id === id
+      ? {
+          ...p,
+          status: "selesai" as const,
+          petugas: namaPetugas,
+        }
+      : p
+  );
+  simpanPenarikan(updated);
+  return updated;
+}
+
+export function getPricelist(): JenisSampah[] {
+  if (!adaJendela()) return PRICELIST_AWAL;
+  try {
+    const raw = window.localStorage.getItem(PRICELIST_KEY);
+    return raw ? JSON.parse(raw) : PRICELIST_AWAL;
+  } catch {
+    return PRICELIST_AWAL;
+  }
+}
+
+export function simpanPricelist(list: JenisSampah[]) {
+  if (!adaJendela()) return;
+  try {
+    window.localStorage.setItem(PRICELIST_KEY, JSON.stringify(list));
+  } catch {
+    /* abaikan */
+  }
+}
+
+export function getDaftarSetoran(): SetoranNasabah[] {
+  if (!adaJendela()) return RIWAYAT_SETORAN_AWAL;
+  try {
+    const raw = window.localStorage.getItem(SETORAN_KEY);
+    return raw ? JSON.parse(raw) : RIWAYAT_SETORAN_AWAL;
+  } catch {
+    return RIWAYAT_SETORAN_AWAL;
+  }
+}
+
+export function simpanSetoran(list: SetoranNasabah[]) {
+  if (!adaJendela()) return;
+  try {
+    window.localStorage.setItem(SETORAN_KEY, JSON.stringify(list));
+  } catch {
+    /* abaikan */
+  }
+}
+
+export function tambahSetoranBaru(item: SetoranNasabah) {
+  const current = getDaftarSetoran();
+  const updated = [item, ...current];
+  simpanSetoran(updated);
+}
+
+export function tambahBanyakSetoranBaru(items: SetoranNasabah[]) {
+  const current = getDaftarSetoran();
+  const updated = [...items, ...current];
+  simpanSetoran(updated);
+  return updated;
+}
+
+export function verifikasiSetoran(id: string, namaPetugas: string): SetoranNasabah[] {
+  const current = getDaftarSetoran();
+  const updated = current.map((s) =>
+    s.id === id
+      ? {
+          ...s,
+          statusVerifikasi: "terverifikasi" as const,
+          dicatatOleh: namaPetugas,
+        }
+      : s
+  );
+  simpanSetoran(updated);
+  return updated;
+}
+
+export function hitungRingkasanSaldoNasabah(nomorNasabah: string) {
+  const semuaSetoran = getDaftarSetoran().filter((s) => s.nomorNasabah === nomorNasabah);
+  const semuaPenarikan = getDaftarPenarikan().filter((p) => p.nomorNasabah === nomorNasabah);
+
+  const setoranTerverifikasi = semuaSetoran.filter(
+    (s) => s.statusVerifikasi !== "menunggu_verifikasi"
+  );
+  const setoranMenunggu = semuaSetoran.filter(
+    (s) => s.statusVerifikasi === "menunggu_verifikasi"
+  );
+
+  const totalSaldoTerverifikasi = setoranTerverifikasi.reduce(
+    (acc, s) => acc + (s.nilaiRealisasi ?? s.estimasiNilai),
+    0
+  );
+  const totalMenungguVerifikasiRp = setoranMenunggu.reduce(
+    (acc, s) => acc + s.estimasiNilai,
+    0
+  );
+  const totalMenungguVerifikasiKg = setoranMenunggu.reduce(
+    (acc, s) => acc + s.beratKg,
+    0
+  );
+  const totalBeratTerverifikasiKg = setoranTerverifikasi.reduce(
+    (acc, s) => acc + s.beratKg,
+    0
+  );
+  const totalBeratSemuaKg = semuaSetoran.reduce((acc, s) => acc + s.beratKg, 0);
+
+  const totalDitarikSelesai = semuaPenarikan
+    .filter((p) => p.status === "selesai")
+    .reduce((acc, p) => acc + p.nominal, 0);
+
+  const totalDitarikMenunggu = semuaPenarikan
+    .filter((p) => p.status === "menunggu")
+    .reduce((acc, p) => acc + p.nominal, 0);
+
+  const saldoTersedia = Math.max(
+    0,
+    totalSaldoTerverifikasi - totalDitarikSelesai - totalDitarikMenunggu
+  );
+
+  return {
+    semuaSetoran,
+    semuaPenarikan,
+    setoranTerverifikasi,
+    setoranMenunggu,
+    totalSaldoTerverifikasi,
+    totalMenungguVerifikasiRp,
+    totalMenungguVerifikasiKg,
+    totalBeratTerverifikasiKg,
+    totalBeratSemuaKg,
+    totalDitarikSelesai,
+    totalDitarikMenunggu,
+    saldoTersedia,
+  };
+}
+
+export function getKategoriSampah(jenisSampahId: string, nama = ""): string {
+  const id = (jenisSampahId || "").toUpperCase();
+  const nm = (nama || "").toLowerCase();
+
+  if (id.startsWith("A") || nm.includes("kardus") || nm.includes("kertas") || nm.includes("hvs") || nm.includes("koran")) {
+    return "Kertas";
+  }
+  if (
+    id.startsWith("B") ||
+    id.startsWith("C") ||
+    id.startsWith("D") ||
+    id.startsWith("E") ||
+    id.startsWith("F") ||
+    id.startsWith("G") ||
+    id.startsWith("H") ||
+    id.startsWith("I") ||
+    nm.includes("plastik") ||
+    nm.includes("pet") ||
+    nm.includes("botol") ||
+    nm.includes("kresek")
+  ) {
+    return "Plastik";
+  }
+  if (
+    id.startsWith("K") ||
+    id.startsWith("L") ||
+    nm.includes("besi") ||
+    nm.includes("logam") ||
+    nm.includes("aluminium") ||
+    nm.includes("tembaga") ||
+    nm.includes("kaleng")
+  ) {
+    return "Logam";
+  }
+  if (id.startsWith("J") || nm.includes("kaca") || nm.includes("beling") || nm.includes("sirup")) {
+    return "Kaca";
+  }
+  return "Lain-lain";
+}
 
 /* --------------------------------- Kompatibilitas backwards helper lama */
 export const nasabah = {

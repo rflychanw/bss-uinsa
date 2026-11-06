@@ -116,6 +116,13 @@ const ICONS: Record<string, ReactNode> = {
       />
     </svg>
   ),
+  cash: (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <rect x="2.5" y="4.5" width="15" height="11" rx="2" stroke="currentColor" strokeWidth="1.4" />
+      <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M5.5 7.5h.01M14.5 12.5h.01" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  ),
 };
 
 const NAV_NASABAH = [
@@ -128,6 +135,7 @@ const NAV_NASABAH = [
 const NAV_PETUGAS = [
   { href: "/admin", label: "Riwayat Pencatatan", mobileLabel: "Riwayat", icon: "list" },
   { href: "/admin/setoran", label: "Tambah Pencatatan", mobileLabel: "Tambah", icon: "scale" },
+  { href: "/admin/tarik", label: "Tarik Tunai Nasabah", mobileLabel: "Tarik Tunai", icon: "cash" },
   { href: "/admin/aktivasi", label: "Aktivasi Akun", mobileLabel: "Aktivasi", icon: "verify" },
 ];
 
@@ -135,9 +143,19 @@ const NAV_BENDAHARA = [
   { href: "/admin", label: "Ringkasan Keuangan", mobileLabel: "Ringkasan", icon: "home" },
   { href: "/admin/pengepul", label: "Alur Pengepul & Bagi Hasil", mobileLabel: "Pengepul", icon: "flow" },
   { href: "/admin/rekap", label: "Rekap & Ekspor CSV", mobileLabel: "Rekap", icon: "report" },
-  { href: "/admin/aktivasi", label: "Aktivasi Akun", mobileLabel: "Aktivasi", icon: "verify" },
+  { href: "/admin/tarik", label: "Riwayat Tarik Tunai", mobileLabel: "Tarik Tunai", icon: "cash" },
   { href: "/admin/nasabah", label: "Buku Tabungan Nasabah", mobileLabel: "Nasabah", icon: "user" },
   { href: "/admin/pricelist", label: "Daftar Harga (Pricelist)", mobileLabel: "Pricelist", icon: "price" },
+];
+
+const NAV_ADMIN = [
+  { href: "/admin", label: "Monitoring Sistem", mobileLabel: "Monitor", icon: "home" },
+  { href: "/admin/aktivasi", label: "Aktivasi & Verifikasi", mobileLabel: "Aktivasi", icon: "verify" },
+  { href: "/admin/nasabah", label: "Master Data Nasabah", mobileLabel: "Nasabah", icon: "user" },
+  { href: "/admin/pricelist", label: "Master Pricelist (FR-007)", mobileLabel: "Pricelist", icon: "price" },
+  { href: "/admin/tarik", label: "Pencatatan Tarik Tunai", mobileLabel: "Tarik Tunai", icon: "cash" },
+  { href: "/admin/pengepul", label: "Alur Penjualan Pengepul", mobileLabel: "Pengepul", icon: "flow" },
+  { href: "/admin/rekap", label: "Laporan Keuangan", mobileLabel: "Laporan", icon: "report" },
 ];
 
 export default function AppShell({
@@ -162,6 +180,8 @@ export default function AppShell({
       ? NAV_NASABAH
       : roleAktif === "petugas"
       ? NAV_PETUGAS
+      : roleAktif === "admin"
+      ? NAV_ADMIN
       : NAV_BENDAHARA;
 
   const namaUser =
@@ -169,8 +189,10 @@ export default function AppShell({
     (roleAktif === "nasabah"
       ? "Aisyah Rahmawati"
       : roleAktif === "petugas"
-      ? "Rizal Fauzi"
-      : "Siti Fatimah, S.E.");
+      ? "Ahmad Fauzi"
+      : roleAktif === "admin"
+      ? "Petugas Sekretariat"
+      : "Siti Nurhaliza");
 
   const subUser =
     sesi?.jabatan ||
@@ -179,6 +201,8 @@ export default function AppShell({
       ? "BSS-0142"
       : roleAktif === "petugas"
       ? "Petugas Jaga Pos"
+      : roleAktif === "admin"
+      ? "Administrator Sistem BSS"
       : "Bendahara Keuangan");
 
   const initial = namaUser.charAt(0);
@@ -186,7 +210,9 @@ export default function AppShell({
   const roleLabel =
     roleAktif === "petugas"
       ? "Ruang Petugas Jaga"
-      : roleAktif === "bendahara" || roleAktif === "admin"
+      : roleAktif === "admin"
+      ? "Ruang Administrator Sistem"
+      : roleAktif === "bendahara"
       ? "Ruang Bendahara Keuangan"
       : "Ruang Nasabah";
 

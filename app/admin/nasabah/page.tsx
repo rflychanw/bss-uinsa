@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import {
   DAFTAR_NASABAH_MASTER,
+  hitungRingkasanSaldoNasabah,
   kg,
   rp,
   type NasabahMaster,
@@ -24,11 +25,6 @@ export default function NasabahAdmin() {
     metode?: string;
   } | null>(null);
   const [cari, setCari] = useState<string>("");
-  const [namaBaru, setNamaBaru] = useState<string>("");
-  const [emailBaru, setEmailBaru] = useState<string>("");
-  const [fakultasBaru, setFakultasBaru] = useState<string>(
-    "Sains & Teknologi / Sistem Informasi"
-  );
   const [sukses, setSukses] = useState<string>("");
 
   const muatData = () => {
@@ -68,9 +64,6 @@ export default function NasabahAdmin() {
   };
 
   const idCari = useId();
-  const idNama = useId();
-  const idEmail = useId();
-  const idFakultas = useId();
 
   const filtered = useMemo(() => {
     if (!cari.trim()) return daftar;
@@ -82,32 +75,6 @@ export default function NasabahAdmin() {
         n.fakultas.toLowerCase().includes(q)
     );
   }, [daftar, cari]);
-
-  const handleTambahNasabah = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!namaBaru.trim()) return;
-
-    const nomorUrut = daftar.length + 1;
-    const nomorFormat = `BSS-${nomorUrut.toString().padStart(4, "0")}`;
-
-    const baru: NasabahMaster = {
-      nomor: nomorFormat,
-      nama: namaBaru.trim(),
-      email: emailBaru.trim() || `${namaBaru.toLowerCase().replace(/\s+/g, "")}@uinsa.ac.id`,
-      fakultas: fakultasBaru,
-      totalBeratKg: 0,
-      totalDisalurkan: 0,
-      estimasiGudang: 0,
-      status: "aktif",
-      terdaftar: "28 Okt 2026",
-    };
-
-    setDaftar([baru, ...daftar]);
-    setSukses(`Nasabah baru berhasil didaftarkan: ${baru.nama} (${baru.nomor})`);
-    setNamaBaru("");
-    setEmailBaru("");
-    setTimeout(() => setSukses(""), 5000);
-  };
 
   return (
     <div className="dsh__page">
@@ -361,42 +328,52 @@ export default function NasabahAdmin() {
         </div>
       )}
 
-      <div className="dsh__split">
-        {/* Tabel Data Nasabah Terdaftar */}
-        <section className="dsh__card" aria-label="Tabel Direktori Nasabah">
-          <div className="dsh__cardhead">
-            <div>
-              <h2 className="dsh__h2">Direktori Nasabah Kampus</h2>
-              <span className="dsh__meta">{filtered.length} nasabah ditemukan</span>
-            </div>
-            <div className="dsh__filterwrap">
-              <label htmlFor={idCari} className="sr-only">Cari Nasabah</label>
-              <input
-                id={idCari}
-                type="text"
-                placeholder="Cari nama / nomor BSS..."
-                className="dsh__input dsh__input--sm"
-                value={cari}
-                onChange={(e) => setCari(e.target.value)}
-              />
-            </div>
+      {/* Tabel Data Nasabah Terdaftar (Full-Width Sesuai BR-004 & BR-005 SRS v1.0) */}
+      <section className="dsh__card" aria-label="Tabel Direktori Nasabah">
+        <div className="dsh__cardhead" style={{ flexWrap: "wrap", gap: "12px" }}>
+          <div>
+            <h2 className="dsh__h2">Direktori Buku Tabungan Nasabah Kampus</h2>
+            <span className="dsh__meta">{filtered.length} nasabah aktif terdaftar dalam pangkalan data</span>
           </div>
+          <div className="dsh__filterwrap">
+            <label htmlFor={idCari} className="sr-only">Cari Nasabah</label>
+            <input
+              id={idCari}
+              type="text"
+              placeholder="Cari nama, email, nomor BSS, prodi..."
+              className="dsh__input dsh__input--sm"
+              value={cari}
+              onChange={(e) => setCari(e.target.value)}
+              style={{ minWidth: "260px" }}
+            />
+          </div>
+        </div>
 
-          <div className="dsh__tablewrap">
-            <table className="dsh__table">
-              <thead>
-                <tr>
-                  <th>Nomor BSS</th>
-                  <th>Nama Nasabah</th>
-                  <th>Fakultas / Prodi</th>
-                  <th>Total Setor</th>
-                  <th>Uang Disalurkan</th>
-                  <th>Estimasi Gudang</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((n) => (
+        <div className="dsh__tablewrap">
+          <table className="dsh__table">
+            <thead>
+              <tr>
+                <th>Nomor BSS</th>
+                <th>Nama Nasabah</th>
+                <th>Fakultas / Prodi</th>
+                <th>Total Setor</th>
+                <th>Saldo Aktif (Siap Tarik)</th>
+                <th>Menunggu Verifikasi</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((n) => {
+                const rk = hitungRingkasanSaldoNasabah(n.nomor);
+                const beratTotal =
+                  rk.totalBeratSemuaKg > 0
+                    ? rk.totalBeratSemuaKg
+                    : n.totalSetorKg ?? n.totalBeratKg ?? 0;
+                const saldoAktif =
+                  rk.semuaSetoran.length > 0
+                    ? rk.saldoTersedia
+                    : n.akumulasiTersalurkan ?? n.totalDisalurkan ?? 0;
+                return (
                   <tr key={n.nomor}>
                     <td>
                       <code className="dsh__code">{n.nomor}</code>
@@ -406,105 +383,38 @@ export default function NasabahAdmin() {
                       <span className="dsh__subtext">{n.email}</span>
                     </td>
                     <td>{n.fakultas}</td>
-                    <td>{kg(n.totalSetorKg ?? n.totalBeratKg ?? 0)}</td>
+                    <td>{kg(beratTotal)}</td>
                     <td>
-                      <strong className="dsh__green">{rp(n.akumulasiTersalurkan ?? n.totalDisalurkan ?? 0)}</strong>
+                      <strong className="dsh__green">{rp(saldoAktif)}</strong>
+                      {rk.totalDitarikSelesai > 0 && (
+                        <span className="dsh__subtext">
+                          Telah ditarik: {rp(rk.totalDitarikSelesai)}
+                        </span>
+                      )}
                     </td>
                     <td>
-                      <span className="dsh__amber">{rp(n.estimasiBelumTerjual ?? n.estimasiGudang ?? 0)}</span>
+                      <span className="dsh__amber">
+                        {rp(rk.totalMenungguVerifikasiRp)}
+                      </span>
                     </td>
                     <td>
                       <span className="dsh__chip dsh__chip--green">{n.status}</span>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
 
-        {/* Form Tambah Nasabah Cepat */}
-        <section className="dsh__card" aria-label="Pendaftaran Nasabah Baru">
-          <div className="dsh__cardhead">
-            <h2 className="dsh__h2">Daftarkan Nasabah Baru</h2>
-            <span className="dsh__tagbadge">Meja Registrasi</span>
-          </div>
-          <p className="dsh__carddesc">
-            Registrasi kilat untuk mahasiswa, dosen, atau tenaga kependidikan yang baru pertama kali menyetor.
+        {/* Informasi Aturan Bisnis Pendaftaran Sesuai SRS v1.0 */}
+        <div className="dsh__note dsh__notebox" style={{ margin: "20px 16px 16px" }}>
+          <strong>Ketentuan Pendaftaran Nasabah (BR-004 & BR-005):</strong>
+          <p>
+            Sesuai alur BPMN TO-BE Gambar 3, pendaftaran nasabah baru dilakukan secara mandiri oleh civitas akademika melalui halaman <strong>/daftar</strong>. Petugas Jaga & Administrator melakukan validasi berkas biaya berlangganan melalui modul <strong>Aktivasi Akun</strong>. Bendahara berfokus pada audit buku tabungan, alur penjualan pengepul, dan rekapitulasi keuangan.
           </p>
-
-          <form onSubmit={handleTambahNasabah} className="dsh__form">
-            <div className="dsh__field">
-              <label className="dsh__label" htmlFor={idNama}>
-                Nama Lengkap
-              </label>
-              <input
-                id={idNama}
-                type="text"
-                className="dsh__input"
-                placeholder="mis. Muhammad Raihan"
-                required
-                value={namaBaru}
-                onChange={(e) => setNamaBaru(e.target.value)}
-              />
-            </div>
-
-            <div className="dsh__field">
-              <label className="dsh__label" htmlFor={idEmail}>
-                Email Civitas UINSA
-              </label>
-              <input
-                id={idEmail}
-                type="email"
-                className="dsh__input"
-                placeholder="mis. raihan@uinsa.ac.id"
-                value={emailBaru}
-                onChange={(e) => setEmailBaru(e.target.value)}
-              />
-            </div>
-
-            <div className="dsh__field">
-              <label className="dsh__label" htmlFor={idFakultas}>
-                Fakultas / Program Studi
-              </label>
-              <select
-                id={idFakultas}
-                className="dsh__select"
-                value={fakultasBaru}
-                onChange={(e) => setFakultasBaru(e.target.value)}
-              >
-                <option value="Sains & Teknologi / Sistem Informasi">
-                  FST — Sistem Informasi
-                </option>
-                <option value="Ekonomi & Bisnis Islam / Perbankan Syariah">
-                  FEBI — Perbankan Syariah
-                </option>
-                <option value="Tarbiyah & Keguruan / Manajemen Pendidikan">
-                  FTK — Tarbiyah & Keguruan
-                </option>
-                <option value="Syariah & Hukum / Hukum Ekonomi Syariah">
-                  FSH — Syariah & Hukum
-                </option>
-                <option value="Tenaga Kependidikan / Pengelola Kampus">
-                  Tendik / Staf UINSA
-                </option>
-              </select>
-            </div>
-
-            <button type="submit" className="dsh__btn">
-              Simpan & Terbitkan Nomor BSS
-            </button>
-          </form>
-
-          {/* RBAC Info SRS */}
-          <div className="dsh__note dsh__notebox">
-            <strong>Hak Akses Berbasis Peran (RBAC):</strong>
-            <p>
-              Sistem BSS UINSA menerapkan 4 hierarki peran: <strong>Nasabah</strong> (lihat buku tabungan & kalkulator), <strong>Petugas Jaga</strong> (input timbangan), <strong>Bendahara</strong> (alur pengepul & rekap kas), dan <strong>Administrator</strong> (master data & user).
-            </p>
-          </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </div>
   );
 }

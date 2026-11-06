@@ -1,7 +1,13 @@
 "use client";
 
-import { useId, useState } from "react";
-import { PRICELIST_AWAL, rp, type JenisSampah } from "../../../lib/bss";
+import { useEffect, useId, useState } from "react";
+import {
+  getPricelist,
+  PRICELIST_AWAL,
+  rp,
+  simpanPricelist,
+  type JenisSampah,
+} from "../../../lib/bss";
 
 export default function PricelistAdmin() {
   const [pricelist, setPricelist] = useState<JenisSampah[]>(PRICELIST_AWAL);
@@ -12,6 +18,15 @@ export default function PricelistAdmin() {
   const [hargaBaru, setHargaBaru] = useState<number>(3000);
   const [deskripsiBaru, setDeskripsiBaru] = useState<string>("");
   const [pesan, setPesan] = useState<string>("");
+
+  useEffect(() => {
+    const list = getPricelist();
+    setPricelist(list);
+    if (list.length > 0) {
+      setSelectedId(list[0].id);
+      setHargaEdit(list[0].hargaPerKg);
+    }
+  }, []);
 
   const idSelectPricelist = useId();
   const idHargaEdit = useId();
@@ -38,12 +53,13 @@ export default function PricelistAdmin() {
         ? {
             ...p,
             hargaPerKg: hargaEdit,
-            updateTerakhir: "Hari ini (Admin)",
+            updateTerakhir: "Hari ini (Pembaruan FR-007)",
           }
         : p
     );
     setPricelist(updated);
-    setPesan(`Harga jenis sampah berhasil diperbarui menjadi ${rp(hargaEdit)} / kg.`);
+    simpanPricelist(updated);
+    setPesan(`Harga jenis sampah berhasil diperbarui menjadi ${rp(hargaEdit)} / kg (Tersimpan & Sinkron).`);
     setTimeout(() => setPesan(""), 4000);
   };
 
@@ -62,10 +78,12 @@ export default function PricelistAdmin() {
       satuan: "kg",
       hargaPerKg: hargaBaru,
       deskripsi: deskripsiBaru.trim() || "Sampah daur ulang terpilah",
-      updateTerakhir: "Hari ini (Admin)",
+      updateTerakhir: "Hari ini (Pembaruan FR-007)",
     };
 
-    setPricelist([...pricelist, baru]);
+    const updated = [...pricelist, baru];
+    setPricelist(updated);
+    simpanPricelist(updated);
     setPesan(`Jenis sampah baru "${baru.nama}" berhasil ditambahkan.`);
     setNamaBaru("");
     setDeskripsiBaru("");
@@ -80,6 +98,28 @@ export default function PricelistAdmin() {
           Konfigurasi standar acuan harga jenis sampah per kilogram yang digunakan oleh Kalkulator Pintar dan Meja Timbang (FR-006, FR-007, BR-008).
         </p>
       </header>
+
+      {/* Banner Penjaminan Proteksi Nilai Transaksi Historis Sesuai SRS v1.0 */}
+      <div
+        style={{
+          background: "#f4faf4",
+          border: "1px solid #9cd2a2",
+          borderRadius: "8px",
+          padding: "14px 18px",
+          marginBottom: "20px",
+          display: "flex",
+          alignItems: "flex-start",
+          gap: "12px",
+        }}
+      >
+        <span style={{ fontSize: "20px" }}>🛡️</span>
+        <div style={{ fontSize: "13px", color: "#1d5325", lineHeight: 1.5 }}>
+          <strong>Proteksi Nilai Transaksi Historis (FR-007, BR-008, & Batasan Desain No. 6):</strong>
+          <p style={{ margin: "4px 0 0 0" }}>
+            Pembaruan harga acuan pada modul ini tersimpan secara dinamis dan hanya berlaku untuk transaksi setoran baru di Meja Timbang. <strong>Seluruh nilai estimasi dan realisasi setoran sampah yang sudah tercatat sebelumnya terkunci permanen (snapshot historis)</strong> dan tidak akan mengalami perubahan nilai.
+          </p>
+        </div>
+      </div>
 
       {pesan && (
         <div className="dsh__alert dsh__alert--success" role="alert">
