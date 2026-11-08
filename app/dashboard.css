@@ -1837,3 +1837,226 @@
     text-align: center;
   }
 }
+
+/* ============================================================
+   Dompet & Buku Tabungan Nasabah — Editorial Clean (Anti-Slop)
+   ============================================================ */
+
+.dsh__wallet {
+  background: var(--green-deep);
+  color: #f8f8f6;
+  padding: clamp(22px, 3vw, 32px);
+  border-radius: 10px;
+  display: grid;
+  gap: 22px;
+}
+
+.dsh__wallethead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(248, 248, 246, 0.12);
+}
+
+.dsh__walletid {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: rgba(248, 248, 246, 0.78);
+}
+
+.dsh__walletid strong {
+  color: #ffffff;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.dsh__walletmain {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.dsh__walletlabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: rgba(248, 248, 246, 0.72);
+  margin-bottom: 6px;
+}
+
+.dsh__walleteye {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(248, 248, 246, 0.1);
+  color: #f8f8f6;
+  border: 1px solid rgba(248, 248, 246, 0.16);
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 160ms ease-out, transform 160ms ease-out;
+}
+
+.dsh__walleteye:hover {
+  background: rgba(248, 248, 246, 0.18);
+}
+
+.dsh__walleteye:active {
+  transform: scale(0.97);
+}
+
+.dsh__walletamount {
+  font-size: clamp(2.1rem, 1.6rem + 2vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  color: #ffffff;
+}
+
+.dsh__walletmeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: rgba(248, 248, 246, 0.76);
+}
+
+.dsh__walletmeta strong {
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+
+.dsh__walletactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dsh__walletbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 160ms ease-out, color 160ms ease-out, transform 160ms ease-out;
+}
+
+.dsh__walletbtn:active {
+  transform: scale(0.97);
+}
+
+.dsh__walletbtn--primary {
+  background: var(--amber);
+  color: var(--ink);
+}
+
+.dsh__walletbtn--primary:hover {
+  background: #e7ad4b;
+}
+
+.dsh__walletbtn--ghost {
+  background: rgba(248, 248, 246, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(248, 248, 246, 0.2);
+}
+
+.dsh__walletbtn--ghost:hover {
+  background: rgba(248, 248, 246, 0.18);
+}
+
+.dsh__walletstrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(248, 248, 246, 0.12);
+}
+
+.dsh__walletstat span {
+  display: block;
+  font-size: 12px;
+  color: rgba(248, 248, 246, 0.68);
+  margin-bottom: 3px;
+}
+
+.dsh__walletstat strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+
+.dsh__expandbtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 14px;
+  margin-top: 10px;
+  background: #faf9f5;
+  border: 1px solid #e2dfd7;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 160ms ease-out, border-color 160ms ease-out, transform 160ms ease-out;
+}
+
+.dsh__expandbtn:hover {
+  background: #f1efe8;
+  border-color: #cbc7bc;
+}
+
+.dsh__expandbtn:active {
+  transform: scale(0.985);
+}
+
+.dsh__ledger {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px 24px;
+  padding: 6px 0;
+}
+
+.dsh__ledgeritem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0eee8;
+}
+
+.dsh__ledgeritem dt {
+  font-size: 12px;
+  color: #6e6859;
+  margin: 0;
+}
+
+.dsh__ledgeritem dd {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+

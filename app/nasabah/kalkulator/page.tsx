@@ -1,82 +1,135 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import KalkulatorPintar from "../../../components/app/KalkulatorPintar";
-import { getPricelist, PRICELIST_AWAL, rp, type JenisSampah } from "../../../lib/bss";
+import {
+  getKategoriSampah,
+  getPricelist,
+  PRICELIST_AWAL,
+  rp,
+  type JenisSampah,
+} from "../../../lib/bss";
+
+const KATEGORI_FILTER = [
+  { id: "Semua", label: "Semua" },
+  { id: "Kertas", label: "Kertas" },
+  { id: "Plastik", label: "Plastik" },
+  { id: "Logam", label: "Logam" },
+  { id: "Kaca", label: "Kaca & Lainnya" },
+];
 
 export default function KalkulatorNasabahPage() {
   const [pricelist, setPricelist] = useState<JenisSampah[]>(PRICELIST_AWAL);
+  const [kategoriAktif, setKategoriAktif] = useState<string>("Semua");
+  const [tampilSemua, setTampilSemua] = useState<boolean>(false);
 
   useEffect(() => {
     setPricelist(getPricelist());
   }, []);
 
+  const daftarTerfilter = useMemo(() => {
+    return pricelist.filter((j) => {
+      if (kategoriAktif === "Semua") return true;
+      const katUtama = getKategoriSampah(j.id, j.nama);
+      if (kategoriAktif === "Kaca") {
+        return katUtama === "Kaca" || katUtama === "Lain-lain";
+      }
+      return katUtama === kategoriAktif;
+    });
+  }, [pricelist, kategoriAktif]);
+
+  const daftarTampil = tampilSemua
+    ? daftarTerfilter
+    : daftarTerfilter.slice(0, 4);
+
   return (
     <div className="dsh__page">
       <header className="dsh__head">
-        <h1 className="dsh__h1">Kalkulator Pintar & Daftar Harga</h1>
+        <h1 className="dsh__h1">Kalkulator Pintar</h1>
         <p className="dsh__sub">
-          Hitung estimasi konversi sampah kiloan, gram, maupun satuan (pcs) menjadi saldo rupiah sebelum disetor ke Petugas Jaga BSS FEBI UINSA.
+          Simulasi nilai setoran sampah kiloan maupun satuan.
         </p>
       </header>
 
       <div className="dsh__split">
+        {/* Panel Kiri: Kalkulator */}
         <section className="dsh__card" aria-label="Kalkulator simulasi setoran">
           <div className="dsh__cardhead">
-            <h2 className="dsh__h2">Simulasi Nilai Sampah (Kg / Gram / Satuan)</h2>
-            <span className="dsh__tagbadge">Respon &lt; 2 Detik (FR-013)</span>
+            <h2 className="dsh__h2">Hitung Estimasi</h2>
+            <span className="dsh__meta">kg · gram · pcs</span>
           </div>
-          <p className="dsh__carddesc">
-            Pilih jenis sampah yang telah kamu pilah, masukkan berat (kg/gram) atau jumlah satuan (pcs), dan sistem akan langsung menghitung nilai saldonya.
-          </p>
           <KalkulatorPintar mode="nasabah" />
         </section>
 
+        {/* Panel Kanan: Daftar Harga Acuan Ringkas (Default 4 Item) */}
         <section className="dsh__card" aria-label="Daftar Harga Acuan Sampah">
           <div className="dsh__cardhead">
-            <h2 className="dsh__h2">Daftar Harga Acuan (Pricelist)</h2>
-            <span className="dsh__tagbadge">Berlaku Aktif</span>
+            <h2 className="dsh__h2">Harga Acuan Barang</h2>
+            <span className="dsh__meta">
+              {daftarTampil.length} / {daftarTerfilter.length} kode
+            </span>
           </div>
-          <p className="dsh__carddesc">
-            Standar harga resmi yang berlaku saat ini di Bank Sampah Syariah UINSA.
-          </p>
 
-          <div className="dsh__tablewrap">
-            <table className="dsh__table">
-              <thead>
-                <tr>
-                  <th>Jenis Sampah</th>
-                  <th>Kategori</th>
-                  <th>Harga / Satuan</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pricelist.map((j) => (
-                  <tr key={j.id}>
-                    <td>
-                      <strong>{j.nama}</strong>
-                      <span className="dsh__subtext">{j.deskripsi}</span>
-                    </td>
-                    <td>
-                      <span className="dsh__badgecategory">{j.kategori}</span>
-                    </td>
-                    <td>
-                      <strong className="dsh__green">{rp(j.hargaPerKg)} / {j.satuan}</strong>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div
+            className="dsh__filtertabs"
+            style={{ marginBottom: "6px" }}
+            role="tablist"
+          >
+            {KATEGORI_FILTER.map((k) => (
+              <button
+                key={k.id}
+                type="button"
+                className="dsh__filtertab"
+                style={{ padding: "5px 10px", fontSize: "12px" }}
+                data-active={kategoriAktif === k.id}
+                onClick={() => {
+                  setKategoriAktif(k.id);
+                  setTampilSemua(false);
+                }}
+              >
+                {k.label}
+              </button>
+            ))}
           </div>
+
+          <div className="dsh__rows">
+            {daftarTampil.map((j) => (
+              <div
+                key={j.id}
+                className="dsh__row"
+                style={{ padding: "9px 4px" }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <code className="dsh__code">{j.kode}</code>
+                  <strong style={{ fontSize: "13.5px" }}>{j.nama}</strong>
+                </div>
+                <div className="dsh__rowval">
+                  <b className="dsh__green" style={{ fontSize: "13.5px" }}>
+                    {rp(j.hargaPerKg)}/{j.satuan}
+                  </b>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {daftarTerfilter.length > 4 && (
+            <button
+              type="button"
+              className="dsh__expandbtn"
+              onClick={() => setTampilSemua((prev) => !prev)}
+            >
+              {tampilSemua
+                ? "Ringkas Daftar Harga ↑"
+                : `Lihat Lengkap (${daftarTerfilter.length - 4} Barang Lainnya) ↓`}
+            </button>
+          )}
         </section>
-      </div>
-
-      <div className="dsh__note">
-        <strong>Ketentuan Penimbangan & Verifikasi Petugas Jaga:</strong>
-        <p>
-          Pastikan sampah dalam kondisi kering dan telah dipisahkan sesuai kategori.
-          Saat disetor ke meja timbang, Petugas Jaga akan menginput dan memverifikasi setoran Anda sehingga nilainya langsung masuk ke Saldo Aktif (minimal penarikan Rp 2.000 via Tunai, Bank, atau E-Wallet).
-        </p>
       </div>
     </div>
   );

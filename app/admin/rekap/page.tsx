@@ -12,6 +12,7 @@ import {
 
 export default function RekapKeuanganAdmin() {
   const [periode, setPeriode] = useState<"bulan_ini" | "triwulan" | "semua">("bulan_ini");
+  const [tampilSemua, setTampilSemua] = useState<boolean>(false);
 
   const semuaSetoran = useMemo(() => {
     return getDaftarSetoran();
@@ -162,7 +163,7 @@ export default function RekapKeuanganAdmin() {
             onClick={() => window.print()}
             style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
           >
-            🖨️ Cetak Laporan
+            Cetak Laporan
           </button>
           <button
             type="button"
@@ -349,7 +350,10 @@ export default function RekapKeuanganAdmin() {
                   </td>
                 </tr>
               ) : (
-                setoranTerfilter.map((r) => {
+                (tampilSemua
+                  ? setoranTerfilter
+                  : setoranTerfilter.slice(0, 4)
+                ).map((r) => {
                   const kat = getKategoriSampah(r.jenisSampahId, r.jenisSampahNama);
                   return (
                     <tr key={r.id}>
@@ -395,6 +399,18 @@ export default function RekapKeuanganAdmin() {
             </tbody>
           </table>
         </div>
+
+        {setoranTerfilter.length > 4 && (
+          <button
+            type="button"
+            className="dsh__expandbtn no-print"
+            onClick={() => setTampilSemua((prev) => !prev)}
+          >
+            {tampilSemua
+              ? "Ringkas Rincian Transaksi ↑"
+              : `Lihat Lengkap (${setoranTerfilter.length} Transaksi) ↓`}
+          </button>
+        )}
       </section>
     </div>
   );

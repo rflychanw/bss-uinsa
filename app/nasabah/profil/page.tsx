@@ -33,228 +33,105 @@ export default function ProfilNasabah() {
         totalBeratTerverifikasiKg: 48.9,
         totalSaldoTerverifikasi: 203300,
         totalMenungguVerifikasiRp: 18000,
+        totalMenungguVerifikasiKg: 3.0,
         totalDitarikSelesai: 125000,
         saldoTersedia: 78300,
       };
 
   return (
     <div className="dsh__page">
-      <header
-        className="dsh__head"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          flexWrap: "wrap",
-          gap: "16px",
-        }}
-      >
+      <header className="dsh__head dsh__head--split">
         <div>
-          <h1 className="dsh__h1">Kartu Dompet & Buku Tabungan</h1>
+          <h1 className="dsh__h1">Buku Tabungan</h1>
           <p className="dsh__sub">
-            Kartu identitas digital nasabah dan ringkasan dompet syariah BSS UINSA.
+            Rekening digital Wadiah Bank Sampah Syariah UINSA.
           </p>
         </div>
-        <Link
-          href="/nasabah/riwayat?tab=penarikan"
-          className="dsh__btn"
-          style={{
-            textDecoration: "none",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            fontWeight: 700,
-            fontSize: "13px",
-            padding: "9px 16px",
-          }}
-        >
-          💵 Cairkan Saldo (Min. {rp(MINIMAL_PENARIKAN_RP)})
+        <Link href="/nasabah/riwayat?tab=penarikan" className="dsh__btn">
+          Tarik Saldo →
         </Link>
       </header>
 
-      {/* KARTU MEMBER DIGITAL E-WALLET */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-          gap: "20px",
-          alignItems: "stretch",
-        }}
-      >
-        <div
-          style={{
-            background:
-              "linear-gradient(135deg, #133b1d 0%, #1d592b 60%, #2a783c 100%)",
-            color: "#fff",
-            borderRadius: "20px",
-            padding: "24px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            minHeight: "210px",
-            boxShadow: "0 14px 32px rgba(19, 59, 29, 0.22)",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <span
-              style={{
-                fontSize: "12px",
-                fontWeight: 700,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                background: "rgba(255,255,255,0.16)",
-                padding: "4px 10px",
-                borderRadius: "999px",
-              }}
-            >
-              BSS Pay • Wadiah Member Card
-            </span>
-            <span
-              style={{
-                fontSize: "12px",
-                color: "#ffe082",
-                fontWeight: 700,
-              }}
-            >
-              ✓ Terverifikasi Aktif
-            </span>
+      <section className="dsh__wallet" aria-label="Rekening Tabungan Wadiah">
+        <div className="dsh__wallethead">
+          <div className="dsh__walletid">
+            <span>Buku Tabungan Wadiah</span>
+            <span>·</span>
+            <strong>{nomor}</strong>
           </div>
+          <span className="dsh__chip dsh__chip--green">Aktif</span>
+        </div>
 
-          <div style={{ margin: "20px 0" }}>
-            <div
-              style={{
-                fontSize: "12px",
-                opacity: 0.8,
-                marginBottom: "4px",
-              }}
-            >
-              Saldo Dompet Tersedia
-            </div>
-            <div
-              style={{
-                fontSize: "32px",
-                fontWeight: 800,
-                letterSpacing: "-0.02em",
-              }}
-            >
-              {rp(ringkasan.saldoTersedia)}
+        <div className="dsh__walletmain">
+          <div>
+            <div className="dsh__walletlabel">Saldo Aktif Tersedia</div>
+            <div className="dsh__walletamount">{rp(ringkasan.saldoTersedia)}</div>
+            <div className="dsh__walletmeta">
+              <span>{nama}</span>
+              <span>·</span>
+              <span>{NASABAH_DEMO.prodiFakultas}</span>
             </div>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-end",
-              borderTop: "1px solid rgba(255,255,255,0.16)",
-              paddingTop: "12px",
-            }}
-          >
-            <div>
-              <div style={{ fontSize: "15px", fontWeight: 700 }}>{nama}</div>
-              <div style={{ fontSize: "12px", opacity: 0.8 }}>
-                {NASABAH_DEMO.prodiFakultas}
-              </div>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: "11px", opacity: 0.75 }}>ID NASABAH</div>
-              <div
-                style={{
-                  fontSize: "15px",
-                  fontWeight: 800,
-                  fontFamily: "monospace",
-                  color: "#ffe082",
-                }}
-              >
-                {nomor}
-              </div>
-            </div>
+          <div className="dsh__walletactions">
+            <Link
+              href="/nasabah/riwayat?tab=penarikan"
+              className="dsh__walletbtn dsh__walletbtn--primary"
+            >
+              Cairkan Saldo
+            </Link>
+            <Link
+              href="/nasabah/riwayat"
+              className="dsh__walletbtn dsh__walletbtn--ghost"
+            >
+              Mutasi Rekening
+            </Link>
           </div>
         </div>
 
-        <section className="dsh__card" aria-label="Identitas Nasabah">
-          <div className="dsh__cardhead">
-            <h2 className="dsh__h2">Ringkasan Statistik Dompet</h2>
-            <span className="dsh__chip dsh__chip--green">Akad Wadiah</span>
+        <div className="dsh__walletstrip">
+          <div className="dsh__walletstat">
+            <span>Setoran Valid</span>
+            <strong>
+              {rp(ringkasan.totalSaldoTerverifikasi)} ({kg(ringkasan.totalBeratTerverifikasiKg)})
+            </strong>
           </div>
-          <dl className="dsh__kv">
-            <div>
-              <dt>Email Civitas Kampus</dt>
-              <dd>{email}</dd>
-            </div>
-            <div>
-              <dt>Total Sampah Terverifikasi Petugas</dt>
-              <dd>
-                <strong>{kg(ringkasan.totalBeratTerverifikasiKg)}</strong> (Total
-                akumulasi masuk:{" "}
-                <strong>{rp(ringkasan.totalSaldoTerverifikasi)}</strong>)
-              </dd>
-            </div>
-            <div>
-              <dt>Setoran Menunggu Verifikasi Petugas</dt>
-              <dd>
-                <strong className="dsh__amber">
-                  {rp(ringkasan.totalMenungguVerifikasiRp)}
-                </strong>
-              </dd>
-            </div>
-            <div>
-              <dt>Total Saldo Telah Dicairkan (Tunai / Bank / E-Wallet)</dt>
-              <dd>
-                <strong>{rp(ringkasan.totalDitarikSelesai)}</strong>
-              </dd>
-            </div>
-          </dl>
-        </section>
-      </div>
+          <div className="dsh__walletstat">
+            <span>Menunggu Verifikasi</span>
+            <strong>{rp(ringkasan.totalMenungguVerifikasiRp)}</strong>
+          </div>
+          <div className="dsh__walletstat">
+            <span>Sudah Dicairkan</span>
+            <strong>{rp(ringkasan.totalDitarikSelesai)}</strong>
+          </div>
+        </div>
+      </section>
 
-      <div className="dsh__split">
-        <section className="dsh__card" aria-label="Alur Setoran & Verifikasi">
-          <h2 className="dsh__h2">Top-Up Saldo dari Setor Sampah</h2>
-          <p className="dsh__carddesc">
-            Saldo dompet BSS Pay Anda bertambah setiap kali menyetor sampah terpilah ke Pos Meja Timbang.
-          </p>
-          <ul className="dsh__list">
-            <li>
-              Bawa sampah satuan (`pcs`) atau kiloan (`kg`/`gram`) ke meja pelayanan <strong>Petugas Jaga</strong>.
-            </li>
-            <li>
-              Petugas Jaga menimbang dan menekan tombol <strong>Verifikasi Setoran</strong>.
-            </li>
-            <li>
-              Begitu terverifikasi, nilai rupiah otomatis masuk menjadi <strong>Saldo Aktif</strong> di E-Wallet Anda.
-            </li>
-          </ul>
-        </section>
+      <section className="dsh__card" aria-label="Identitas Rekening">
+        <div className="dsh__cardhead">
+          <h2 className="dsh__h2">Identitas Rekening</h2>
+          <span className="dsh__meta">Sejak {NASABAH_DEMO.terdaftarSejak}</span>
+        </div>
 
-        <section className="dsh__card" aria-label="Prosedur Pencairan Saldo">
-          <h2 className="dsh__h2">
-            Pencairan Bebas Pilih (Min. {rp(MINIMAL_PENARIKAN_RP)})
-          </h2>
-          <p className="dsh__carddesc">
-            Cairkan saldo kapan saja mulai dari <strong>{rp(MINIMAL_PENARIKAN_RP)}</strong> melalui:
-          </p>
-          <ol className="dsh__steps">
-            <li>
-              <strong>📱 Saldo E-Wallet (DANA, GoPay, OVO, ShopeePay, LinkAja)</strong> — instan otomatis berhasil.
-            </li>
-            <li>
-              <strong>🏦 Transfer Rekening Bank (BSI, Mandiri, BRI, BCA, BNI)</strong> — instan otomatis berhasil.
-            </li>
-            <li>
-              <strong>💵 Tarik Tunai di Pos Jaga</strong> — ajukan tiket penarikan dari aplikasi lalu divalidasi oleh Petugas Jaga saat serah terima uang tunai.
-            </li>
-          </ol>
-        </section>
-      </div>
+        <dl className="dsh__ledger">
+          <div className="dsh__ledgeritem">
+            <dt>Nomor Rekening</dt>
+            <dd>{nomor}</dd>
+          </div>
+          <div className="dsh__ledgeritem">
+            <dt>Email Civitas</dt>
+            <dd>{email}</dd>
+          </div>
+          <div className="dsh__ledgeritem">
+            <dt>Unit / Fakultas</dt>
+            <dd>{NASABAH_DEMO.prodiFakultas}</dd>
+          </div>
+          <div className="dsh__ledgeritem">
+            <dt>Akad & Pencairan</dt>
+            <dd>Wadiah · Min. {rp(MINIMAL_PENARIKAN_RP)}</dd>
+          </div>
+        </dl>
+      </section>
     </div>
   );
 }

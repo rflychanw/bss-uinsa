@@ -16,8 +16,8 @@ export default function PricelistAdmin() {
   const [namaBaru, setNamaBaru] = useState<string>("");
   const [kategoriBaru, setKategoriBaru] = useState<"Plastik" | "Kertas" | "Logam">("Plastik");
   const [hargaBaru, setHargaBaru] = useState<number>(3000);
-  const [deskripsiBaru, setDeskripsiBaru] = useState<string>("");
   const [pesan, setPesan] = useState<string>("");
+  const [tampilSemua, setTampilSemua] = useState<boolean>(false);
 
   useEffect(() => {
     const list = getPricelist();
@@ -33,7 +33,6 @@ export default function PricelistAdmin() {
   const idNamaBaru = useId();
   const idKategoriBaru = useId();
   const idHargaBaru = useId();
-  const idDeskripsiBaru = useId();
 
   const handlePilihEdit = (id: string) => {
     setSelectedId(id);
@@ -44,7 +43,7 @@ export default function PricelistAdmin() {
   const handleUpdateHarga = (e: React.FormEvent) => {
     e.preventDefault();
     if (hargaEdit <= 0) {
-      alert("Harga per kilogram harus lebih besar dari Rp 0.");
+      alert("Harga harus lebih besar dari Rp 0.");
       return;
     }
 
@@ -53,73 +52,55 @@ export default function PricelistAdmin() {
         ? {
             ...p,
             hargaPerKg: hargaEdit,
-            updateTerakhir: "Hari ini (Pembaruan FR-007)",
+            updateTerakhir: "Hari ini",
           }
         : p
     );
     setPricelist(updated);
     simpanPricelist(updated);
-    setPesan(`Harga jenis sampah berhasil diperbarui menjadi ${rp(hargaEdit)} / kg (Tersimpan & Sinkron).`);
+    setPesan(`Harga berhasil diperbarui menjadi ${rp(hargaEdit)}.`);
     setTimeout(() => setPesan(""), 4000);
   };
 
   const handleTambahJenis = (e: React.FormEvent) => {
     e.preventDefault();
     if (!namaBaru.trim() || hargaBaru <= 0) {
-      alert("Nama jenis dan harga acuan harus diisi dengan benar.");
+      alert("Nama barang dan harga acuan wajib diisi.");
       return;
     }
 
+    const prefix = kategoriBaru === "Kertas" ? "A" : kategoriBaru === "Plastik" ? "B" : "C";
+    const kodeBaru = `${prefix}${pricelist.filter((p) => p.kode.startsWith(prefix)).length + 1}`;
+
     const baru: JenisSampah = {
-      id: `${kategoriBaru.toLowerCase()}_${Date.now()}`,
-      kode: `X${pricelist.length + 1}`,
+      id: kodeBaru,
+      kode: kodeBaru,
       nama: namaBaru.trim(),
       kategori: kategoriBaru,
       satuan: "kg",
       hargaPerKg: hargaBaru,
-      deskripsi: deskripsiBaru.trim() || "Sampah daur ulang terpilah",
-      updateTerakhir: "Hari ini (Pembaruan FR-007)",
+      deskripsi: "Sampah terpilah",
+      updateTerakhir: "Hari ini",
     };
 
     const updated = [...pricelist, baru];
     setPricelist(updated);
     simpanPricelist(updated);
-    setPesan(`Jenis sampah baru "${baru.nama}" berhasil ditambahkan.`);
+    setPesan(`Barang baru "${baru.kode} · ${baru.nama}" berhasil ditambahkan.`);
     setNamaBaru("");
-    setDeskripsiBaru("");
     setTimeout(() => setPesan(""), 4000);
   };
+
+  const daftarTampil = tampilSemua ? pricelist : pricelist.slice(0, 5);
 
   return (
     <div className="dsh__page">
       <header className="dsh__head">
-        <h1 className="dsh__h1">Master Data Pricelist Sampah</h1>
+        <h1 className="dsh__h1">Daftar Harga Barang</h1>
         <p className="dsh__sub">
-          Konfigurasi standar acuan harga jenis sampah per kilogram yang digunakan oleh Kalkulator Pintar dan Meja Timbang (FR-006, FR-007, BR-008).
+          Standar harga acuan per kg/pcs. Perubahan harga hanya berlaku untuk setoran baru (setoran lama terkunci).
         </p>
       </header>
-
-      {/* Banner Penjaminan Proteksi Nilai Transaksi Historis Sesuai SRS v1.0 */}
-      <div
-        style={{
-          background: "#f4faf4",
-          border: "1px solid #9cd2a2",
-          borderRadius: "8px",
-          padding: "14px 18px",
-          marginBottom: "20px",
-          display: "flex",
-          alignItems: "flex-start",
-          gap: "12px",
-        }}
-      >
-        <span style={{ fontSize: "20px" }}>🛡️</span>
-        <div style={{ fontSize: "13px", color: "#1d5325", lineHeight: 1.5 }}>
-          <strong>Proteksi Nilai Transaksi Historis (FR-007, BR-008, & Batasan Desain No. 6):</strong>
-          <p style={{ margin: "4px 0 0 0" }}>
-            Pembaruan harga acuan pada modul ini tersimpan secara dinamis dan hanya berlaku untuk transaksi setoran baru di Meja Timbang. <strong>Seluruh nilai estimasi dan realisasi setoran sampah yang sudah tercatat sebelumnya terkunci permanen (snapshot historis)</strong> dan tidak akan mengalami perubahan nilai.
-          </p>
-        </div>
-      </div>
 
       {pesan && (
         <div className="dsh__alert dsh__alert--success" role="alert">
@@ -128,83 +109,69 @@ export default function PricelistAdmin() {
       )}
 
       <div className="dsh__split">
-        {/* Tabel Master Data Pricelist */}
         <section className="dsh__card" aria-label="Tabel Pricelist Terdaftar">
           <div className="dsh__cardhead">
-            <h2 className="dsh__h2">Daftar Harga Acuan BSS</h2>
-            <span className="dsh__meta">{pricelist.length} jenis sampah</span>
+            <h2 className="dsh__h2">Master Harga Acuan</h2>
+            <span className="dsh__meta">
+              {daftarTampil.length} / {pricelist.length} barang
+            </span>
           </div>
 
-          <div className="dsh__tablewrap">
-            <table className="dsh__table">
-              <thead>
-                <tr>
-                  <th>Kode</th>
-                  <th>Jenis Sampah</th>
-                  <th>Kategori</th>
-                  <th>Harga / Satuan</th>
-                  <th>Pembaruan</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pricelist.map((p) => (
-                  <tr key={p.id} className={p.id === selectedId ? "dsh__row--active" : ""}>
-                    <td>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          fontWeight: 700,
-                          background: "#eae7df",
-                          color: "#2b261f",
-                          padding: "2px 7px",
-                          borderRadius: "4px",
-                          fontSize: "12px",
-                        }}
-                      >
-                        {p.kode || p.id}
-                      </span>
-                    </td>
-                    <td>
-                      <strong>[{p.kode || p.id}] {p.nama}</strong>
-                      <span className="dsh__subtext">{p.deskripsi}</span>
-                    </td>
-                    <td>
-                      <span className="dsh__badgecategory">{p.kategori}</span>
-                    </td>
-                    <td>
-                      <strong className="dsh__green">{rp(p.hargaPerKg)} / {p.satuan}</strong>
-                    </td>
-                    <td className="dsh__small">{p.updateTerakhir}</td>
-                    <td>
-                      <button
-                        type="button"
-                        className="dsh__btnoutline dsh__btnoutline--sm"
-                        onClick={() => handlePilihEdit(p.id)}
-                      >
-                        Ubah Harga
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="dsh__rows">
+            {daftarTampil.map((p) => (
+              <div
+                key={p.id}
+                className="dsh__row"
+                style={{
+                  padding: "10px 6px",
+                  background: p.id === selectedId ? "#f2f8f3" : undefined,
+                  borderRadius: "6px",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <code className="dsh__code">{p.kode}</code>
+                  <strong>{p.nama}</strong>
+                  <span className="dsh__meta">· {p.kategori}</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <strong className="dsh__green">
+                    {rp(p.hargaPerKg)}/{p.satuan}
+                  </strong>
+                  <button
+                    type="button"
+                    className="dsh__btnoutline dsh__btnoutline--sm"
+                    onClick={() => handlePilihEdit(p.id)}
+                  >
+                    Ubah
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
+
+          {pricelist.length > 5 && (
+            <button
+              type="button"
+              className="dsh__expandbtn"
+              onClick={() => setTampilSemua((prev) => !prev)}
+            >
+              {tampilSemua
+                ? "Ringkas Daftar Harga ↑"
+                : `Lihat Lengkap (${pricelist.length - 5} Barang Lainnya) ↓`}
+            </button>
+          )}
         </section>
 
-        {/* Panel Form Edit & Tambah */}
         <div className="dsh__stack">
-          {/* Form Perbarui Harga */}
           <section className="dsh__card" aria-label="Perbarui Harga Terpilih">
             <div className="dsh__cardhead">
-              <div>
-                <span className="dsh__tagbadge" style={{ marginBottom: "6px" }}>Edit Cepat</span>
-                <h2 className="dsh__h2">Perbarui Harga Acuan</h2>
-              </div>
+              <h2 className="dsh__h2">Perbarui Harga</h2>
             </div>
             <form onSubmit={handleUpdateHarga} className="dsh__form">
               <div className="dsh__field">
-                <label className="dsh__label" htmlFor={idSelectPricelist}>Pilih Jenis Sampah</label>
+                <label className="dsh__label" htmlFor={idSelectPricelist}>
+                  Pilih Barang
+                </label>
                 <select
                   id={idSelectPricelist}
                   className="dsh__select"
@@ -213,14 +180,16 @@ export default function PricelistAdmin() {
                 >
                   {pricelist.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.nama} ({rp(p.hargaPerKg)}/kg)
+                      {p.kode} · {p.nama} ({rp(p.hargaPerKg)}/{p.satuan})
                     </option>
                   ))}
                 </select>
               </div>
 
               <div className="dsh__field">
-                <label className="dsh__label" htmlFor={idHargaEdit}>Harga Baru per Kg (Rp)</label>
+                <label className="dsh__label" htmlFor={idHargaEdit}>
+                  Harga Baru (Rp)
+                </label>
                 <input
                   id={idHargaEdit}
                   type="number"
@@ -233,22 +202,20 @@ export default function PricelistAdmin() {
               </div>
 
               <button type="submit" className="dsh__btn">
-                Simpan Perubahan Harga
+                Simpan Harga
               </button>
             </form>
           </section>
 
-          {/* Form Tambah Jenis Baru */}
           <section className="dsh__card" aria-label="Tambah Jenis Sampah Baru">
             <div className="dsh__cardhead">
-              <div>
-                <span className="dsh__tagbadge" style={{ marginBottom: "6px" }}>Baru</span>
-                <h2 className="dsh__h2">Tambah Jenis Sampah</h2>
-              </div>
+              <h2 className="dsh__h2">Tambah Barang Baru</h2>
             </div>
             <form onSubmit={handleTambahJenis} className="dsh__form">
               <div className="dsh__field">
-                <label className="dsh__label" htmlFor={idNamaBaru}>Nama Jenis Sampah</label>
+                <label className="dsh__label" htmlFor={idNamaBaru}>
+                  Nama Barang
+                </label>
                 <input
                   id={idNamaBaru}
                   type="text"
@@ -262,12 +229,18 @@ export default function PricelistAdmin() {
 
               <div className="dsh__grid2">
                 <div className="dsh__field">
-                  <label className="dsh__label" htmlFor={idKategoriBaru}>Kategori</label>
+                  <label className="dsh__label" htmlFor={idKategoriBaru}>
+                    Kategori
+                  </label>
                   <select
                     id={idKategoriBaru}
                     className="dsh__select"
                     value={kategoriBaru}
-                    onChange={(e) => setKategoriBaru(e.target.value as "Plastik" | "Kertas" | "Logam")}
+                    onChange={(e) =>
+                      setKategoriBaru(
+                        e.target.value as "Plastik" | "Kertas" | "Logam"
+                      )
+                    }
                   >
                     <option value="Plastik">Plastik</option>
                     <option value="Kertas">Kertas</option>
@@ -275,7 +248,9 @@ export default function PricelistAdmin() {
                   </select>
                 </div>
                 <div className="dsh__field">
-                  <label className="dsh__label" htmlFor={idHargaBaru}>Harga per Kg (Rp)</label>
+                  <label className="dsh__label" htmlFor={idHargaBaru}>
+                    Harga (Rp/kg)
+                  </label>
                   <input
                     id={idHargaBaru}
                     type="number"
@@ -288,20 +263,8 @@ export default function PricelistAdmin() {
                 </div>
               </div>
 
-              <div className="dsh__field">
-                <label className="dsh__label" htmlFor={idDeskripsiBaru}>Kriteria & Deskripsi</label>
-                <input
-                  id={idDeskripsiBaru}
-                  type="text"
-                  placeholder="mis. Bersih, label dilepas, kering"
-                  className="dsh__input"
-                  value={deskripsiBaru}
-                  onChange={(e) => setDeskripsiBaru(e.target.value)}
-                />
-              </div>
-
               <button type="submit" className="dsh__btnoutline">
-                Tambah ke Master Pricelist
+                + Tambah ke Daftar Harga
               </button>
             </form>
           </section>

@@ -26,6 +26,7 @@ export default function NasabahAdmin() {
   } | null>(null);
   const [cari, setCari] = useState<string>("");
   const [sukses, setSukses] = useState<string>("");
+  const [tampilSemua, setTampilSemua] = useState<boolean>(false);
 
   const muatData = () => {
     const lokal = akunLokal();
@@ -363,7 +364,7 @@ export default function NasabahAdmin() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((n) => {
+              {(tampilSemua ? filtered : filtered.slice(0, 4)).map((n) => {
                 const rk = hitungRingkasanSaldoNasabah(n.nomor);
                 const beratTotal =
                   rk.totalBeratSemuaKg > 0
@@ -407,13 +408,17 @@ export default function NasabahAdmin() {
           </table>
         </div>
 
-        {/* Informasi Aturan Bisnis Pendaftaran Sesuai SRS v1.0 */}
-        <div className="dsh__note dsh__notebox" style={{ margin: "20px 16px 16px" }}>
-          <strong>Ketentuan Pendaftaran Nasabah (BR-004 & BR-005):</strong>
-          <p>
-            Sesuai alur BPMN TO-BE Gambar 3, pendaftaran nasabah baru dilakukan secara mandiri oleh civitas akademika melalui halaman <strong>/daftar</strong>. Petugas Jaga & Administrator melakukan validasi berkas biaya berlangganan melalui modul <strong>Aktivasi Akun</strong>. Bendahara berfokus pada audit buku tabungan, alur penjualan pengepul, dan rekapitulasi keuangan.
-          </p>
-        </div>
+        {filtered.length > 4 && (
+          <button
+            type="button"
+            className="dsh__expandbtn"
+            onClick={() => setTampilSemua((prev) => !prev)}
+          >
+            {tampilSemua
+              ? "Ringkas Direktori Nasabah ↑"
+              : `Lihat Lengkap (${filtered.length} Nasabah) ↓`}
+          </button>
+        )}
       </section>
     </div>
   );

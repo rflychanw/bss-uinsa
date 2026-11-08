@@ -29,6 +29,7 @@ export default function TarikTunaiAdminPage() {
     "Pencairan saldo tabungan di loket petugas"
   );
   const [notif, setNotif] = useState<string>("");
+  const [tampilSemua, setTampilSemua] = useState<boolean>(false);
 
   const idSelectNasabah = useId();
   const idNominal = useId();
@@ -240,7 +241,7 @@ export default function TarikTunaiAdminPage() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((item) => {
+                  (tampilSemua ? filtered : filtered.slice(0, 4)).map((item) => {
                     const isMenunggu = item.status === "menunggu";
                     return (
                       <tr key={item.id}>
@@ -282,7 +283,7 @@ export default function TarikTunaiAdminPage() {
                           {isMenunggu ? (
                             <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "flex-start" }}>
                               <span className="dsh__chip dsh__chip--amber">
-                                ⏳ Menunggu Validasi Petugas
+                                Menunggu Validasi
                               </span>
                               <button
                                 type="button"
@@ -295,12 +296,12 @@ export default function TarikTunaiAdminPage() {
                                 }}
                                 onClick={() => handleValidasiTunai(item)}
                               >
-                                ✓ Validasi & Serahkan Tunai
+                                Validasi & Serahkan Tunai
                               </button>
                             </div>
                           ) : (
                             <span className="dsh__chip dsh__chip--green">
-                              ✓ Selesai / Valid
+                              Selesai
                             </span>
                           )}
                         </td>
@@ -311,6 +312,18 @@ export default function TarikTunaiAdminPage() {
               </tbody>
             </table>
           </div>
+
+          {filtered.length > 4 && (
+            <button
+              type="button"
+              className="dsh__expandbtn"
+              onClick={() => setTampilSemua((prev) => !prev)}
+            >
+              {tampilSemua
+                ? "Ringkas Riwayat Penarikan ↑"
+                : `Lihat Lengkap (${filtered.length} Transaksi) ↓`}
+            </button>
+          )}
         </section>
 
         {/* Form Catat Penarikan Saldo */}
@@ -388,9 +401,9 @@ export default function TarikTunaiAdminPage() {
                   else if (m === "ewallet") setTujuan("DANA — ");
                 }}
               >
-                <option value="tunai">💵 Tunai di Pos Jaga (Tervalidasi Petugas)</option>
-                <option value="bank">🏦 Saldo Bank (Transfer Bank BSI/BRI/Mandiri/BCA)</option>
-                <option value="ewallet">📱 Saldo E-Wallet (DANA/GoPay/OVO/ShopeePay)</option>
+                <option value="tunai">Tunai di Pos Jaga (Tervalidasi Petugas)</option>
+                <option value="bank">Transfer Bank (BSI / BRI / Mandiri / BCA)</option>
+                <option value="ewallet">Saldo E-Wallet (DANA / GoPay / OVO / ShopeePay)</option>
               </select>
             </div>
 
@@ -430,7 +443,7 @@ export default function TarikTunaiAdminPage() {
             </div>
 
             <button type="submit" className="dsh__btn">
-              ✓ Validasi & Simpan Pencairan Saldo
+              Validasi & Simpan Pencairan
             </button>
           </form>
         </section>

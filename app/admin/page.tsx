@@ -30,6 +30,7 @@ export default function RingkasanPengelolaPage() {
   const [bukaFormCatat, setBukaFormCatat] = useState(true);
   const [riwayat, setRiwayat] = useState<SetoranNasabah[]>(RIWAYAT_SETORAN_AWAL);
   const [suksesMsg, setSuksesMsg] = useState<string | null>(null);
+  const [tampilSemuaPetugas, setTampilSemuaPetugas] = useState(false);
 
   useEffect(() => {
     setSesi(sesiSekarang());
@@ -96,7 +97,7 @@ export default function RingkasanPengelolaPage() {
       namaNasabah: nasabahPilihan.nama,
       tanggal: tanggalHariIni,
       jenisSampahId: it.jenis.id,
-      jenisSampahNama: `[${it.jenis.kode}] ${it.jenis.nama}`,
+      jenisSampahNama: `${it.jenis.kode} · ${it.jenis.nama}`,
       beratKg: it.beratKg,
       jumlahSatuan: it.jumlahSatuan,
       estimasiNilai: it.estimasiRp,
@@ -298,7 +299,7 @@ export default function RingkasanPengelolaPage() {
             {/* Input Pencarian Cepat */}
             <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: "1 1 220px", minWidth: "180px" }}>
               <label style={{ fontSize: "11px", fontWeight: 700, color: "#666", textTransform: "uppercase" }}>
-                🔍 Cari Riwayat Pencatatan
+                Cari Riwayat Pencatatan
               </label>
               <input
                 type="search"
@@ -416,7 +417,10 @@ export default function RingkasanPengelolaPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredRiwayatPetugas.map((item) => {
+                  (tampilSemuaPetugas
+                    ? filteredRiwayatPetugas
+                    : filteredRiwayatPetugas.slice(0, 4)
+                  ).map((item) => {
                     const perluVerifikasi = item.statusVerifikasi === "menunggu_verifikasi";
                     const nilaiRp = item.nilaiRealisasi ?? item.estimasiNilai;
                     return (
@@ -436,9 +440,6 @@ export default function RingkasanPengelolaPage() {
                         </td>
                         <td>
                           <strong>{item.jumlahSatuan || kg(item.beratKg)}</strong>
-                          {item.jumlahSatuan && !item.jumlahSatuan.includes("kg") && (
-                            <span className="dsh__subtext">Ekuivalen: {kg(item.beratKg)}</span>
-                          )}
                         </td>
                         <td>
                           <strong className={perluVerifikasi ? "dsh__amber" : "dsh__green"}>
@@ -449,7 +450,7 @@ export default function RingkasanPengelolaPage() {
                           {perluVerifikasi ? (
                             <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "flex-start" }}>
                               <span className="dsh__chip dsh__chip--amber">
-                                ⏳ Menunggu Verifikasi
+                                Menunggu Verifikasi
                               </span>
                               <button
                                 type="button"
@@ -462,25 +463,18 @@ export default function RingkasanPengelolaPage() {
                                 }}
                                 onClick={() => handleVerifikasiItem(item)}
                               >
-                                ✓ Verifikasi Setoran
+                                Verifikasi Setoran
                               </button>
                             </div>
                           ) : (
-                            <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-start" }}>
-                              <span className="dsh__chip dsh__chip--green">
-                                ✓ Terverifikasi (Saldo Aktif)
-                              </span>
-                              <span className="dsh__subtext" style={{ fontSize: "11px" }}>
-                                {item.status === "disalurkan"
-                                  ? "Sudah laku di pengepul"
-                                  : "Valid masuk saldo nasabah"}
-                              </span>
-                            </div>
+                            <span className="dsh__chip dsh__chip--green">
+                              Terverifikasi
+                            </span>
                           )}
                         </td>
                         <td>
                           <span className="dsh__subtext" style={{ color: "#444" }}>
-                            {item.dicatatOleh || "Ahmad Fauzi (Petugas Piket)"}
+                            {item.dicatatOleh || "Ahmad Fauzi"}
                           </span>
                         </td>
                       </tr>
@@ -490,6 +484,18 @@ export default function RingkasanPengelolaPage() {
               </tbody>
             </table>
           </div>
+
+          {filteredRiwayatPetugas.length > 4 && (
+            <button
+              type="button"
+              className="dsh__expandbtn"
+              onClick={() => setTampilSemuaPetugas((prev) => !prev)}
+            >
+              {tampilSemuaPetugas
+                ? "Ringkas Riwayat Pencatatan ↑"
+                : `Lihat Lengkap (${filteredRiwayatPetugas.length} Setoran) ↓`}
+            </button>
+          )}
         </section>
       </div>
     );

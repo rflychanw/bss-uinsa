@@ -69,7 +69,7 @@ export default function SetoranAdmin() {
       namaNasabah: targetNasabah.nama,
       tanggal: tanggalHariIni,
       jenisSampahId: it.jenis.id,
-      jenisSampahNama: `[${it.jenis.kode}] ${it.jenis.nama}`,
+      jenisSampahNama: `${it.jenis.kode} · ${it.jenis.nama}`,
       beratKg: it.beratKg,
       jumlahSatuan: it.jumlahSatuan,
       estimasiNilai: it.estimasiRp,

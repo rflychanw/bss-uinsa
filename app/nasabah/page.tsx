@@ -24,21 +24,18 @@ export default function DashboardNasabah() {
   const [sesi, setSesi] = useState<Sesi | null>(null);
   const [mounted, setMounted] = useState(false);
   const [sembunyiSaldo, setSembunyiSaldo] = useState(false);
-  const [setoranList, setSetoranList] = useState<SetoranNasabah[]>(RIWAYAT_SETORAN_AWAL);
+  const [, setSetoranList] = useState<SetoranNasabah[]>(RIWAYAT_SETORAN_AWAL);
   const [penarikanList, setPenarikanList] = useState<PenarikanUang[]>([]);
 
-  // State Modal / Panel Tarik Saldo ala E-Wallet
+  // Modal Tarik Saldo
   const [bukaModalTarik, setBukaModalTarik] = useState(false);
   const [metodeTarik, setMetodeTarik] = useState<MetodePenarikan>("ewallet");
   const [provider, setProvider] = useState<string>("DANA");
   const [nomorTujuan, setNomorTujuan] = useState<string>("081234567890");
   const [nominalTarik, setNominalTarik] = useState<number>(10000);
-  const [catatanTarik, setCatatanTarik] = useState<string>("Pencairan saldo BSS Pay");
+  const [catatanTarik, setCatatanTarik] = useState<string>("Penarikan saldo tabungan");
   const [errorTarik, setErrorTarik] = useState<string>("");
   const [strukBerhasil, setStrukBerhasil] = useState<PenarikanUang | null>(null);
-
-  // State tab mutasi di beranda e-wallet
-  const [tabMutasi, setTabMutasi] = useState<"semua" | "masuk" | "keluar">("semua");
 
   const muatUlangData = () => {
     setSetoranList(getDaftarSetoran());
@@ -56,6 +53,7 @@ export default function DashboardNasabah() {
     DAFTAR_NASABAH_MASTER[0];
 
   const namaLengkap = sesi?.nama || nasabahData.nama;
+  const namaDepan = namaLengkap.split(" ")[0];
   const nomorNasabah = sesi?.nomor || nasabahData.nomor;
 
   const ringkasan = mounted
@@ -127,7 +125,7 @@ export default function DashboardNasabah() {
       nominal: nominalTarik,
       metode: metodeTarik,
       tujuan: infoTujuan,
-      catatan: catatanTarik || "Penarikan saldo dompet BSS",
+      catatan: catatanTarik || "Penarikan saldo tabungan",
       status: isTunai ? "menunggu" : "selesai",
       petugas: isTunai
         ? "Menunggu Validasi Petugas Jaga"
@@ -140,23 +138,20 @@ export default function DashboardNasabah() {
     setStrukBerhasil(trxBaru);
   };
 
-  // Gabungan mutasi masuk (setoran) dan keluar (penarikan) ala E-Wallet
-  const daftarMutasi = [
+  // Gabungan aktivitas masuk & keluar, diringkas hanya 3 item terbaru di beranda
+  const semuaAktivitas = [
     ...ringkasan.semuaSetoran.map((s) => ({
       uid: `in-${s.id}`,
       id: s.id,
       tipe: "masuk" as const,
-      judul: `Setor ${s.jenisSampahNama}`,
-      sub: `${s.tanggal} • ${s.jumlahSatuan || kg(s.beratKg)} • ${s.dicatatOleh}`,
+      judul: s.jenisSampahNama,
+      sub: `${s.tanggal} · ${s.jumlahSatuan || kg(s.beratKg)}`,
       nominal: s.nilaiRealisasi ?? s.estimasiNilai,
-      status:
+      isPending: s.statusVerifikasi === "menunggu_verifikasi",
+      statusLabel:
         s.statusVerifikasi === "menunggu_verifikasi"
-          ? ("menunggu_verifikasi" as const)
-          : ("terverifikasi" as const),
-      badge:
-        s.statusVerifikasi === "menunggu_verifikasi"
-          ? "⏳ Menunggu Verifikasi Petugas"
-          : "✓ Saldo Masuk (Terverifikasi)",
+          ? "Menunggu Verifikasi Petugas"
+          : "Terverifikasi · Saldo Masuk",
     })),
     ...(mounted ? penarikanList.filter((p) => p.nomorNasabah === nomorNasabah) : []).map(
       (p) => ({
@@ -166,434 +161,143 @@ export default function DashboardNasabah() {
         judul:
           p.metode === "tunai"
             ? "Tarik Tunai di Pos Jaga"
-            : p.metode === "ewallet"
-            ? `Top Up E-Wallet (${p.tujuan || "E-Wallet"})`
-            : `Transfer Bank (${p.tujuan || "Rekening Bank"})`,
-        sub: `${p.tanggal} • ${p.petugas}`,
+            : p.tujuan || "Pencairan Non-Tunai",
+        sub: `${p.tanggal} · ${p.id}`,
         nominal: p.nominal,
-        status: p.status === "menunggu" ? ("menunggu_validasi" as const) : ("selesai" as const),
-        badge:
+        isPending: p.status === "menunggu",
+        statusLabel:
           p.status === "menunggu"
-            ? "⏳ Menunggu Validasi Petugas"
-            : "✓ Pencairan Berhasil",
+            ? "Menunggu Validasi Petugas"
+            : "Pencairan Selesai",
       })
     ),
-  ].filter((m) => {
-    if (tabMutasi === "masuk") return m.tipe === "masuk";
-    if (tabMutasi === "keluar") return m.tipe === "keluar";
-    return true;
-  });
+  ];
+
+  const aktivitasRingkas = semuaAktivitas.slice(0, 3);
 
   return (
     <div className="dsh__page">
+      <header className="dsh__head">
+        <h1 className="dsh__h1">Halo, {namaDepan}.</h1>
+        <p className="dsh__sub">
+          Dompet Tabungan Wadiah Bank Sampah Syariah UINSA
+        </p>
+      </header>
+
       {/* ==============================================================
-          1. HERO DOMPET DIGITAL (E-WALLET CARD BSS PAY)
+          1. PANEL DOMPET DIGITAL (FLAT EDITORIAL SURFACE)
          ============================================================== */}
-      <section
-        aria-label="Dompet Digital BSS Pay"
-        style={{
-          background:
-            "linear-gradient(135deg, #133b1d 0%, #1d592b 58%, #266d36 100%)",
-          color: "#ffffff",
-          borderRadius: "20px",
-          padding: "clamp(20px, 3.2vw, 30px)",
-          boxShadow: "0 16px 36px rgba(19, 59, 29, 0.22)",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        {/* Ornamen Latar Belakang E-Wallet */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            right: "-40px",
-            top: "-50px",
-            width: "220px",
-            height: "220px",
-            borderRadius: "50%",
-            background: "rgba(255, 255, 255, 0.06)",
-            pointerEvents: "none",
-          }}
-        />
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            right: "60px",
-            bottom: "-70px",
-            width: "180px",
-            height: "180px",
-            borderRadius: "50%",
-            background: "rgba(235, 187, 94, 0.1)",
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* Bar Atas Kartu E-Wallet */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "12px",
-            marginBottom: "18px",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span
-              style={{
-                background: "rgba(255,255,255,0.16)",
-                backdropFilter: "blur(6px)",
-                padding: "5px 12px",
-                borderRadius: "999px",
-                fontSize: "12px",
-                fontWeight: 700,
-                letterSpacing: "0.03em",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-              }}
-            >
-              💳 BSS Pay • Wadiah Wallet
-            </span>
-            <span style={{ fontSize: "13px", opacity: 0.85 }}>
-              ID: <strong>{nomorNasabah}</strong>
-            </span>
+      <section className="dsh__wallet" aria-label="Dompet Tabungan Syariah">
+        <div className="dsh__wallethead">
+          <div className="dsh__walletid">
+            <span>Rekening Wadiah</span>
+            <span>·</span>
+            <strong>{nomorNasabah}</strong>
+            <span>·</span>
+            <span>{namaLengkap}</span>
           </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span
-              style={{
-                background: "rgba(235, 187, 94, 0.2)",
-                border: "1px solid rgba(235, 187, 94, 0.45)",
-                color: "#ffe29a",
-                padding: "4px 10px",
-                borderRadius: "999px",
-                fontSize: "11px",
-                fontWeight: 600,
-              }}
-            >
-              🌱 {kg(ringkasan.totalBeratTerverifikasiKg)} Sampah Terverifikasi
-            </span>
-          </div>
+          <Link
+            href="/nasabah/profil"
+            style={{
+              fontSize: "12.5px",
+              color: "rgba(248, 248, 246, 0.8)",
+              textDecoration: "underline",
+              textUnderlineOffset: "4px",
+            }}
+          >
+            Detail Buku Tabungan
+          </Link>
         </div>
 
-        {/* Saldo Utama E-Wallet */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-end",
-            flexWrap: "wrap",
-            gap: "20px",
-            marginBottom: "24px",
-          }}
-        >
+        <div className="dsh__walletmain">
           <div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                marginBottom: "6px",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "13px",
-                  color: "rgba(255,255,255,0.82)",
-                  fontWeight: 500,
-                }}
-              >
-                Saldo Aktif Tersedia ({namaLengkap})
-              </span>
+            <div className="dsh__walletlabel">
+              <span>Saldo Aktif Tersedia</span>
               <button
                 type="button"
+                className="dsh__walleteye"
                 onClick={() => setSembunyiSaldo(!sembunyiSaldo)}
-                style={{
-                  background: "rgba(255,255,255,0.14)",
-                  border: "none",
-                  color: "#fff",
-                  borderRadius: "999px",
-                  padding: "2px 8px",
-                  fontSize: "11px",
-                  cursor: "pointer",
-                  fontWeight: 600,
-                }}
-                aria-label="Sembunyikan atau tampilkan saldo"
+                aria-label="Sembunyikan atau tampilkan nominal saldo"
               >
-                {sembunyiSaldo ? "👁️ Lihat" : "🙈 Tutup"}
+                {sembunyiSaldo ? "Tampilkan" : "Sembunyikan"}
               </button>
             </div>
-
-            <div
-              style={{
-                fontSize: "clamp(30px, 4.5vw, 44px)",
-                fontWeight: 800,
-                letterSpacing: "-0.03em",
-                lineHeight: 1.05,
-                fontVariantNumeric: "tabular-nums",
-              }}
-            >
+            <div className="dsh__walletamount">
               {sembunyiSaldo ? "Rp ••••••••" : rp(ringkasan.saldoTersedia)}
             </div>
-
-            {/* Info Tambahan di Bawah Saldo */}
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "10px",
-                marginTop: "10px",
-                fontSize: "12px",
-              }}
-            >
-              {ringkasan.totalMenungguVerifikasiRp > 0 && (
-                <span
-                  style={{
-                    background: "rgba(255, 193, 7, 0.2)",
-                    color: "#ffe082",
-                    padding: "4px 10px",
-                    borderRadius: "6px",
-                    fontWeight: 600,
-                  }}
-                >
-                  ⏳ +{rp(ringkasan.totalMenungguVerifikasiRp)} menunggu verifikasi petugas
-                </span>
-              )}
-              {ringkasan.totalDitarikMenunggu > 0 && (
-                <span
-                  style={{
-                    background: "rgba(255, 255, 255, 0.16)",
-                    color: "#fff",
-                    padding: "4px 10px",
-                    borderRadius: "6px",
-                    fontWeight: 600,
-                  }}
-                >
-                  💵 {rp(ringkasan.totalDitarikMenunggu)} tunai menunggu validasi petugas
-                </span>
-              )}
-              <span style={{ opacity: 0.85, alignSelf: "center" }}>
-                Min. penarikan <strong>{rp(MINIMAL_PENARIKAN_RP)}</strong>
+            <div className="dsh__walletmeta">
+              <span>
+                Minimal penarikan <strong>{rp(MINIMAL_PENARIKAN_RP)}</strong>
               </span>
+              {ringkasan.totalMenungguVerifikasiRp > 0 && (
+                <span>
+                  · Menunggu verifikasi petugas:{" "}
+                  <strong>+{rp(ringkasan.totalMenungguVerifikasiRp)}</strong>
+                </span>
+              )}
             </div>
+          </div>
+
+          <div className="dsh__walletactions">
+            <button
+              type="button"
+              className="dsh__walletbtn dsh__walletbtn--primary"
+              onClick={() => bukaQuickAction("ewallet")}
+            >
+              Cairkan ke E-Wallet
+            </button>
+            <button
+              type="button"
+              className="dsh__walletbtn dsh__walletbtn--ghost"
+              onClick={() => bukaQuickAction("bank")}
+            >
+              Transfer Bank
+            </button>
+            <button
+              type="button"
+              className="dsh__walletbtn dsh__walletbtn--ghost"
+              onClick={() => bukaQuickAction("tunai")}
+            >
+              Tarik Tunai Pos
+            </button>
           </div>
         </div>
 
-        {/* BAR AKSI CEPAT E-WALLET (QUICK ACTION DOCK) */}
-        <div
-          style={{
-            background: "rgba(255, 255, 255, 0.96)",
-            color: "#1c1a15",
-            borderRadius: "14px",
-            padding: "14px 12px",
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(115px, 1fr))",
-            gap: "10px",
-            boxShadow: "0 8px 20px rgba(0, 0, 0, 0.12)",
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => bukaQuickAction("ewallet")}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "6px",
-              background: "#f4fbf5",
-              border: "1px solid #cde6d1",
-              borderRadius: "10px",
-              padding: "10px 8px",
-              cursor: "pointer",
-              transition: "transform 0.15s ease",
-            }}
-          >
-            <span
-              style={{
-                width: "38px",
-                height: "38px",
-                borderRadius: "12px",
-                background: "#25632d",
-                color: "#fff",
-                display: "grid",
-                placeItems: "center",
-                fontSize: "18px",
-              }}
-            >
-              📱
-            </span>
-            <strong style={{ fontSize: "12.5px", color: "#173f1c" }}>
-              Ke E-Wallet
+        <div className="dsh__walletstrip">
+          <div className="dsh__walletstat">
+            <span>Total Setoran Terverifikasi</span>
+            <strong>
+              {rp(ringkasan.totalSaldoTerverifikasi)} ({kg(ringkasan.totalBeratTerverifikasiKg)})
             </strong>
-            <span style={{ fontSize: "10.5px", color: "#5e6b60" }}>
-              DANA, GoPay, OVO
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => bukaQuickAction("bank")}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "6px",
-              background: "#f4fbf5",
-              border: "1px solid #cde6d1",
-              borderRadius: "10px",
-              padding: "10px 8px",
-              cursor: "pointer",
-            }}
-          >
-            <span
-              style={{
-                width: "38px",
-                height: "38px",
-                borderRadius: "12px",
-                background: "#1d4ed8",
-                color: "#fff",
-                display: "grid",
-                placeItems: "center",
-                fontSize: "18px",
-              }}
-            >
-              🏦
-            </span>
-            <strong style={{ fontSize: "12.5px", color: "#1e3a8a" }}>
-              Transfer Bank
+          </div>
+          <div className="dsh__walletstat">
+            <span>Menunggu Verifikasi Petugas</span>
+            <strong>
+              {rp(ringkasan.totalMenungguVerifikasiRp)} ({kg(ringkasan.totalMenungguVerifikasiKg)})
             </strong>
-            <span style={{ fontSize: "10.5px", color: "#5e6b60" }}>
-              BSI, BRI, Mandiri, BCA
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => bukaQuickAction("tunai")}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "6px",
-              background: "#fffaf0",
-              border: "1px solid #ebd5a7",
-              borderRadius: "10px",
-              padding: "10px 8px",
-              cursor: "pointer",
-            }}
-          >
-            <span
-              style={{
-                width: "38px",
-                height: "38px",
-                borderRadius: "12px",
-                background: "#b4690e",
-                color: "#fff",
-                display: "grid",
-                placeItems: "center",
-                fontSize: "18px",
-              }}
-            >
-              💵
-            </span>
-            <strong style={{ fontSize: "12.5px", color: "#7c4706" }}>
-              Tarik Tunai
-            </strong>
-            <span style={{ fontSize: "10.5px", color: "#7a6646" }}>
-              Validasi Petugas Jaga
-            </span>
-          </button>
-
-          <Link
-            href="/nasabah/kalkulator"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "6px",
-              background: "#faf9f5",
-              border: "1px solid #e3ded1",
-              borderRadius: "10px",
-              padding: "10px 8px",
-              textDecoration: "none",
-              color: "inherit",
-            }}
-          >
-            <span
-              style={{
-                width: "38px",
-                height: "38px",
-                borderRadius: "12px",
-                background: "#3d3930",
-                color: "#fff",
-                display: "grid",
-                placeItems: "center",
-                fontSize: "18px",
-              }}
-            >
-              ⚖️
-            </span>
-            <strong style={{ fontSize: "12.5px", color: "#2b2821" }}>
-              Simulasi Setor
-            </strong>
-            <span style={{ fontSize: "10.5px", color: "#6d675c" }}>
-              Satuan / Kiloan
-            </span>
-          </Link>
-
-          <Link
-            href="/nasabah/riwayat"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "6px",
-              background: "#faf9f5",
-              border: "1px solid #e3ded1",
-              borderRadius: "10px",
-              padding: "10px 8px",
-              textDecoration: "none",
-              color: "inherit",
-            }}
-          >
-            <span
-              style={{
-                width: "38px",
-                height: "38px",
-                borderRadius: "12px",
-                background: "#524c40",
-                color: "#fff",
-                display: "grid",
-                placeItems: "center",
-                fontSize: "18px",
-              }}
-            >
-              📜
-            </span>
-            <strong style={{ fontSize: "12.5px", color: "#2b2821" }}>
-              Riwayat & Struk
-            </strong>
-            <span style={{ fontSize: "10.5px", color: "#6d675c" }}>
-              Cetak Buku Tabungan
-            </span>
-          </Link>
+          </div>
+          <div className="dsh__walletstat">
+            <span>Total Saldo Dicairkan</span>
+            <strong>{rp(ringkasan.totalDitarikSelesai)}</strong>
+          </div>
+          {ringkasan.totalDitarikMenunggu > 0 && (
+            <div className="dsh__walletstat">
+              <span>Tunai Menunggu Validasi Petugas</span>
+              <strong>{rp(ringkasan.totalDitarikMenunggu)}</strong>
+            </div>
+          )}
         </div>
       </section>
 
       {/* ==============================================================
-          2. MODAL / DRAWER PENCAIRAN SALDO E-WALLET (MUNCUL SAAT DIKLIK)
+          2. MODAL PENCAIRAN SALDO (E-WALLET / BANK / TUNAI)
          ============================================================== */}
       {bukaModalTarik && (
         <div
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(15, 23, 17, 0.65)",
-            backdropFilter: "blur(4px)",
+            background: "rgba(23, 20, 15, 0.6)",
             zIndex: 9999,
             display: "flex",
             alignItems: "center",
@@ -605,128 +309,112 @@ export default function DashboardNasabah() {
           <div
             style={{
               background: "#ffffff",
-              borderRadius: "18px",
-              maxWidth: "480px",
+              borderRadius: "10px",
+              border: "1px solid #dedad0",
+              maxWidth: "460px",
               width: "100%",
-              maxHeight: "92vh",
+              maxHeight: "90vh",
               overflowY: "auto",
               padding: "24px",
-              boxShadow: "0 24px 48px rgba(0, 0, 0, 0.28)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {strukBerhasil ? (
-              /* TAMPILAN STRUK E-WALLET SETELAH BERHASIL */
-              <div style={{ textAlign: "center", padding: "8px 4px" }}>
+              <div>
                 <div
                   style={{
-                    width: "60px",
-                    height: "60px",
-                    borderRadius: "50%",
-                    background:
-                      strukBerhasil.status === "selesai" ? "#e6f6e8" : "#fff4db",
-                    color:
-                      strukBerhasil.status === "selesai" ? "#1e6b27" : "#b26a00",
-                    display: "grid",
-                    placeItems: "center",
-                    fontSize: "28px",
-                    margin: "0 auto 14px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    paddingBottom: "14px",
+                    borderBottom: "1px solid #f0eee8",
+                    marginBottom: "16px",
                   }}
                 >
-                  {strukBerhasil.status === "selesai" ? "✓" : "⏳"}
+                  <div>
+                    <span
+                      className={`dsh__chip ${
+                        strukBerhasil.status === "selesai"
+                          ? "dsh__chip--green"
+                          : "dsh__chip--amber"
+                      }`}
+                    >
+                      {strukBerhasil.status === "selesai"
+                        ? "Pencairan Selesai"
+                        : "Menunggu Validasi Petugas"}
+                    </span>
+                    <h3 style={{ margin: "8px 0 0", fontSize: "20px" }}>
+                      Bukti Pencairan Saldo
+                    </h3>
+                  </div>
+                  <code className="dsh__code">{strukBerhasil.id}</code>
                 </div>
 
-                <span
-                  className={`dsh__chip ${
-                    strukBerhasil.status === "selesai"
-                      ? "dsh__chip--green"
-                      : "dsh__chip--amber"
-                  }`}
-                >
-                  {strukBerhasil.status === "selesai"
-                    ? "Pencairan Otomatis Berhasil"
-                    : "Menunggu Validasi Petugas Jaga"}
-                </span>
-
-                <h3
+                <div
                   style={{
-                    fontSize: "26px",
-                    fontWeight: 800,
-                    margin: "10px 0 4px",
-                    color: "#1b1915",
+                    fontSize: "28px",
+                    fontWeight: 700,
+                    letterSpacing: "-0.02em",
+                    fontVariantNumeric: "tabular-nums",
+                    marginBottom: "16px",
                   }}
                 >
                   {rp(strukBerhasil.nominal)}
-                </h3>
-                <p style={{ fontSize: "13px", color: "#666", margin: "0 0 18px" }}>
-                  No. Referensi: <strong>{strukBerhasil.id}</strong> •{" "}
-                  {strukBerhasil.tanggal}
-                </p>
-
-                <div
-                  style={{
-                    background: "#f8f7f3",
-                    borderRadius: "12px",
-                    padding: "14px 16px",
-                    textAlign: "left",
-                    fontSize: "13px",
-                    display: "grid",
-                    gap: "8px",
-                    marginBottom: "18px",
-                    border: "1px dashed #d5d0c3",
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ color: "#666" }}>Metode Pencairan</span>
-                    <strong>{formatMetodePenarikan(strukBerhasil.metode)}</strong>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ color: "#666" }}>Tujuan</span>
-                    <strong>{strukBerhasil.tujuan}</strong>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ color: "#666" }}>Validator / Sistem</span>
-                    <strong>{strukBerhasil.petugas}</strong>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ color: "#666" }}>Sisa Saldo Aktif</span>
-                    <strong style={{ color: "#25632d" }}>
-                      {rp(ringkasan.saldoTersedia)}
-                    </strong>
-                  </div>
                 </div>
+
+                <dl className="dsh__kv" style={{ marginBottom: "18px" }}>
+                  <div>
+                    <dt>Metode & Tujuan</dt>
+                    <dd>{strukBerhasil.tujuan}</dd>
+                  </div>
+                  <div>
+                    <dt>Tanggal</dt>
+                    <dd>{strukBerhasil.tanggal}</dd>
+                  </div>
+                  <div>
+                    <dt>Status Verifikasi</dt>
+                    <dd>{strukBerhasil.petugas}</dd>
+                  </div>
+                  <div>
+                    <dt>Sisa Saldo Aktif</dt>
+                    <dd>
+                      <strong className="dsh__green">
+                        {rp(ringkasan.saldoTersedia)}
+                      </strong>
+                    </dd>
+                  </div>
+                </dl>
 
                 {strukBerhasil.metode === "tunai" && (
                   <p
                     style={{
                       fontSize: "12.5px",
-                      background: "#fff9eb",
-                      color: "#855200",
+                      background: "#faf8f2",
+                      border: "1px solid #e6dec8",
+                      color: "#6b531c",
                       padding: "10px 12px",
-                      borderRadius: "8px",
+                      borderRadius: "6px",
                       marginBottom: "16px",
                     }}
                   >
-                    Tunjukkan kode <strong>{strukBerhasil.id}</strong> ini kepada{" "}
-                    <strong>Petugas Jaga</strong> di meja pelayanan untuk divalidasi
-                    dan menerima uang tunai.
+                    Tunjukkan nomor referensi <strong>{strukBerhasil.id}</strong>{" "}
+                    kepada Petugas Jaga saat mengambil uang tunai di meja pelayanan.
                   </p>
                 )}
 
                 <button
                   type="button"
                   className="dsh__btn"
-                  style={{ width: "100%", borderRadius: "10px", padding: "12px" }}
+                  style={{ width: "100%" }}
                   onClick={() => {
                     setStrukBerhasil(null);
                     setBukaModalTarik(false);
                   }}
                 >
-                  Selesai & Kembali ke Dompet
+                  Tutup
                 </button>
               </div>
             ) : (
-              /* FORM TARIK SALDO E-WALLET */
               <>
                 <div
                   style={{
@@ -736,102 +424,55 @@ export default function DashboardNasabah() {
                     marginBottom: "16px",
                   }}
                 >
-                  <div>
-                    <span className="dsh__tagbadge">BSS Pay Instant</span>
-                    <h3 style={{ margin: "4px 0 0", fontSize: "19px" }}>
-                      {metodeTarik === "ewallet"
-                        ? "📱 Cairkan ke Saldo E-Wallet"
-                        : metodeTarik === "bank"
-                        ? "🏦 Transfer ke Rekening Bank"
-                        : "💵 Tarik Tunai di Pos Jaga"}
-                    </h3>
-                  </div>
+                  <h3 style={{ margin: 0, fontSize: "18px" }}>
+                    Penarikan Saldo Tabungan
+                  </h3>
                   <button
                     type="button"
                     onClick={() => setBukaModalTarik(false)}
                     style={{
-                      background: "#f2efe8",
-                      border: "none",
-                      width: "32px",
-                      height: "32px",
-                      borderRadius: "50%",
-                      cursor: "pointer",
-                      fontWeight: 700,
+                      fontSize: "14px",
+                      color: "#6e6859",
+                      padding: "4px 8px",
                     }}
                   >
-                    ✕
+                    Tutup ✕
                   </button>
                 </div>
 
-                {/* Tab Ganti Metode di Dalam Modal */}
+                {/* Pilihan Metode */}
                 <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(3, 1fr)",
-                    gap: "6px",
-                    background: "#f4f2ec",
-                    padding: "4px",
-                    borderRadius: "10px",
-                    marginBottom: "16px",
-                  }}
+                  className="dsh__filtertabs"
+                  style={{ marginBottom: "16px" }}
+                  role="tablist"
                 >
                   {(
                     [
-                      { id: "ewallet", label: "📱 E-Wallet" },
-                      { id: "bank", label: "🏦 Bank" },
-                      { id: "tunai", label: "💵 Tunai" },
+                      { id: "ewallet", label: "E-Wallet" },
+                      { id: "bank", label: "Transfer Bank" },
+                      { id: "tunai", label: "Tunai Pos Jaga" },
                     ] as const
                   ).map((m) => (
                     <button
                       key={m.id}
                       type="button"
+                      className="dsh__filtertab"
+                      style={{ flex: 1, textAlign: "center" }}
+                      data-active={metodeTarik === m.id}
                       onClick={() => bukaQuickAction(m.id)}
-                      style={{
-                        padding: "8px 6px",
-                        fontSize: "12.5px",
-                        fontWeight: 700,
-                        borderRadius: "8px",
-                        border: "none",
-                        cursor: "pointer",
-                        background:
-                          metodeTarik === m.id ? "#25632d" : "transparent",
-                        color: metodeTarik === m.id ? "#fff" : "#555",
-                      }}
                     >
                       {m.label}
                     </button>
                   ))}
                 </div>
 
-                {/* Info Saldo Tersedia */}
-                <div
-                  style={{
-                    background: "#f2f9f3",
-                    border: "1px solid #cce5d0",
-                    borderRadius: "10px",
-                    padding: "10px 14px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "16px",
-                    fontSize: "13px",
-                  }}
-                >
-                  <span>Saldo Aktif Bisa Ditarik:</span>
-                  <strong style={{ color: "#1c5e24", fontSize: "15px" }}>
-                    {rp(ringkasan.saldoTersedia)}
-                  </strong>
-                </div>
-
                 {errorTarik && (
                   <div
+                    className="dsh__alert"
                     style={{
-                      background: "#fff2f2",
-                      border: "1px solid #f5bcbc",
+                      background: "#fdf2f2",
+                      border: "1px solid #f2c6c6",
                       color: "#9b1c1c",
-                      padding: "10px 12px",
-                      borderRadius: "8px",
-                      fontSize: "12.5px",
                       marginBottom: "14px",
                     }}
                   >
@@ -840,87 +481,38 @@ export default function DashboardNasabah() {
                 )}
 
                 <form onSubmit={handleProsesTarik} className="dsh__form">
-                  {/* Pilihan Provider E-Wallet / Bank dengan Pill Button */}
                   {metodeTarik === "ewallet" && (
                     <div className="dsh__field">
-                      <label className="dsh__label">Pilih Dompet E-Wallet</label>
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "repeat(3, 1fr)",
-                          gap: "8px",
-                        }}
+                      <label className="dsh__label">Tujuan E-Wallet</label>
+                      <select
+                        className="dsh__select"
+                        value={provider}
+                        onChange={(e) => setProvider(e.target.value)}
                       >
-                        {["DANA", "GoPay", "OVO", "ShopeePay", "LinkAja"].map(
-                          (ew) => (
-                            <button
-                              key={ew}
-                              type="button"
-                              onClick={() => setProvider(ew)}
-                              style={{
-                                padding: "8px",
-                                borderRadius: "8px",
-                                border:
-                                  provider === ew
-                                    ? "2px solid #25632d"
-                                    : "1px solid #dcd7cc",
-                                background:
-                                  provider === ew ? "#edf8ef" : "#ffffff",
-                                fontWeight: 700,
-                                fontSize: "12.5px",
-                                cursor: "pointer",
-                                color: "#1f1d18",
-                              }}
-                            >
-                              {ew}
-                            </button>
-                          )
-                        )}
-                      </div>
+                        <option value="DANA">DANA</option>
+                        <option value="GoPay">GoPay</option>
+                        <option value="OVO">OVO</option>
+                        <option value="ShopeePay">ShopeePay</option>
+                        <option value="LinkAja">LinkAja</option>
+                      </select>
                     </div>
                   )}
 
                   {metodeTarik === "bank" && (
                     <div className="dsh__field">
-                      <label className="dsh__label">Pilih Bank Tujuan</label>
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "repeat(3, 1fr)",
-                          gap: "8px",
-                        }}
+                      <label className="dsh__label">Bank Tujuan</label>
+                      <select
+                        className="dsh__select"
+                        value={provider}
+                        onChange={(e) => setProvider(e.target.value)}
                       >
-                        {[
-                          "Bank BSI",
-                          "Bank Mandiri",
-                          "Bank BRI",
-                          "Bank BCA",
-                          "Bank BNI",
-                          "Bank Jatim",
-                        ].map((bk) => (
-                          <button
-                            key={bk}
-                            type="button"
-                            onClick={() => setProvider(bk)}
-                            style={{
-                              padding: "8px",
-                              borderRadius: "8px",
-                              border:
-                                provider === bk
-                                  ? "2px solid #25632d"
-                                  : "1px solid #dcd7cc",
-                              background:
-                                provider === bk ? "#edf8ef" : "#ffffff",
-                              fontWeight: 700,
-                              fontSize: "12px",
-                              cursor: "pointer",
-                              color: "#1f1d18",
-                            }}
-                          >
-                            {bk}
-                          </button>
-                        ))}
-                      </div>
+                        <option value="Bank BSI">Bank Syariah Indonesia (BSI)</option>
+                        <option value="Bank Mandiri">Bank Mandiri</option>
+                        <option value="Bank BRI">Bank BRI</option>
+                        <option value="Bank BCA">Bank BCA</option>
+                        <option value="Bank BNI">Bank BNI</option>
+                        <option value="Bank Jatim">Bank Jatim</option>
+                      </select>
                     </div>
                   )}
 
@@ -939,29 +531,26 @@ export default function DashboardNasabah() {
                         onChange={(e) => setNomorTujuan(e.target.value)}
                         placeholder={
                           metodeTarik === "ewallet"
-                            ? "Contoh: 081234567890"
-                            : "Contoh: 7182930412"
+                            ? "081234567890"
+                            : "7182930412"
                         }
                       />
                     </div>
                   ) : (
-                    <div
+                    <p
                       style={{
-                        background: "#fffaf0",
-                        border: "1px solid #ebd5a7",
-                        borderRadius: "8px",
-                        padding: "10px 12px",
                         fontSize: "12.5px",
-                        color: "#7a520b",
+                        color: "#5c5546",
+                        background: "#f7f6f1",
+                        padding: "10px 12px",
+                        borderRadius: "6px",
+                        border: "1px solid #e5e3dc",
                       }}
                     >
-                      ℹ️ Untuk <strong>Tarik Tunai</strong>, pengajuan Anda akan
-                      berstatus <strong>Menunggu Validasi Petugas Jaga</strong>{" "}
-                      sampai uang tunai diserahkan di meja pelayanan.
-                    </div>
+                      Penarikan tunai memerlukan validasi dari Petugas Jaga saat penyerahan uang di meja pelayanan.
+                    </p>
                   )}
 
-                  {/* Nominal Penarikan */}
                   <div className="dsh__field">
                     <label className="dsh__label">
                       Nominal Penarikan (Minimal {rp(MINIMAL_PENARIKAN_RP)})
@@ -973,7 +562,6 @@ export default function DashboardNasabah() {
                       step="500"
                       required
                       className="dsh__input"
-                      style={{ fontSize: "18px", fontWeight: 700 }}
                       value={nominalTarik}
                       onChange={(e) => setNominalTarik(Number(e.target.value))}
                     />
@@ -982,7 +570,7 @@ export default function DashboardNasabah() {
                         display: "flex",
                         flexWrap: "wrap",
                         gap: "6px",
-                        marginTop: "6px",
+                        marginTop: "4px",
                       }}
                     >
                       {[2000, 5000, 10000, 20000, 50000].map((nom) => (
@@ -991,17 +579,17 @@ export default function DashboardNasabah() {
                           type="button"
                           onClick={() => setNominalTarik(nom)}
                           style={{
-                            padding: "5px 10px",
+                            padding: "4px 10px",
                             fontSize: "12px",
                             borderRadius: "6px",
                             border:
                               nominalTarik === nom
-                                ? "1.5px solid #25632d"
-                                : "1px solid #d5d0c4",
+                                ? "1px solid #17140f"
+                                : "1px solid #dcdad3",
                             background:
-                              nominalTarik === nom ? "#e8f5ea" : "#faf9f5",
-                            color: nominalTarik === nom ? "#1b4d21" : "#555",
-                            fontWeight: 700,
+                              nominalTarik === nom ? "#17140f" : "#ffffff",
+                            color: nominalTarik === nom ? "#ffffff" : "#4a4436",
+                            fontWeight: 600,
                             cursor: "pointer",
                           }}
                         >
@@ -1013,13 +601,13 @@ export default function DashboardNasabah() {
                           type="button"
                           onClick={() => setNominalTarik(ringkasan.saldoTersedia)}
                           style={{
-                            padding: "5px 10px",
+                            padding: "4px 10px",
                             fontSize: "12px",
                             borderRadius: "6px",
-                            border: "1px solid #25632d",
-                            background: "#25632d",
-                            color: "#fff",
-                            fontWeight: 700,
+                            border: "1px solid #2f7d3a",
+                            background: "#eaf5eb",
+                            color: "#276b30",
+                            fontWeight: 600,
                             cursor: "pointer",
                           }}
                         >
@@ -1039,19 +627,10 @@ export default function DashboardNasabah() {
                     />
                   </div>
 
-                  <button
-                    type="submit"
-                    className="dsh__btn"
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      fontSize: "14px",
-                      borderRadius: "10px",
-                    }}
-                  >
+                  <button type="submit" className="dsh__btn" style={{ width: "100%" }}>
                     {metodeTarik === "tunai"
-                      ? `Buat Tiket Tarik Tunai ${rp(nominalTarik)}`
-                      : `Kirim ${rp(nominalTarik)} ke ${provider} Sekarang`}
+                      ? `Ajukan Tarik Tunai ${rp(nominalTarik)}`
+                      : `Cairkan ${rp(nominalTarik)} ke ${provider}`}
                   </button>
                 </form>
               </>
@@ -1061,151 +640,66 @@ export default function DashboardNasabah() {
       )}
 
       {/* ==============================================================
-          3. BAWAH: MUTASI DOMPET DIGITAL (CASHFLOW) & KALKULATOR
+          3. SPLIT BAWAH: 3 AKTIVITAS TERBARU + KALKULATOR RINGKAS
          ============================================================== */}
       <div className="dsh__split">
-        {/* Panel Kiri: Mutasi Dompet (Uang Masuk & Uang Keluar ala E-Wallet) */}
-        <section className="dsh__card" aria-label="Mutasi Dompet BSS Pay">
-          <div className="dsh__cardhead" style={{ alignItems: "center" }}>
+        {/* Panel Kiri: Hanya 3 Aktivitas Terakhir + Tombol Lihat Lengkap */}
+        <section className="dsh__card" aria-label="Aktivitas Terakhir">
+          <div className="dsh__cardhead">
             <div>
-              <h2 className="dsh__h2">Aktivitas & Mutasi Dompet</h2>
+              <h2 className="dsh__h2">Aktivitas Terakhir</h2>
               <p className="dsh__carddesc" style={{ margin: "2px 0 0" }}>
-                Riwayat saldo masuk dari verifikasi sampah & penarikan saldo.
+                3 mutasi terbaru pada dompet tabungan Anda.
               </p>
             </div>
-            <Link href="/nasabah/riwayat" className="dsh__more">
-              Semua Mutasi →
-            </Link>
-          </div>
-
-          {/* Filter Pill E-Wallet: Semua / Saldo Masuk / Saldo Keluar */}
-          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-            {(
-              [
-                { id: "semua", label: "Semua Aktivitas" },
-                { id: "masuk", label: "↓ Saldo Masuk (Setor)" },
-                { id: "keluar", label: "↑ Saldo Keluar (Tarik)" },
-              ] as const
-            ).map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setTabMutasi(t.id)}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: "999px",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  border:
-                    tabMutasi === t.id
-                      ? "1px solid #25632d"
-                      : "1px solid #dedad0",
-                  background: tabMutasi === t.id ? "#25632d" : "#faf9f5",
-                  color: tabMutasi === t.id ? "#ffffff" : "#5c574d",
-                  cursor: "pointer",
-                }}
-              >
-                {t.label}
-              </button>
-            ))}
+            <span className="dsh__meta">{semuaAktivitas.length} total transaksi</span>
           </div>
 
           <div className="dsh__rows">
-            {daftarMutasi.slice(0, 6).map((m) => {
-              const isMasuk = m.tipe === "masuk";
-              const isPending =
-                m.status === "menunggu_verifikasi" ||
-                m.status === "menunggu_validasi";
-              return (
-                <div
-                  key={m.uid}
-                  className="dsh__row"
-                  style={{
-                    borderBottom: "1px solid #f0ede6",
-                    paddingBlock: "12px",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: "12px",
-                      minWidth: 0,
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: "38px",
-                        height: "38px",
-                        borderRadius: "12px",
-                        background: isPending
-                          ? "#fff4db"
-                          : isMasuk
-                          ? "#e7f6e9"
-                          : "#f3f0e8",
-                        color: isPending
-                          ? "#b26a00"
-                          : isMasuk
-                          ? "#1e6b27"
-                          : "#443f35",
-                        display: "grid",
-                        placeItems: "center",
-                        fontSize: "17px",
-                        flexShrink: 0,
-                        fontWeight: 800,
-                      }}
-                    >
-                      {isMasuk ? "↓" : "↑"}
-                    </span>
-                    <div className="dsh__rowmain">
-                      <strong>{m.judul}</strong>
-                      <span className="dsh__subtext">{m.sub}</span>
-                      <div style={{ marginTop: "4px" }}>
-                        <span
-                          className={`dsh__chip ${
-                            isPending ? "dsh__chip--amber" : "dsh__chip--green"
-                          }`}
-                        >
-                          {m.badge}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="dsh__rowval">
-                    <b
-                      style={{
-                        fontSize: "15px",
-                        color: isPending
-                          ? "#b26a00"
-                          : isMasuk
-                          ? "#1f6e29"
-                          : "#2b261f",
-                      }}
-                    >
-                      {isMasuk ? "+" : "-"}
-                      {rp(m.nominal)}
-                    </b>
-                    <small style={{ fontSize: "11px", color: "#888" }}>
-                      {m.id}
-                    </small>
-                  </div>
+            {aktivitasRingkas.map((m) => (
+              <div key={m.uid} className="dsh__row">
+                <div className="dsh__rowmain">
+                  <strong>{m.judul}</strong>
+                  <span className="dsh__subtext">
+                    {m.sub} · {m.statusLabel}
+                  </span>
                 </div>
-              );
-            })}
+
+                <div className="dsh__rowval">
+                  <b
+                    className={
+                      m.isPending
+                        ? "dsh__amber"
+                        : m.tipe === "masuk"
+                        ? "dsh__green"
+                        : ""
+                    }
+                  >
+                    {m.tipe === "masuk" ? "+" : "-"}
+                    {rp(m.nominal)}
+                  </b>
+                </div>
+              </div>
+            ))}
           </div>
+
+          <Link href="/nasabah/riwayat" className="dsh__expandbtn">
+            Lihat Semua Riwayat Transaksi ({semuaAktivitas.length}) →
+          </Link>
         </section>
 
-        {/* Panel Kanan: Kalkulator Pintar */}
+        {/* Panel Kanan: Kalkulator Pintar Ringkas */}
         <section className="dsh__card" aria-label="Kalkulator Pintar">
           <div className="dsh__cardhead">
             <div>
-              <h2 className="dsh__h2">Simulasi Top-Up Sampah</h2>
-              <p className="dsh__carddesc" style={{ marginBottom: 0, marginTop: "4px" }}>
-                Hitung berapa tambahan saldo E-Wallet dari sampah kiloan, gram, atau satuan (pcs) Anda.
+              <h2 className="dsh__h2">Kalkulator Setoran</h2>
+              <p className="dsh__carddesc" style={{ margin: "2px 0 0" }}>
+                Simulasi nilai sampah (kg, gram, atau satuan).
               </p>
             </div>
-            <span className="dsh__tagbadge">Kalkulator BSS</span>
+            <Link href="/nasabah/kalkulator" className="dsh__more">
+              Lihat Daftar Harga →
+            </Link>
           </div>
 
           <KalkulatorPintar mode="nasabah" />
