@@ -38,7 +38,10 @@ export default function NasabahAdmin() {
       nomor: a.nomor,
       nama: a.nama,
       email: a.email,
-      fakultas: "Pendaftar Mandiri (Verifikasi)",
+      fakultas:
+        a.kategori === "internal"
+          ? `${a.fakultas || "Internal"}${a.prodi ? ` (${a.prodi})` : ""}`
+          : "Masyarakat Umum",
       totalBeratKg: 0,
       totalDisalurkan: 0,
       estimasiGudang: 0,

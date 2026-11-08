@@ -30,6 +30,7 @@ export default function TarikTunaiAdminPage() {
   );
   const [notif, setNotif] = useState<string>("");
   const [tampilSemua, setTampilSemua] = useState<boolean>(false);
+  const [filterStatus, setFilterStatus] = useState<"semua" | "menunggu" | "selesai">("semua");
 
   const idSelectNasabah = useId();
   const idNominal = useId();
@@ -74,9 +75,13 @@ export default function TarikTunaiAdminPage() {
   }, [daftar]);
 
   const filtered = useMemo(() => {
-    if (!cari.trim()) return daftar;
+    let list = daftar;
+    if (filterStatus !== "semua") {
+      list = list.filter((d) => d.status === filterStatus);
+    }
+    if (!cari.trim()) return list;
     const q = cari.toLowerCase();
-    return daftar.filter(
+    return list.filter(
       (d) =>
         d.id.toLowerCase().includes(q) ||
         d.namaNasabah.toLowerCase().includes(q) ||
@@ -85,14 +90,14 @@ export default function TarikTunaiAdminPage() {
         (d.tujuan && d.tujuan.toLowerCase().includes(q)) ||
         (d.catatan && d.catatan.toLowerCase().includes(q))
     );
-  }, [daftar, cari]);
+  }, [daftar, cari, filterStatus]);
 
-  const handleValidasiTunai = (item: PenarikanUang) => {
+  const handleValidasi = (item: PenarikanUang) => {
     const namaPetugas = sesi?.nama || "Ahmad Fauzi (Petugas Piket)";
     const updated = validasiPenarikanTunai(item.id, namaPetugas);
     setDaftar(updated);
     setNotif(
-      `Penarikan Tunai ${item.id} sebesar ${rp(item.nominal)} untuk ${item.namaNasabah} (${item.nomorNasabah}) berhasil DIVALIDASI oleh Petugas Jaga.`
+      `Penarikan ${item.id} sebesar ${rp(item.nominal)} (${formatMetodePenarikan(item.metode)}) untuk ${item.namaNasabah} (${item.nomorNasabah}) berhasil DIVALIDASI oleh Petugas.`
     );
     setTimeout(() => setNotif(""), 6000);
   };
@@ -179,15 +184,15 @@ export default function TarikTunaiAdminPage() {
         <div className="dsh__statcard dsh__statcard--accent">
           <span className="dsh__statbadge">
             {totalMenungguValidasi.length > 0
-              ? `${totalMenungguValidasi.length} Antrean Tunai`
+              ? `${totalMenungguValidasi.length} Antrean`
               : "Tidak Ada Antrean"}
           </span>
-          <p className="dsh__statlabel">Menunggu Validasi Petugas (Tunai)</p>
+          <p className="dsh__statlabel">Menunggu Validasi Petugas</p>
           <p className="dsh__big dsh__big--amber">
             {totalMenungguValidasi.length} Pengajuan
           </p>
           <p className="dsh__statsmall">
-            Klik tombol Validasi saat menyerahkan uang tunai ke nasabah
+            Pengajuan tarik tunai & transfer yang butuh verifikasi
           </p>
         </div>
 
@@ -195,7 +200,7 @@ export default function TarikTunaiAdminPage() {
           <p className="dsh__statlabel">Tunai Tervalidasi vs Non-Tunai</p>
           <p className="dsh__big">{rp(totalTunai)}</p>
           <p className="dsh__statsmall">
-            Bank & E-Wallet otomatis: <strong>{rp(totalNonTunai)}</strong>
+            Bank & E-Wallet selesai: <strong>{rp(totalNonTunai)}</strong>
           </p>
         </div>
       </div>
@@ -207,13 +212,39 @@ export default function TarikTunaiAdminPage() {
             <div>
               <h2 className="dsh__h2">Daftar Pengajuan & Riwayat Penarikan</h2>
               <p className="dsh__carddesc" style={{ marginBottom: 0, marginTop: "4px" }}>
-                Penarikan Tunai dari nasabah wajib divalidasi oleh Petugas Jaga. Bank & E-Wallet otomatis selesai.
+                Pengajuan penarikan dari nasabah berstatus menunggu validasi sebelum dana diserahkan atau ditransfer.
               </p>
             </div>
-            <div className="dsh__filterwrap">
+            <div className="dsh__filterwrap" style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <div style={{ display: "inline-flex", gap: "4px" }}>
+                <button
+                  type="button"
+                  className={`dsh__chip ${filterStatus === "semua" ? "dsh__chip--green" : ""}`}
+                  style={{ cursor: "pointer", border: "1px solid #dcd7cc" }}
+                  onClick={() => setFilterStatus("semua")}
+                >
+                  Semua ({daftar.length})
+                </button>
+                <button
+                  type="button"
+                  className={`dsh__chip ${filterStatus === "menunggu" ? "dsh__chip--amber" : ""}`}
+                  style={{ cursor: "pointer", border: "1px solid #dcd7cc" }}
+                  onClick={() => setFilterStatus("menunggu")}
+                >
+                  Menunggu ({totalMenungguValidasi.length})
+                </button>
+                <button
+                  type="button"
+                  className={`dsh__chip ${filterStatus === "selesai" ? "dsh__chip--green" : ""}`}
+                  style={{ cursor: "pointer", border: "1px solid #dcd7cc" }}
+                  onClick={() => setFilterStatus("selesai")}
+                >
+                  Selesai ({daftar.length - totalMenungguValidasi.length})
+                </button>
+              </div>
               <input
                 type="search"
-                placeholder="Cari ID, nama nasabah, metode, tujuan..."
+                placeholder="Cari ID, nama nasabah..."
                 className="dsh__input dsh__input--sm"
                 value={cari}
                 onChange={(e) => setCari(e.target.value)}
@@ -294,9 +325,11 @@ export default function TarikTunaiAdminPage() {
                                   fontWeight: 700,
                                   cursor: "pointer",
                                 }}
-                                onClick={() => handleValidasiTunai(item)}
+                                onClick={() => handleValidasi(item)}
                               >
-                                Validasi & Serahkan Tunai
+                                {item.metode === "tunai"
+                                  ? "Validasi & Serahkan Tunai"
+                                  : "Validasi & Konfirmasi Transfer"}
                               </button>
                             </div>
                           ) : (

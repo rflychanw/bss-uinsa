@@ -17,10 +17,11 @@ import {
   type SetoranNasabah,
 } from "../../../lib/bss";
 import { sesiSekarang, type Sesi } from "../../../lib/auth";
+import LembarBukuTabungan from "../../../components/app/LembarBukuTabungan";
 
 export default function RiwayatNasabah() {
   const [sesi, setSesi] = useState<Sesi | null>(null);
-  const [tabUtama, setTabUtama] = useState<"setoran" | "penarikan">("setoran");
+  const [tabUtama, setTabUtama] = useState<"setoran" | "penarikan" | "buku">("setoran");
   const [filterSetoran, setFilterSetoran] = useState<
     "semua" | "terverifikasi" | "menunggu_verifikasi"
   >("semua");
@@ -49,6 +50,8 @@ export default function RiwayatNasabah() {
       const params = new URLSearchParams(window.location.search);
       if (params.get("tab") === "penarikan") {
         setTabUtama("penarikan");
+      } else if (params.get("tab") === "buku") {
+        setTabUtama("buku");
       }
     }
   }, []);
@@ -147,17 +150,13 @@ export default function RiwayatNasabah() {
       metode: metodeTarik,
       tujuan: infoTujuan,
       catatan: "Penarikan saldo tabungan",
-      status: isTunai ? "menunggu" : "selesai",
-      petugas: isTunai
-        ? "Menunggu Validasi Petugas"
-        : `Otomatis (${namaPenyedia})`,
+      status: "menunggu",
+      petugas: "Menunggu Validasi Petugas / Kasir BSS",
     });
 
     setDaftarPenarikan(getDaftarPenarikan());
     setNotifTarik(
-      isTunai
-        ? `Tarik Tunai ${baru.id} (${rp(nominalTarik)}) menunggu validasi petugas.`
-        : `Pencairan ${baru.id} (${rp(nominalTarik)}) ke ${infoTujuan} berhasil.`
+      `Pengajuan penarikan ${baru.id} (${rp(nominalTarik)}) berhasil dikirim dengan status Menunggu Validasi Petugas.`
     );
   };
 
@@ -199,6 +198,16 @@ export default function RiwayatNasabah() {
           aria-selected={tabUtama === "penarikan"}
         >
           Penarikan Saldo ({penarikanNasabah.length})
+        </button>
+        <button
+          type="button"
+          className="dsh__filtertab"
+          data-active={tabUtama === "buku"}
+          onClick={() => setTabUtama("buku")}
+          role="tab"
+          aria-selected={tabUtama === "buku"}
+        >
+          📖 Lembar Buku Tabungan
         </button>
       </div>
 
@@ -503,6 +512,16 @@ export default function RiwayatNasabah() {
             </section>
           </div>
         </>
+      )}
+
+      {tabUtama === "buku" && (
+        <section aria-label="Lembar Tabungan Nasabah">
+          <LembarBukuTabungan
+            nomorNasabahProp={noNasabah}
+            namaNasabahProp={namaNasabah}
+            showToolbar={true}
+          />
+        </section>
       )}
     </div>
   );

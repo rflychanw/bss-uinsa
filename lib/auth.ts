@@ -12,6 +12,7 @@
  */
 
 export type Role = "nasabah" | "petugas" | "bendahara" | "admin";
+export type KategoriNasabah = "umum" | "internal";
 
 export type Akun = {
   email: string;
@@ -19,6 +20,9 @@ export type Akun = {
   role: Role;
   nama: string;
   nomor: string;
+  kategori?: KategoriNasabah;
+  fakultas?: string;
+  prodi?: string;
   jabatan?: string;
   buktiBayar?: string;
   namaFileBukti?: string;
@@ -32,6 +36,9 @@ export type Sesi = {
   nama: string;
   nomor: string;
   role: Role;
+  kategori?: KategoriNasabah;
+  fakultas?: string;
+  prodi?: string;
   jabatan?: string;
   buktiBayar?: string;
   namaFileBukti?: string;
@@ -153,6 +160,9 @@ export function masuk(
     nama: akun.nama,
     nomor: akun.nomor,
     role: akun.role,
+    kategori: akun.kategori,
+    fakultas: akun.fakultas,
+    prodi: akun.prodi,
     jabatan: akun.jabatan,
     buktiBayar: akun.buktiBayar,
     namaFileBukti: akun.namaFileBukti,
@@ -168,6 +178,9 @@ export function daftar(input: {
   nama: string;
   email: string;
   sandi: string;
+  kategori?: KategoriNasabah;
+  fakultas?: string;
+  prodi?: string;
   buktiBayar?: string;
   namaFileBukti?: string;
   metodeBayar?: string;
@@ -184,6 +197,10 @@ export function daftar(input: {
     return { ok: false, pesan: "Email itu sudah terdaftar. Langsung masuk saja." };
   }
 
+  const kategori: KategoriNasabah = input.kategori || "umum";
+  const fakultas = input.fakultas?.trim();
+  const prodi = input.prodi?.trim();
+
   const nomor = nomorNasabahBaru();
   const sekarang = new Date().toLocaleDateString("id-ID", {
     day: "numeric",
@@ -196,7 +213,13 @@ export function daftar(input: {
     role: "nasabah",
     nama,
     nomor,
-    jabatan: "Nasabah Baru (Menunggu Verifikasi)",
+    kategori,
+    fakultas: kategori === "internal" ? fakultas : "Umum",
+    prodi: kategori === "internal" ? prodi : undefined,
+    jabatan:
+      kategori === "internal"
+        ? `Civitas UINSA (${fakultas || "Kampus"}${prodi ? ` - ${prodi}` : ""})`
+        : "Nasabah Umum",
     buktiBayar: input.buktiBayar,
     namaFileBukti: input.namaFileBukti,
     metodeBayar: input.metodeBayar,
@@ -216,10 +239,14 @@ export function verifikasiAkun(emailOrNomor: string): boolean {
   const updated = list.map((a) => {
     if (a.email.toLowerCase() === q || a.nomor.toLowerCase() === q) {
       found = true;
+      const jabatanAktif =
+        a.kategori === "internal"
+          ? `Civitas UINSA (${a.fakultas || "Kampus"}${a.prodi ? ` - ${a.prodi}` : ""})`
+          : "Nasabah Umum (Wadiah)";
       return {
         ...a,
         statusVerifikasi: "aktif" as const,
-        jabatan: "Nasabah Aktif (Wadiah)",
+        jabatan: jabatanAktif,
       };
     }
     return a;

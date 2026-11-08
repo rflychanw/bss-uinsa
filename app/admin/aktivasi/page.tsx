@@ -295,7 +295,12 @@ export default function AktivasiAkunPage() {
                     </td>
                     <td>
                       <strong>{a.nama}</strong>
-                      <span className="dsh__subtext">{a.email}</span>
+                      <span className="dsh__subtext">
+                        {a.email} •{" "}
+                        {a.kategori === "internal"
+                          ? `${a.fakultas || "Internal"}${a.prodi ? ` (${a.prodi})` : ""}`
+                          : "Umum"}
+                      </span>
                     </td>
                     <td>{a.tanggalDaftar || "Hari ini"}</td>
                     <td>
@@ -424,6 +429,11 @@ export default function AktivasiAkunPage() {
                     </td>
                     <td>
                       <strong>{a.nama}</strong>
+                      <span className="dsh__subtext">
+                        {a.kategori === "internal"
+                          ? `${a.fakultas || "Internal"}${a.prodi ? ` (${a.prodi})` : ""}`
+                          : "Masyarakat Umum"}
+                      </span>
                     </td>
                     <td>{a.email}</td>
                     <td>

@@ -19,6 +19,7 @@ import {
   type SetoranNasabah,
 } from "../../lib/bss";
 import KalkulatorPintar from "../../components/app/KalkulatorPintar";
+import LembarBukuTabungan from "../../components/app/LembarBukuTabungan";
 
 export default function DashboardNasabah() {
   const [sesi, setSesi] = useState<Sesi | null>(null);
@@ -29,6 +30,7 @@ export default function DashboardNasabah() {
 
   // Modal Tarik Saldo
   const [bukaModalTarik, setBukaModalTarik] = useState(false);
+  const [tabTampilan, setTabTampilan] = useState<"ringkasan" | "buku_tabungan">("ringkasan");
   const [metodeTarik, setMetodeTarik] = useState<MetodePenarikan>("ewallet");
   const [provider, setProvider] = useState<string>("DANA");
   const [nomorTujuan, setNomorTujuan] = useState<string>("081234567890");
@@ -126,12 +128,8 @@ export default function DashboardNasabah() {
       metode: metodeTarik,
       tujuan: infoTujuan,
       catatan: catatanTarik || "Penarikan saldo tabungan",
-      status: isTunai ? "menunggu" : "selesai",
-      petugas: isTunai
-        ? "Menunggu Validasi Petugas Jaga"
-        : metodeTarik === "ewallet"
-        ? `Otomatis via ${provider}`
-        : `Otomatis Transfer ${provider}`,
+      status: "menunggu",
+      petugas: "Menunggu Validasi Petugas / Kasir BSS",
     });
 
     muatUlangData();
@@ -196,17 +194,35 @@ export default function DashboardNasabah() {
             <span>·</span>
             <span>{namaLengkap}</span>
           </div>
-          <Link
-            href="/nasabah/profil"
-            style={{
-              fontSize: "12.5px",
-              color: "rgba(248, 248, 246, 0.8)",
-              textDecoration: "underline",
-              textUnderlineOffset: "4px",
-            }}
-          >
-            Detail Buku Tabungan
-          </Link>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <button
+              type="button"
+              onClick={() => setTabTampilan(tabTampilan === "buku_tabungan" ? "ringkasan" : "buku_tabungan")}
+              style={{
+                fontSize: "12.5px",
+                color: "#ffffff",
+                background: "rgba(255, 255, 255, 0.15)",
+                border: "1px solid rgba(255, 255, 255, 0.25)",
+                borderRadius: "4px",
+                padding: "3px 10px",
+                cursor: "pointer",
+                fontWeight: 600,
+              }}
+            >
+              {tabTampilan === "buku_tabungan" ? "Tutup Lembar Buku" : "📖 Buka Buku Tabungan"}
+            </button>
+            <Link
+              href="/nasabah/profil"
+              style={{
+                fontSize: "12.5px",
+                color: "rgba(248, 248, 246, 0.85)",
+                textDecoration: "underline",
+                textUnderlineOffset: "4px",
+              }}
+            >
+              Halaman Penuh →
+            </Link>
+          </div>
         </div>
 
         <div className="dsh__walletmain">
@@ -282,7 +298,7 @@ export default function DashboardNasabah() {
           </div>
           {ringkasan.totalDitarikMenunggu > 0 && (
             <div className="dsh__walletstat">
-              <span>Tunai Menunggu Validasi Petugas</span>
+              <span>Penarikan Menunggu Verifikasi</span>
               <strong>{rp(ringkasan.totalDitarikMenunggu)}</strong>
             </div>
           )}
@@ -385,7 +401,7 @@ export default function DashboardNasabah() {
                   </div>
                 </dl>
 
-                {strukBerhasil.metode === "tunai" && (
+                {strukBerhasil.metode === "tunai" ? (
                   <p
                     style={{
                       fontSize: "12.5px",
@@ -397,8 +413,23 @@ export default function DashboardNasabah() {
                       marginBottom: "16px",
                     }}
                   >
-                    Tunjukkan nomor referensi <strong>{strukBerhasil.id}</strong>{" "}
-                    kepada Petugas Jaga saat mengambil uang tunai di meja pelayanan.
+                    Pengajuan tarik tunai berhasil dicatat dengan status <strong>Menunggu Validasi</strong>.
+                    Tunjukkan nomor <strong>{strukBerhasil.id}</strong> kepada Petugas Jaga di meja timbang saat pengambilan uang.
+                  </p>
+                ) : (
+                  <p
+                    style={{
+                      fontSize: "12.5px",
+                      background: "#faf8f2",
+                      border: "1px solid #e6dec8",
+                      color: "#6b531c",
+                      padding: "10px 12px",
+                      borderRadius: "6px",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    Pengajuan pencairan non-tunai berhasil dicatat dengan status <strong>Menunggu Validasi</strong>.
+                    Saldo akan ditransfer ke <strong>{strukBerhasil.tujuan}</strong> setelah diverifikasi oleh Petugas / Kasir BSS.
                   </p>
                 )}
 
@@ -640,71 +671,126 @@ export default function DashboardNasabah() {
       )}
 
       {/* ==============================================================
-          3. SPLIT BAWAH: 3 AKTIVITAS TERBARU + KALKULATOR RINGKAS
+          3. NAVIGASI TAMPILAN BERANDA (RINGKASAN vs BUKU TABUNGAN FISIK)
          ============================================================== */}
-      <div className="dsh__split">
-        {/* Panel Kiri: Hanya 3 Aktivitas Terakhir + Tombol Lihat Lengkap */}
-        <section className="dsh__card" aria-label="Aktivitas Terakhir">
-          <div className="dsh__cardhead">
-            <div>
-              <h2 className="dsh__h2">Aktivitas Terakhir</h2>
-              <p className="dsh__carddesc" style={{ margin: "2px 0 0" }}>
-                3 mutasi terbaru pada dompet tabungan Anda.
-              </p>
-            </div>
-            <span className="dsh__meta">{semuaAktivitas.length} total transaksi</span>
-          </div>
-
-          <div className="dsh__rows">
-            {aktivitasRingkas.map((m) => (
-              <div key={m.uid} className="dsh__row">
-                <div className="dsh__rowmain">
-                  <strong>{m.judul}</strong>
-                  <span className="dsh__subtext">
-                    {m.sub} · {m.statusLabel}
-                  </span>
-                </div>
-
-                <div className="dsh__rowval">
-                  <b
-                    className={
-                      m.isPending
-                        ? "dsh__amber"
-                        : m.tipe === "masuk"
-                        ? "dsh__green"
-                        : ""
-                    }
-                  >
-                    {m.tipe === "masuk" ? "+" : "-"}
-                    {rp(m.nominal)}
-                  </b>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <Link href="/nasabah/riwayat" className="dsh__expandbtn">
-            Lihat Semua Riwayat Transaksi ({semuaAktivitas.length}) →
-          </Link>
-        </section>
-
-        {/* Panel Kanan: Kalkulator Pintar Ringkas */}
-        <section className="dsh__card" aria-label="Kalkulator Pintar">
-          <div className="dsh__cardhead">
-            <div>
-              <h2 className="dsh__h2">Kalkulator Setoran</h2>
-              <p className="dsh__carddesc" style={{ margin: "2px 0 0" }}>
-                Simulasi nilai sampah (kg, gram, atau satuan).
-              </p>
-            </div>
-            <Link href="/nasabah/kalkulator" className="dsh__more">
-              Lihat Daftar Harga →
-            </Link>
-          </div>
-
-          <KalkulatorPintar mode="nasabah" />
-        </section>
+      <div className="dsh__filtertabs no-print" style={{ margin: "20px 0 16px 0" }} role="tablist">
+        <button
+          type="button"
+          className="dsh__filtertab"
+          data-active={tabTampilan === "ringkasan"}
+          onClick={() => setTabTampilan("ringkasan")}
+          role="tab"
+          aria-selected={tabTampilan === "ringkasan"}
+        >
+          Ringkasan Mutasi &amp; Kalkulator
+        </button>
+        <button
+          type="button"
+          className="dsh__filtertab"
+          data-active={tabTampilan === "buku_tabungan"}
+          onClick={() => setTabTampilan("buku_tabungan")}
+          role="tab"
+          aria-selected={tabTampilan === "buku_tabungan"}
+        >
+          📖 Lembar Tabungan Nasabah
+        </button>
       </div>
+
+      {tabTampilan === "buku_tabungan" ? (
+        <section aria-label="Lembar Tabungan Nasabah">
+          <LembarBukuTabungan
+            nomorNasabahProp={nomorNasabah}
+            namaNasabahProp={namaLengkap}
+            prodiFakultasProp={
+              sesi?.fakultas
+                ? sesi.kategori === "umum"
+                  ? "Masyarakat Umum"
+                  : `${sesi.fakultas}${sesi.prodi ? ` (${sesi.prodi})` : ""}`
+                : nasabahData.fakultas
+            }
+            showToolbar={true}
+          />
+        </section>
+      ) : (
+        /* Split Ringkasan: 3 Aktivitas Terakhir + Kalkulator Pintar */
+        <div className="dsh__split">
+          {/* Panel Kiri: Hanya 3 Aktivitas Terakhir + Tombol Lihat Lengkap */}
+          <section className="dsh__card" aria-label="Aktivitas Terakhir">
+            <div className="dsh__cardhead">
+              <div>
+                <h2 className="dsh__h2">Aktivitas Terakhir</h2>
+                <p className="dsh__carddesc" style={{ margin: "2px 0 0" }}>
+                  3 mutasi terbaru pada dompet tabungan Anda.
+                </p>
+              </div>
+              <span className="dsh__meta">{semuaAktivitas.length} total transaksi</span>
+            </div>
+
+            <div className="dsh__rows">
+              {aktivitasRingkas.map((m) => (
+                <div key={m.uid} className="dsh__row">
+                  <div className="dsh__rowmain">
+                    <strong>{m.judul}</strong>
+                    <span className="dsh__subtext">
+                      {m.sub} · {m.statusLabel}
+                    </span>
+                  </div>
+
+                  <div className="dsh__rowval">
+                    <b
+                      className={
+                        m.isPending
+                          ? "dsh__amber"
+                          : m.tipe === "masuk"
+                          ? "dsh__green"
+                          : ""
+                      }
+                    >
+                      {m.tipe === "masuk" ? "+" : "-"}
+                      {rp(m.nominal)}
+                    </b>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", marginTop: "12px", flexWrap: "wrap" }}>
+              <button
+                type="button"
+                className="dsh__expandbtn"
+                style={{ flex: 1, textAlign: "center" }}
+                onClick={() => setTabTampilan("buku_tabungan")}
+              >
+                Buka Lembar Buku Tabungan Asli 📖
+              </button>
+              <Link
+                href="/nasabah/riwayat"
+                className="dsh__expandbtn"
+                style={{ flex: 1, textAlign: "center" }}
+              >
+                Semua Riwayat ({semuaAktivitas.length}) →
+              </Link>
+            </div>
+          </section>
+
+          {/* Panel Kanan: Kalkulator Pintar Ringkas */}
+          <section className="dsh__card" aria-label="Kalkulator Pintar">
+            <div className="dsh__cardhead">
+              <div>
+                <h2 className="dsh__h2">Kalkulator Setoran</h2>
+                <p className="dsh__carddesc" style={{ margin: "2px 0 0" }}>
+                  Simulasi nilai sampah (kg, gram, atau satuan).
+                </p>
+              </div>
+              <Link href="/nasabah/kalkulator" className="dsh__more">
+                Lihat Daftar Harga →
+              </Link>
+            </div>
+
+            <KalkulatorPintar mode="nasabah" />
+          </section>
+        </div>
+      )}
     </div>
   );
 }

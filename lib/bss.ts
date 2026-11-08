@@ -326,6 +326,126 @@ export const RIWAYAT_SETORAN_AWAL: SetoranNasabah[] = [
   },
 ];
 
+/* ------------------------------------------------------------- Daftar Fakultas & Prodi UINSA */
+
+export type FakultasUINSA = {
+  singkatan: string;
+  nama: string;
+  prodi: string[];
+};
+
+export const DAFTAR_FAKULTAS_UINSA: FakultasUINSA[] = [
+  {
+    singkatan: "FST",
+    nama: "Fakultas Sains dan Teknologi (FST)",
+    prodi: [
+      "Sistem Informasi",
+      "Teknik Lingkungan",
+      "Arsitektur",
+      "Matematika",
+      "Biologi",
+      "Ilmu Kelautan",
+    ],
+  },
+  {
+    singkatan: "FEBI",
+    nama: "Fakultas Ekonomi dan Bisnis Islam (FEBI)",
+    prodi: [
+      "Ekonomi Syariah",
+      "Perbankan Syariah",
+      "Akuntansi",
+      "Manajemen",
+      "Manajemen Zakat dan Wakaf",
+    ],
+  },
+  {
+    singkatan: "FTK",
+    nama: "Fakultas Tarbiyah dan Keguruan (FTK)",
+    prodi: [
+      "Pendidikan Agama Islam",
+      "Pendidikan Bahasa Arab",
+      "Pendidikan Bahasa Inggris",
+      "Manajemen Pendidikan Islam",
+      "Pendidikan Guru Madrasah Ibtidaiyah",
+      "Pendidikan Islam Anak Usia Dini",
+      "Pendidikan Matematika",
+      "Pendidikan IPA",
+    ],
+  },
+  {
+    singkatan: "FSH",
+    nama: "Fakultas Syariah dan Hukum (FSH)",
+    prodi: [
+      "Hukum Keluarga Islam (Ahwal Syakhshiyyah)",
+      "Hukum Ekonomi Syariah (Muamalah)",
+      "Hukum Tata Negara (Siyasah)",
+      "Hukum Pidana Islam (Jinayah)",
+      "Ilmu Hukum",
+      "Perbandingan Mazhab",
+    ],
+  },
+  {
+    singkatan: "FDK",
+    nama: "Fakultas Dakwah dan Komunikasi (FDK)",
+    prodi: [
+      "Ilmu Komunikasi",
+      "Komunikasi dan Penyiaran Islam",
+      "Bimbingan dan Konseling Islam",
+      "Pengembangan Masyarakat Islam",
+      "Manajemen Dakwah",
+    ],
+  },
+  {
+    singkatan: "FUF",
+    nama: "Fakultas Ushuluddin dan Filsafat (FUF)",
+    prodi: [
+      "Aqidah dan Filsafat Islam",
+      "Ilmu Al-Qur'an dan Tafsir",
+      "Ilmu Hadis",
+      "Studi Agama-Agama",
+      "Pemikiran Politik Islam",
+      "Tasawuf dan Psikoterapi",
+    ],
+  },
+  {
+    singkatan: "FISIP",
+    nama: "Fakultas Ilmu Sosial dan Ilmu Politik (FISIP)",
+    prodi: [
+      "Sosiologi",
+      "Ilmu Politik",
+      "Hubungan Internasional",
+    ],
+  },
+  {
+    singkatan: "FPK",
+    nama: "Fakultas Psikologi dan Kesehatan (FPK)",
+    prodi: [
+      "Psikologi",
+      "Gizi",
+    ],
+  },
+  {
+    singkatan: "FAHUM",
+    nama: "Fakultas Adab dan Humaniora (FAHUM)",
+    prodi: [
+      "Sastra Inggris",
+      "Sastra Arab",
+      "Sejarah Peradaban Islam",
+      "Bahasa dan Sastra Arab",
+    ],
+  },
+  {
+    singkatan: "Pascasarjana",
+    nama: "Pascasarjana (S2 / S3)",
+    prodi: [
+      "Magister Pendidikan Agama Islam",
+      "Magister Hukum Ekonomi Syariah",
+      "Magister Studi Islam",
+      "Doktor Studi Islam",
+    ],
+  },
+];
+
 /* ------------------------------------------------------------- Daftar Nasabah */
 
 export const DAFTAR_NASABAH_MASTER = [
@@ -610,6 +730,8 @@ export function validasiPenarikanTunai(id: string, namaPetugas: string): Penarik
   return updated;
 }
 
+export const validasiPenarikan = validasiPenarikanTunai;
+
 export function getPricelist(): JenisSampah[] {
   if (!adaJendela()) return PRICELIST_AWAL;
   try {
@@ -715,7 +837,7 @@ export function hitungRingkasanSaldoNasabah(nomorNasabah: string) {
 
   const saldoTersedia = Math.max(
     0,
-    totalSaldoTerverifikasi - totalDitarikSelesai - totalDitarikMenunggu
+    totalSaldoTerverifikasi - totalDitarikSelesai
   );
 
   return {

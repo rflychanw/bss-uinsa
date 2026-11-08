@@ -2060,3 +2060,60 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ============================================================
+   Lembar Tabungan Nasabah BSS UINSA (Format Tabel Dashboard)
+   ============================================================ */
+
+.dsh__tabunganhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1.5px solid #dedad0;
+  margin-bottom: 16px;
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .dsh__top,
+  .dsh__side,
+  .dsh__head,
+  .dsh__wallet,
+  .dsh__walletactions,
+  .dsh__split,
+  .no-print {
+    display: none !important;
+  }
+  .dsh {
+    grid-template-columns: 1fr !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .dsh__main,
+  .dsh__page {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .dsh__card {
+    box-shadow: none !important;
+    border: 1px solid #000000 !important;
+    padding: 16px !important;
+    margin: 0 !important;
+    width: 100% !important;
+    page-break-inside: avoid;
+  }
+  .dsh__table,
+  .dsh__table th,
+  .dsh__table td {
+    border-color: #000000 !important;
+    color: #000000 !important;
+  }
+}
+
+
