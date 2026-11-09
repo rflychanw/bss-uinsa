@@ -3,16 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthShell from "../../components/app/AuthShell";
-import { beranda, daftar, sesiSekarang, type KategoriNasabah } from "../../lib/auth";
-import { DAFTAR_FAKULTAS_UINSA } from "../../lib/bss";
+import { beranda, daftar, sesiSekarang } from "../../lib/auth";
 
 type Sukses = {
   nama: string;
   email: string;
   nomor: string;
-  kategori: KategoriNasabah;
-  fakultas?: string;
-  prodi?: string;
   metode: MetodeBayar;
   namaFileBukti?: string;
   buktiUrl?: string;
@@ -23,9 +19,6 @@ export default function DaftarPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [tahap, setTahap] = useState<"formulir" | "pembayaran" | "berhasil">("formulir");
-  const [kategori, setKategori] = useState<KategoriNasabah>("internal");
-  const [fakultas, setFakultas] = useState("");
-  const [prodi, setProdi] = useState("");
   const [nama, setNama] = useState("");
   const [email, setEmail] = useState("");
   const [sandi, setSandi] = useState("");
@@ -39,11 +32,6 @@ export default function DaftarPage() {
   const [pesanBayar, setPesanBayar] = useState("");
   const [sukses, setSukses] = useState<Sukses | null>(null);
 
-  const fakultasTerpilih = DAFTAR_FAKULTAS_UINSA.find(
-    (f) => f.singkatan === fakultas || f.nama === fakultas
-  );
-  const daftarProdi = fakultasTerpilih?.prodi || [];
-
   useEffect(() => {
     const sesi = sesiSekarang();
     if (sesi) router.replace(beranda(sesi.role));
@@ -56,16 +44,6 @@ export default function DaftarPage() {
     if (!nama.trim()) {
       setPesan("Nama lengkap wajib diisi.");
       return;
-    }
-    if (kategori === "internal") {
-      if (!fakultas) {
-        setPesan("Silakan pilih Fakultas Anda di UINSA.");
-        return;
-      }
-      if (!prodi) {
-        setPesan("Silakan pilih Program Studi (Prodi) Anda.");
-        return;
-      }
     }
     if (!email.trim() || !email.includes("@")) {
       setPesan("Email tidak valid.");
@@ -124,9 +102,8 @@ export default function DaftarPage() {
       nama,
       email,
       sandi,
-      kategori,
-      fakultas: kategori === "internal" ? (fakultasTerpilih?.singkatan || fakultas) : "Umum",
-      prodi: kategori === "internal" ? prodi : undefined,
+      kategori: "umum",
+      fakultas: "Umum",
       buktiBayar: buktiUrl || (fileBukti ? fileBukti.name : undefined),
       namaFileBukti: fileBukti?.name,
       metodeBayar: metode,
@@ -141,9 +118,6 @@ export default function DaftarPage() {
       nama,
       email,
       nomor: hasil.nomor,
-      kategori,
-      fakultas: kategori === "internal" ? (fakultasTerpilih?.singkatan || fakultas) : undefined,
-      prodi: kategori === "internal" ? prodi : undefined,
       metode,
       namaFileBukti: fileBukti?.name,
       buktiUrl,
@@ -197,11 +171,7 @@ export default function DaftarPage() {
             </div>
             <div>
               <dt>Kategori</dt>
-              <dd>
-                {sukses.kategori === "internal"
-                  ? `Internal Kampus (${sukses.fakultas || ""}${sukses.prodi ? ` - ${sukses.prodi}` : ""})`
-                  : "Masyarakat Umum"}
-              </dd>
+              <dd>Masyarakat Umum</dd>
             </div>
             <div>
               <dt>Nomor Nasabah</dt>
@@ -321,7 +291,7 @@ export default function DaftarPage() {
                 Langganan Anggota BSS Sekali Bayar
               </strong>
               <span style={{ fontSize: "12px", color: "#665f53", display: "block", marginTop: "2px" }}>
-                Pendaftar: <b>{nama}</b> • {kategori === "internal" ? `${fakultasTerpilih?.singkatan || fakultas} (${prodi})` : "Masyarakat Umum"}
+                Pendaftar: <b>{nama}</b> • Nasabah BSS
               </span>
             </div>
             <div style={{ textAlign: "right" }}>
@@ -833,140 +803,12 @@ export default function DaftarPage() {
             name="nama"
             type="text"
             autoComplete="name"
-            placeholder={
-              kategori === "internal"
-                ? "Nama sesuai KTM / KTP"
-                : "Nama lengkap sesuai KTP"
-            }
+            placeholder="Nama lengkap sesuai KTP"
             value={nama}
             onChange={(e) => setNama(e.target.value)}
             required
           />
         </div>
-
-        <div className="auth__field">
-          <label className="auth__label">Kategori Nasabah</label>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-            <button
-              type="button"
-              onClick={() => {
-                setKategori("internal");
-                setPesan("");
-              }}
-              style={{
-                padding: "10px 12px",
-                borderRadius: "6px",
-                border: `2px solid ${kategori === "internal" ? "#2f7d3a" : "#dcd7cc"}`,
-                background: kategori === "internal" ? "#f4faf4" : "#ffffff",
-                color: kategori === "internal" ? "#1e5b26" : "#444",
-                fontWeight: 600,
-                fontSize: "13px",
-                cursor: "pointer",
-                textAlign: "center",
-                transition: "all 0.15s ease",
-              }}
-            >
-              🏛️ Internal Kampus
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setKategori("umum");
-                setPesan("");
-              }}
-              style={{
-                padding: "10px 12px",
-                borderRadius: "6px",
-                border: `2px solid ${kategori === "umum" ? "#2f7d3a" : "#dcd7cc"}`,
-                background: kategori === "umum" ? "#f4faf4" : "#ffffff",
-                color: kategori === "umum" ? "#1e5b26" : "#444",
-                fontWeight: 600,
-                fontSize: "13px",
-                cursor: "pointer",
-                textAlign: "center",
-                transition: "all 0.15s ease",
-              }}
-            >
-              🌐 Umum
-            </button>
-          </div>
-          <p style={{ margin: "2px 0 0", fontSize: "12px", color: "#6e685d", lineHeight: 1.4 }}>
-            {kategori === "internal"
-              ? "Khusus mahasiswa, dosen, atau civitas akademika UIN Sunan Ampel Surabaya."
-              : "Terbuka bagi warga sekitar kampus, mitra, dan masyarakat umum."}
-          </p>
-        </div>
-
-        {kategori === "internal" && (
-          <div
-            style={{
-              display: "grid",
-              gap: "12px",
-              padding: "12px 14px",
-              background: "#fbfaf7",
-              border: "1px solid #e7e3d8",
-              borderRadius: "6px",
-            }}
-          >
-            <div className="auth__field">
-              <label className="auth__label" htmlFor="fakultas">
-                Fakultas
-              </label>
-              <select
-                className="auth__input"
-                id="fakultas"
-                name="fakultas"
-                value={fakultas}
-                onChange={(e) => {
-                  setFakultas(e.target.value);
-                  setProdi("");
-                  setPesan("");
-                }}
-                style={{ cursor: "pointer", background: "#fff" }}
-                required
-              >
-                <option value="">-- Pilih Fakultas UINSA --</option>
-                {DAFTAR_FAKULTAS_UINSA.map((f) => (
-                  <option key={f.singkatan} value={f.singkatan}>
-                    {f.nama}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="auth__field">
-              <label className="auth__label" htmlFor="prodi">
-                Program Studi (Prodi)
-              </label>
-              <select
-                className="auth__input"
-                id="prodi"
-                name="prodi"
-                value={prodi}
-                onChange={(e) => {
-                  setProdi(e.target.value);
-                  setPesan("");
-                }}
-                disabled={!fakultas}
-                style={{
-                  cursor: fakultas ? "pointer" : "not-allowed",
-                  background: fakultas ? "#fff" : "#f5f4ef",
-                  opacity: fakultas ? 1 : 0.75,
-                }}
-                required
-              >
-                <option value="">
-                  {fakultas ? "-- Pilih Program Studi --" : "-- Pilih Fakultas Terlebih Dahulu --"}
-                </option>
-                {daftarProdi.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        )}
 
         <div className="auth__field">
           <label className="auth__label" htmlFor="email">

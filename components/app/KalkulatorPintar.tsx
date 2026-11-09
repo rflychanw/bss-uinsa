@@ -209,7 +209,7 @@ export default function KalkulatorPintar({
                     <div
                       className="dsh__unitbtns"
                       role="group"
-                      aria-label="Satuan berat atau jumlah"
+                      aria-label="Satuan berat timbangan"
                     >
                       <button
                         type="button"
@@ -230,16 +230,6 @@ export default function KalkulatorPintar({
                         }
                       >
                         g
-                      </button>
-                      <button
-                        type="button"
-                        className="dsh__unitbtn"
-                        data-active={it.satuan === "pcs"}
-                        onClick={() =>
-                          handleUpdateItem(it.uid, { satuan: "pcs" })
-                        }
-                      >
-                        pcs
                       </button>
                     </div>
                   </div>

@@ -38,10 +38,7 @@ export default function NasabahAdmin() {
       nomor: a.nomor,
       nama: a.nama,
       email: a.email,
-      fakultas:
-        a.kategori === "internal"
-          ? `${a.fakultas || "Internal"}${a.prodi ? ` (${a.prodi})` : ""}`
-          : "Masyarakat Umum",
+      fakultas: "Umum",
       totalBeratKg: 0,
       totalDisalurkan: 0,
       estimasiGudang: 0,
@@ -76,7 +73,7 @@ export default function NasabahAdmin() {
       (n) =>
         n.nama.toLowerCase().includes(q) ||
         n.nomor.toLowerCase().includes(q) ||
-        n.fakultas.toLowerCase().includes(q)
+        (n.email && n.email.toLowerCase().includes(q))
     );
   }, [daftar, cari]);
 
@@ -85,7 +82,7 @@ export default function NasabahAdmin() {
       <header className="dsh__head">
         <h1 className="dsh__h1">Master Data Nasabah & Pengguna</h1>
         <p className="dsh__sub">
-          Kelola direktori nasabah civitas akademika dan pembagian hak akses (RBAC) Bank Sampah Syariah UINSA (FR-006 & BR-005).
+          Kelola direktori nasabah dan pembagian hak akses (RBAC) Bank Sampah Syariah UINSA (FR-006 & BR-005).
         </p>
       </header>
 
@@ -344,7 +341,7 @@ export default function NasabahAdmin() {
             <input
               id={idCari}
               type="text"
-              placeholder="Cari nama, email, nomor BSS, prodi..."
+              placeholder="Cari nama, email, atau nomor BSS..."
               className="dsh__input dsh__input--sm"
               value={cari}
               onChange={(e) => setCari(e.target.value)}
@@ -359,7 +356,6 @@ export default function NasabahAdmin() {
               <tr>
                 <th>Nomor BSS</th>
                 <th>Nama Nasabah</th>
-                <th>Fakultas / Prodi</th>
                 <th>Total Setor</th>
                 <th>Saldo Aktif (Siap Tarik)</th>
                 <th>Menunggu Verifikasi</th>
@@ -386,7 +382,6 @@ export default function NasabahAdmin() {
                       <strong>{n.nama}</strong>
                       <span className="dsh__subtext">{n.email}</span>
                     </td>
-                    <td>{n.fakultas}</td>
                     <td>{kg(beratTotal)}</td>
                     <td>
                       <strong className="dsh__green">{rp(saldoAktif)}</strong>

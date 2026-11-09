@@ -168,7 +168,7 @@ export default function SetoranAdmin() {
             >
               {DAFTAR_NASABAH_MASTER.map((n) => (
                 <option key={n.nomor} value={n.nomor}>
-                  {n.nomor} — {n.nama} ({n.fakultas})
+                  {n.nomor} — {n.nama}
                 </option>
               ))}
             </select>

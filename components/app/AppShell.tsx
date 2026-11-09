@@ -128,6 +128,7 @@ const ICONS: Record<string, ReactNode> = {
 const NAV_NASABAH = [
   { href: "/nasabah", label: "Ringkasan", mobileLabel: "Ringkasan", icon: "home" },
   { href: "/nasabah/riwayat", label: "Riwayat Transaksi", mobileLabel: "Riwayat", icon: "list" },
+  { href: "/nasabah/pengepul", label: "Alur Penjualan Pengepul", mobileLabel: "Pengepul", icon: "flow" },
   { href: "/nasabah/kalkulator", label: "Kalkulator Pintar", mobileLabel: "Kalkulator", icon: "calc" },
   { href: "/nasabah/profil", label: "Buku Tabungan", mobileLabel: "Tabungan", icon: "user" },
 ];

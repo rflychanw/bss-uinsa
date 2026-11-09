@@ -47,7 +47,7 @@ export default function KalkulatorNasabahPage() {
       <header className="dsh__head">
         <h1 className="dsh__h1">Kalkulator Pintar</h1>
         <p className="dsh__sub">
-          Simulasi nilai setoran sampah kiloan maupun satuan.
+          Simulasi nilai setoran sampah timbangan.
         </p>
       </header>
 
@@ -56,7 +56,7 @@ export default function KalkulatorNasabahPage() {
         <section className="dsh__card" aria-label="Kalkulator simulasi setoran">
           <div className="dsh__cardhead">
             <h2 className="dsh__h2">Hitung Estimasi</h2>
-            <span className="dsh__meta">kg · gram · pcs</span>
+            <span className="dsh__meta">kg · gram</span>
           </div>
           <KalkulatorPintar mode="nasabah" />
         </section>

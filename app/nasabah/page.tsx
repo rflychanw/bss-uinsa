@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { sesiSekarang, type Sesi } from "../../lib/auth";
 import {
+  BATCH_PENGEPUL_AWAL,
   DAFTAR_NASABAH_MASTER,
   formatMetodePenarikan,
   getDaftarPenarikan,
@@ -712,8 +713,9 @@ export default function DashboardNasabah() {
           />
         </section>
       ) : (
-        /* Split Ringkasan: 3 Aktivitas Terakhir + Kalkulator Pintar */
-        <div className="dsh__split">
+        <>
+          {/* Split Ringkasan: 3 Aktivitas Terakhir + Kalkulator Pintar */}
+          <div className="dsh__split">
           {/* Panel Kiri: Hanya 3 Aktivitas Terakhir + Tombol Lihat Lengkap */}
           <section className="dsh__card" aria-label="Aktivitas Terakhir">
             <div className="dsh__cardhead">
@@ -779,7 +781,7 @@ export default function DashboardNasabah() {
               <div>
                 <h2 className="dsh__h2">Kalkulator Setoran</h2>
                 <p className="dsh__carddesc" style={{ margin: "2px 0 0" }}>
-                  Simulasi nilai sampah (kg, gram, atau satuan).
+                  Simulasi nilai timbangan sampah (kg atau gram).
                 </p>
               </div>
               <Link href="/nasabah/kalkulator" className="dsh__more">
@@ -790,6 +792,100 @@ export default function DashboardNasabah() {
             <KalkulatorPintar mode="nasabah" />
           </section>
         </div>
+
+        {/* Section Alur Pengepul & Bagi Hasil */}
+        <section className="dsh__card" aria-label="Alur Penjualan Pengepul & Bagi Hasil" style={{ marginTop: "24px" }}>
+          <div className="dsh__cardhead">
+            <div>
+              <h2 className="dsh__h2">Alur Penjualan Pengepul & Bagi Hasil</h2>
+              <p className="dsh__carddesc" style={{ margin: "2px 0 0" }}>
+                Transparansi 4 tahapan alur penyaluran dana dan perhitungan proporsional hak nasabah dari mitra pengepul.
+              </p>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span className="dsh__chip dsh__chip--green">Akad Wadiah Syariah</span>
+              <Link href="/nasabah/pengepul" className="dsh__more">
+                Buka Halaman Lengkap →
+              </Link>
+            </div>
+          </div>
+
+          {/* 4 Tahapan Pipeline */}
+          <div className="dsh__pipeline">
+            <div className="dsh__pipelinestep">
+              <span className="dsh__stepbadge">Tahap 1</span>
+              <strong>Sampah Terkumpul</strong>
+              <p>Sampah nasabah ditimbang dan disimpan di gudang BSS.</p>
+            </div>
+            <div className="dsh__pipelinearrow">→</div>
+            <div className="dsh__pipelinestep">
+              <span className="dsh__stepbadge">Tahap 2</span>
+              <strong>Dijual ke Pengepul</strong>
+              <p>Sampah diangkut oleh mitra daur ulang & dicatat nilai jualnya.</p>
+            </div>
+            <div className="dsh__pipelinearrow">→</div>
+            <div className="dsh__pipelinestep">
+              <span className="dsh__stepbadge">Tahap 3</span>
+              <strong>Uang Diterima</strong>
+              <p>Bendahara menerima pembayaran dan sistem membagi proporsi hak nasabah.</p>
+            </div>
+            <div className="dsh__pipelinearrow">→</div>
+            <div className="dsh__pipelinestep dsh__pipelinestep--active">
+              <span className="dsh__stepbadge">Tahap 4</span>
+              <strong>Disalurkan ke Nasabah</strong>
+              <p>Uang otomatis disalurkan ke saldo nasabah, siap ditarik tunai/transfer.</p>
+            </div>
+          </div>
+
+          {/* Transparansi Rumus */}
+          <div
+            style={{
+              background: "#fdf8ee",
+              border: "1px solid #ebd9b5",
+              borderRadius: "6px",
+              padding: "12px 14px",
+              fontSize: "13px",
+              color: "#774a06",
+              marginTop: "16px",
+              lineHeight: 1.5,
+            }}
+          >
+            <strong>Transparansi Rumus Bagi Hasil Proporsional (FR-033 & BR-017):</strong>
+            <p style={{ margin: "4px 0 0 0" }}>
+              Pendapatan nasabah tidak dipatok di awal, melainkan dihitung otomatis secara adil saat uang penjualan dari pengepul diterima:
+              <br />
+              <code style={{ background: "#f3e7cf", padding: "2px 6px", borderRadius: "4px", display: "inline-block", marginTop: "4px" }}>
+                Hak Nasabah = (Berat Setoran Nasabah / Total Berat Batch) × Total Dana Alokasi Nasabah
+              </code>
+            </p>
+          </div>
+
+          {/* Realisasi Batch Pengepul Terkini */}
+          <div style={{ marginTop: "16px" }}>
+            <h3 style={{ fontSize: "14px", fontWeight: 700, margin: "0 0 10px 0", color: "#17140f" }}>
+              Realisasi Penjualan ke Pengepul Terkini
+            </h3>
+            <div className="dsh__list">
+              {BATCH_PENGEPUL_AWAL.map((b) => (
+                <div key={b.id} className="dsh__item" style={{ padding: "10px 12px" }}>
+                  <div>
+                    <strong>{b.nomorBatch}</strong> — {b.tanggalJual}
+                    <span className="dsh__subtext">
+                      Mitra: {b.namaPengepul} • Tonase: {kg(b.totalBeratKg)} • Diterima: {rp(b.uangDiterima ?? 0)}
+                    </span>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <span className="dsh__chip dsh__chip--green" style={{ display: "inline-block", marginBottom: "3px" }}>
+                      Hak Nasabah: +{rp(b.totalDisalurkan ?? 0)}
+                    </span>
+                    <span className="dsh__subtext">Kas Operasional BSS: +{rp(b.selisihKasBss ?? 0)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+        </>
       )}
     </div>
   );
