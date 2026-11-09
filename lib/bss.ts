@@ -10,6 +10,8 @@
  * - FR-026 s.d FR-033: Alur Penjualan ke Pengepul 4 Tahap & Pembagian Proporsional
  */
 
+import { catatSetoranTerakhirAkun, semuaAkun } from "./auth";
+
 export type StatusSetoran = "belum_terjual" | "disalurkan";
 export type StatusVerifikasiSetoran = "menunggu_verifikasi" | "terverifikasi";
 export type Status = "selesai" | "menunggu";
@@ -501,8 +503,8 @@ export const DAFTAR_NASABAH_MASTER = [
     totalSetorKg: 27.4,
     estimasiBelumTerjual: 0,
     akumulasiTersalurkan: 63000,
-    status: "Aktif",
-    terakhir: "18 Okt 2026",
+    status: "Tidak Aktif",
+    terakhir: "20 Sep 2026",
   },
   {
     nomor: "BSS-0198",
@@ -512,8 +514,8 @@ export const DAFTAR_NASABAH_MASTER = [
     totalSetorKg: 54.9,
     estimasiBelumTerjual: 0,
     akumulasiTersalurkan: 129000,
-    status: "Aktif",
-    terakhir: "15 Okt 2026",
+    status: "Tidak Aktif",
+    terakhir: "05 Sep 2026",
   },
 ];
 
@@ -774,13 +776,180 @@ export function tambahSetoranBaru(item: SetoranNasabah) {
   const current = getDaftarSetoran();
   const updated = [item, ...current];
   simpanSetoran(updated);
+  catatSetoranTerakhirAkun(item.nomorNasabah, item.tanggal);
 }
 
 export function tambahBanyakSetoranBaru(items: SetoranNasabah[]) {
   const current = getDaftarSetoran();
   const updated = [...items, ...current];
   simpanSetoran(updated);
+  for (const item of items) {
+    catatSetoranTerakhirAkun(item.nomorNasabah, item.tanggal);
+  }
   return updated;
+}
+
+/* --------------------------------- Evaluasi Keaktifan Nasabah (> 1 Bulan) & Statistik Monitoring */
+
+const BULAN_INDO_MAP: Record<string, number> = {
+  jan: 0,
+  januari: 0,
+  feb: 1,
+  februari: 1,
+  mar: 2,
+  maret: 2,
+  apr: 3,
+  april: 3,
+  mei: 4,
+  may: 4,
+  jun: 5,
+  juni: 5,
+  jul: 6,
+  juli: 6,
+  agu: 7,
+  ags: 7,
+  agustus: 7,
+  aug: 7,
+  sep: 8,
+  sept: 8,
+  september: 8,
+  okt: 9,
+  oktober: 9,
+  oct: 9,
+  nov: 10,
+  november: 10,
+  des: 11,
+  desember: 11,
+  dec: 11,
+};
+
+export function parseTanggalIndo(tglStr?: string): Date | null {
+  if (!tglStr) return null;
+  const s = tglStr.trim().toLowerCase();
+  if (!s || s === "belum pernah") return null;
+  if (s === "hari ini") {
+    return new Date(Math.max(Date.now(), new Date(2026, 10, 9).getTime()));
+  }
+
+  // Format ISO YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const [y, m, d] = s.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  // Format "29 Okt 2026" atau "5 Sep 2026"
+  const parts = s.replace(/,/g, "").split(/\s+/);
+  if (parts.length >= 3) {
+    const day = parseInt(parts[0], 10);
+    const monKey = parts[1].replace(/[^a-z]/g, "");
+    const year = parseInt(parts[2], 10);
+    const month = BULAN_INDO_MAP[monKey];
+    if (!isNaN(day) && month !== undefined && !isNaN(year)) {
+      return new Date(year, month, day);
+    }
+  }
+
+  const parsed = new Date(tglStr);
+  return isNaN(parsed.getTime()) ? null : parsed;
+}
+
+/**
+ * Nasabah dianggap TIDAK AKTIF ketika tidak menyetor sampah lebih dari 1 bulan (> 30 hari),
+ * dan dianggap AKTIF kembali jika sudah menyetor sampah lagi (<= 30 hari).
+ */
+export function evaluasiKeaktifanNasabah(terakhirSetor?: string): {
+  aktif: boolean;
+  statusLabel: "Aktif" | "Tidak Aktif";
+  selisihHari: number;
+  terakhir: string;
+} {
+  const tgl = parseTanggalIndo(terakhirSetor);
+  if (!tgl) {
+    return {
+      aktif: false,
+      statusLabel: "Tidak Aktif",
+      selisihHari: 45,
+      terakhir: terakhirSetor || "Belum menyetor > 1 bln",
+    };
+  }
+
+  const refNow = Math.max(Date.now(), new Date(2026, 10, 9).getTime());
+  const diffMs = refNow - tgl.getTime();
+  const selisihHari = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+  const aktif = selisihHari <= 30;
+
+  return {
+    aktif,
+    statusLabel: aktif ? "Aktif" : "Tidak Aktif",
+    selisihHari,
+    terakhir: terakhirSetor || "-",
+  };
+}
+
+/**
+ * Mengambil daftar master nasabah yang tersinkronisasi dengan CRUD Akun dan Riwayat Setoran.
+ */
+export function getDaftarNasabahMaster(): (NasabahMaster & {
+  selisihHari?: number;
+  aktif: boolean;
+  sandi?: string;
+})[] {
+  const akunNasabah = semuaAkun().filter((a) => a.role === "nasabah");
+  return akunNasabah.map((a) => {
+    const fallbackMaster = DAFTAR_NASABAH_MASTER.find((m) => m.nomor === a.nomor);
+    const tglTerakhir = a.terakhirSetor || fallbackMaster?.terakhir || a.tanggalDaftar || "28 Okt 2026";
+    const evalStatus = evaluasiKeaktifanNasabah(tglTerakhir);
+
+    const fakLabel =
+      a.fakultas && a.prodi
+        ? `${a.fakultas} (${a.prodi})`
+        : a.fakultas || fallbackMaster?.fakultas || "Umum";
+
+    return {
+      nomor: a.nomor,
+      nama: a.nama,
+      email: a.email,
+      sandi: a.sandi,
+      fakultas: fakLabel,
+      totalSetorKg: a.totalSetorKg ?? fallbackMaster?.totalSetorKg ?? 0,
+      totalBeratKg: a.totalSetorKg ?? fallbackMaster?.totalSetorKg ?? 0,
+      estimasiBelumTerjual: a.estimasiBelumTerjual ?? fallbackMaster?.estimasiBelumTerjual ?? 0,
+      akumulasiTersalurkan: a.akumulasiTersalurkan ?? fallbackMaster?.akumulasiTersalurkan ?? 0,
+      terakhir: evalStatus.terakhir,
+      status: evalStatus.statusLabel,
+      aktif: evalStatus.aktif,
+      selisihHari: evalStatus.selisihHari,
+      terdaftar: a.tanggalDaftar || "2026",
+    };
+  });
+}
+
+export function hitungStatistikMonitoring() {
+  const daftarAkun = semuaAkun();
+  const petugasList = daftarAkun.filter((a) => a.role === "petugas");
+  const bendaharaList = daftarAkun.filter((a) => a.role === "bendahara");
+  const adminList = daftarAkun.filter((a) => a.role === "admin");
+  const nasabahList = getDaftarNasabahMaster();
+
+  const nasabahAktifList = nasabahList.filter((n) => n.aktif);
+  const nasabahTidakAktifList = nasabahList.filter((n) => !n.aktif);
+
+  return {
+    jumlahPetugas: petugasList.length,
+    jumlahBendahara: bendaharaList.length,
+    jumlahAdmin: adminList.length,
+    jumlahStaff: petugasList.length + bendaharaList.length,
+    totalNasabah: nasabahList.length,
+    nasabahAktif: nasabahAktifList.length,
+    nasabahTidakAktif: nasabahTidakAktifList.length,
+    totalSemuaAkun: daftarAkun.length,
+    petugasList,
+    bendaharaList,
+    adminList,
+    nasabahList,
+    nasabahAktifList,
+    nasabahTidakAktifList,
+  };
 }
 
 export function verifikasiSetoran(id: string, namaPetugas: string): SetoranNasabah[] {

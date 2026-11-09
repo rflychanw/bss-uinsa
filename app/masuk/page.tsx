@@ -7,6 +7,7 @@ import {
   AKUN_DEMO,
   beranda,
   masuk,
+  semuaAkun,
   sesiSekarang,
   type Akun,
 } from "../../lib/auth";
@@ -18,6 +19,7 @@ export default function MasukPage() {
   const [lihat, setLihat] = useState(false);
   const [pesan, setPesan] = useState("");
   const [kirim, setKirim] = useState(false);
+  const [daftarAkunDemo, setDaftarAkunDemo] = useState<Akun[]>(AKUN_DEMO);
   const [infoVerifikasi, setInfoVerifikasi] = useState<{
     nomor?: string;
     email?: string;
@@ -27,6 +29,16 @@ export default function MasukPage() {
   useEffect(() => {
     const sesi = sesiSekarang();
     if (sesi) router.replace(beranda(sesi.role));
+
+    const semua = semuaAkun();
+    const pilihan: Akun[] = [];
+    for (const r of ["admin", "petugas", "bendahara", "nasabah"] as const) {
+      const perRole = semua.filter((a) => a.role === r);
+      pilihan.push(...perRole.slice(0, 2));
+    }
+    if (pilihan.length > 0) {
+      setDaftarAkunDemo(pilihan);
+    }
 
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -178,9 +190,9 @@ export default function MasukPage() {
       </form>
 
       <div className="auth__demo">
-        <p className="auth__demotitle">Akun demo siap pakai (sesuai Use Case & RBAC SRS v1.0)</p>
-        {AKUN_DEMO.map((akun) => (
-          <div className="auth__demorow" key={akun.email}>
+        <p className="auth__demotitle">Akun terdaftar siap pakai (Admin, Petugas, Bendahara, Nasabah)</p>
+        {daftarAkunDemo.map((akun) => (
+          <div className="auth__demorow" key={akun.nomor + akun.email}>
             <div className="auth__demoinfo">
               <b>{akun.jabatan || akun.role.toUpperCase()}</b>
               <code>{akun.email}</code>

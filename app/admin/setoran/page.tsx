@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import KalkulatorPintar, { type ItemKalkulatorHasil } from "../../../components/app/KalkulatorPintar";
 import {
   DAFTAR_NASABAH_MASTER,
+  getDaftarNasabahMaster,
   getDaftarSetoran,
   kg,
   rp,
@@ -15,12 +16,23 @@ import {
 import { sesiSekarang } from "../../../lib/auth";
 
 export default function SetoranAdmin() {
+  const [daftarNasabah, setDaftarNasabah] = useState(() =>
+    getDaftarNasabahMaster()
+  );
   const [nasabahTerpilih, setNasabahTerpilih] = useState(
     DAFTAR_NASABAH_MASTER[0].nomor
   );
   const [suksesMsg, setSuksesMsg] = useState<string>("");
 
   const idSelectNasabah = useId();
+
+  useEffect(() => {
+    const list = getDaftarNasabahMaster();
+    setDaftarNasabah(list);
+    if (list.length > 0) {
+      setNasabahTerpilih(list[0].nomor);
+    }
+  }, []);
 
   const handleSimpanSetoran = (data: {
     items?: ItemKalkulatorHasil[];
@@ -48,19 +60,15 @@ export default function SetoranAdmin() {
     }
 
     const targetNasabah =
-      DAFTAR_NASABAH_MASTER.find((n) => n.nomor === nasabahTerpilih) ||
-      DAFTAR_NASABAH_MASTER[0];
+      daftarNasabah.find((n) => n.nomor === nasabahTerpilih) ||
+      daftarNasabah[0];
 
     const sesi = sesiSekarang();
     const namaPencatat = sesi?.nama || "Ahmad Fauzi (Petugas Piket)";
     const statusVerif =
       data.langsungVerifikasi === false ? "menunggu_verifikasi" : "terverifikasi";
 
-    const tanggalHariIni = new Intl.DateTimeFormat("id-ID", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    }).format(new Date());
+    const tanggalHariIni = "09 Nov 2026";
 
     const currentLen = getDaftarSetoran().length;
     const newEntries: SetoranNasabah[] = validItems.map((it, idx) => ({
@@ -79,27 +87,18 @@ export default function SetoranAdmin() {
     }));
 
     tambahBanyakSetoranBaru(newEntries);
+    setDaftarNasabah(getDaftarNasabahMaster());
 
     const totalEst = validItems.reduce((acc, c) => acc + c.estimasiRp, 0);
     const totalKgVal = validItems.reduce((acc, c) => acc + c.beratKg, 0);
 
-    if (statusVerif === "terverifikasi") {
-      setSuksesMsg(
-        `${validItems.length} jenis sampah (${kg(totalKgVal)} = ${rp(
-          totalEst
-        )}) telah DIVERIFIKASI oleh Petugas Jaga dan langsung masuk sebagai Saldo Valid ${
-          targetNasabah.nama
-        } (${targetNasabah.nomor}).`
-      );
-    } else {
-      setSuksesMsg(
-        `${validItems.length} jenis sampah (${kg(totalKgVal)} = ${rp(
-          totalEst
-        )}) dicatat dengan status MENUNGGU VERIFIKASI untuk ${
-          targetNasabah.nama
-        } (${targetNasabah.nomor}). Silakan verifikasi di tabel Riwayat Pencatatan agar masuk ke saldo.`
-      );
-    }
+    setSuksesMsg(
+      `${validItems.length} jenis sampah (${kg(totalKgVal)} = ${rp(
+        totalEst
+      )}) berhasil dicatat untuk ${targetNasabah.nama} (${
+        targetNasabah.nomor
+      }). Status keaktifan nasabah kini AKTIF.`
+    );
 
     setTimeout(() => {
       setSuksesMsg("");
@@ -108,16 +107,27 @@ export default function SetoranAdmin() {
 
   return (
     <div className="dsh__page">
-      <header className="dsh__head" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px" }}>
+      <header
+        className="dsh__head"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          flexWrap: "wrap",
+          gap: "16px",
+        }}
+      >
         <div style={{ flex: "1 1 280px", minWidth: 0 }}>
           <div className="dsh__headrole">
             <span className="dsh__tagbadge">Petugas Jaga Piket</span>
-            <span className="dsh__dot" aria-hidden="true">•</span>
+            <span className="dsh__dot" aria-hidden="true">
+              •
+            </span>
             <span className="dsh__meta">Pos Meja Timbang BSS FEBI UINSA</span>
           </div>
           <h1 className="dsh__h1">Tambah Pencatatan Setoran</h1>
           <p className="dsh__sub">
-            Input hasil penimbangan sampah nasabah di meja timbang dengan kalkulasi otomatis.
+            Input hasil penimbangan sampah nasabah di meja timbang. Nasabah yang tidak aktif (&gt; 1 bulan) akan otomatis kembali aktif setelah menyetor sampah.
           </p>
         </div>
         <div>
@@ -139,7 +149,11 @@ export default function SetoranAdmin() {
       </header>
 
       {suksesMsg && (
-        <div className="dsh__alert dsh__alert--success" role="alert" style={{ marginBottom: "20px" }}>
+        <div
+          className="dsh__alert dsh__alert--success"
+          role="alert"
+          style={{ marginBottom: "20px" }}
+        >
           <strong>Berhasil Disimpan:</strong> {suksesMsg}
         </div>
       )}
@@ -148,7 +162,7 @@ export default function SetoranAdmin() {
       <section className="dsh__card" aria-label="Formulir Penimbangan Setoran">
         <div className="dsh__cardhead">
           <div>
-            <h2 className="dsh__h2">Input Timbangan & Kalkulator Pintar</h2>
+            <h2 className="dsh__h2">Input Timbangan &amp; Kalkulator Pintar</h2>
             <p className="dsh__carddesc" style={{ marginBottom: 0 }}>
               Pilih nasabah yang sedang berada di meja timbang, lalu masukkan hasil timbangan.
             </p>
@@ -166,9 +180,9 @@ export default function SetoranAdmin() {
               value={nasabahTerpilih}
               onChange={(e) => setNasabahTerpilih(e.target.value)}
             >
-              {DAFTAR_NASABAH_MASTER.map((n) => (
+              {daftarNasabah.map((n) => (
                 <option key={n.nomor} value={n.nomor}>
-                  {n.nomor} — {n.nama}
+                  {n.nomor} — {n.nama} ({n.aktif ? "Aktif" : "Tidak Aktif > 1 Bln"})
                 </option>
               ))}
             </select>

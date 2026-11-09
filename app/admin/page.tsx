@@ -6,17 +6,15 @@ import { sesiSekarang, type Sesi } from "../../lib/auth";
 import {
   admin,
   BATCH_PENGEPUL_AWAL,
-  DAFTAR_NASABAH_MASTER,
+  getDaftarNasabahMaster,
   getDaftarSetoran,
+  hitungStatistikMonitoring,
   kg,
   RIWAYAT_SETORAN_AWAL,
   rp,
-  tambahBanyakSetoranBaru,
   verifikasiSetoran,
-  type JenisSampah,
   type SetoranNasabah,
 } from "../../lib/bss";
-import KalkulatorPintar, { type ItemKalkulatorHasil } from "../../components/app/KalkulatorPintar";
 
 export default function RingkasanPengelolaPage() {
   const [sesi, setSesi] = useState<Sesi | null>(null);
@@ -26,19 +24,26 @@ export default function RingkasanPengelolaPage() {
   const [filterHari, setFilterHari] = useState<string>("semua");
   const [filterBulan, setFilterBulan] = useState<string>("semua");
   const [filterTahun, setFilterTahun] = useState<string>("semua");
-  const [nasabahNomor, setNasabahNomor] = useState(DAFTAR_NASABAH_MASTER[0].nomor);
-  const [bukaFormCatat, setBukaFormCatat] = useState(true);
   const [riwayat, setRiwayat] = useState<SetoranNasabah[]>(RIWAYAT_SETORAN_AWAL);
   const [suksesMsg, setSuksesMsg] = useState<string | null>(null);
   const [tampilSemuaPetugas, setTampilSemuaPetugas] = useState(false);
 
-  useEffect(() => {
+  // Statistik Monitoring Sistem (Staff: Petugas & Bendahara, Nasabah Aktif & Tidak Aktif)
+  const [statistik, setStatistik] = useState(() => hitungStatistikMonitoring());
+
+  const muatUlangData = () => {
     setSesi(sesiSekarang());
     setRiwayat(getDaftarSetoran());
+    setStatistik(hitungStatistikMonitoring());
+  };
+
+  useEffect(() => {
+    muatUlangData();
   }, []);
 
-  const roleAktif = sesi?.role || "bendahara";
+  const roleAktif = sesi?.role || "admin";
   const isPetugas = roleAktif === "petugas";
+  const isAdmin = roleAktif === "admin";
 
   const handleVerifikasiItem = (item: SetoranNasabah) => {
     const namaPetugas = sesi?.nama || "Ahmad Fauzi (Petugas Piket)";
@@ -50,76 +55,7 @@ export default function RingkasanPengelolaPage() {
     setTimeout(() => setSuksesMsg(null), 6000);
   };
 
-  // Simpan setoran baru dari meja timbang petugas jaga
-  const handleSimpanSetoranPetugas = (dataCalc: {
-    items: ItemKalkulatorHasil[];
-    totalBeratKg: number;
-    totalEstimasiRp: number;
-    langsungVerifikasi?: boolean;
-    jenis: JenisSampah;
-    beratKg: number;
-    estimasiRp: number;
-  }) => {
-    const list: ItemKalkulatorHasil[] =
-      dataCalc.items && dataCalc.items.length > 0
-        ? dataCalc.items
-        : [
-            {
-              jenis: dataCalc.jenis,
-              beratKg: dataCalc.beratKg,
-              jumlahSatuan: `${dataCalc.beratKg} kg`,
-              estimasiRp: dataCalc.estimasiRp,
-            },
-          ];
-
-    const validItems = list.filter((it) => it.beratKg > 0);
-    if (validItems.length === 0) {
-      alert("Masukkan berat timbangan valid terlebih dahulu.");
-      return;
-    }
-
-    const nasabahPilihan =
-      DAFTAR_NASABAH_MASTER.find((n) => n.nomor === nasabahNomor) ||
-      DAFTAR_NASABAH_MASTER[0];
-
-    const tanggalHariIni = new Intl.DateTimeFormat("id-ID", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    }).format(new Date());
-
-    const statusVerif =
-      dataCalc.langsungVerifikasi === false ? "menunggu_verifikasi" : "terverifikasi";
-
-    const newEntries: SetoranNasabah[] = validItems.map((it, idx) => ({
-      id: `S-0${914 + riwayat.length + idx}`,
-      nomorNasabah: nasabahNomor,
-      namaNasabah: nasabahPilihan.nama,
-      tanggal: tanggalHariIni,
-      jenisSampahId: it.jenis.id,
-      jenisSampahNama: `${it.jenis.kode} · ${it.jenis.nama}`,
-      beratKg: it.beratKg,
-      jumlahSatuan: it.jumlahSatuan,
-      estimasiNilai: it.estimasiRp,
-      status: "belum_terjual",
-      statusVerifikasi: statusVerif,
-      dicatatOleh: sesi?.nama || "Ahmad Fauzi (Petugas Piket)",
-    }));
-
-    const updated = tambahBanyakSetoranBaru(newEntries);
-    setRiwayat(updated);
-    const totalEst = validItems.reduce((acc, c) => acc + c.estimasiRp, 0);
-    const totalKgVal = validItems.reduce((acc, c) => acc + c.beratKg, 0);
-
-    setSuksesMsg(
-      `${validItems.length} jenis sampah (${kg(totalKgVal)} = ${rp(
-        totalEst
-      )}) berhasil dicatat untuk ${nasabahPilihan.nama} dan masuk ke Riwayat Pencatatan.`
-    );
-    setTimeout(() => setSuksesMsg(null), 6000);
-  };
-
-  // Data perhitungan untuk Bendahara
+  // Data perhitungan untuk Bendahara & Admin
   const totalGudang = riwayat
     .filter((s) => s.status === "belum_terjual")
     .reduce((s, r) => s + r.beratKg, 0);
@@ -135,7 +71,6 @@ export default function RingkasanPengelolaPage() {
 
   /* ==============================================================
      TAMPILAN 1: DASHBOARD PETUGAS JAGA
-     - Tambah Pencatatan (Meja Timbang) Aktif
      - Riwayat Pencatatan dengan Filter Hari, Bulan, Tahun
      ============================================================== */
   if (isPetugas) {
@@ -179,7 +114,7 @@ export default function RingkasanPengelolaPage() {
       }
       if (filterHari !== "semua") {
         if (filterHari === "hari-ini") {
-          if (!item.tanggal.includes("02 Nov") && !item.tanggal.includes("2 Nov")) {
+          if (!item.tanggal.includes("09 Nov") && !item.tanggal.includes("9 Nov")) {
             return false;
           }
         } else if (!item.tanggal.includes(filterHari)) {
@@ -204,16 +139,29 @@ export default function RingkasanPengelolaPage() {
 
     return (
       <div className="dsh__page">
-        <header className="dsh__head" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px" }}>
+        <header
+          className="dsh__head"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            flexWrap: "wrap",
+            gap: "16px",
+          }}
+        >
           <div style={{ flex: "1 1 280px", minWidth: 0 }}>
             <div className="dsh__headrole">
               <span className="dsh__tagbadge">Petugas Jaga Piket</span>
-              <span className="dsh__dot" aria-hidden="true">•</span>
+              <span className="dsh__dot" aria-hidden="true">
+                •
+              </span>
               <span className="dsh__meta">Pos Timbangan BSS FEBI UINSA</span>
             </div>
-            <h1 className="dsh__h1" style={{ wordBreak: "break-word" }}>Riwayat & Verifikasi Setoran</h1>
+            <h1 className="dsh__h1" style={{ wordBreak: "break-word" }}>
+              Riwayat Pencatatan Setoran
+            </h1>
             <p className="dsh__sub">
-              Verifikasi setoran sampah satuan/kiloan nasabah agar nilainya sah dan langsung masuk ke Saldo Valid Nasabah.
+              Catat dan pantau setoran sampah satuan/kiloan nasabah agar masuk ke Saldo Valid Nasabah dan memperbarui keaktifan nasabah.
             </p>
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", maxWidth: "100%" }}>
@@ -236,7 +184,11 @@ export default function RingkasanPengelolaPage() {
         </header>
 
         {suksesMsg && (
-          <div className="dsh__alert dsh__alert--success" role="alert" style={{ marginBottom: "20px" }}>
+          <div
+            className="dsh__alert dsh__alert--success"
+            role="alert"
+            style={{ marginBottom: "20px" }}
+          >
             <strong>Berhasil:</strong> {suksesMsg}
           </div>
         )}
@@ -246,32 +198,39 @@ export default function RingkasanPengelolaPage() {
           <div className="dsh__statcard dsh__statcard--primary">
             <p className="dsh__statlabel">Total Setoran Terfilter</p>
             <p className="dsh__big dsh__big--green">{totalFilterTransaksi} Transaksi</p>
-            <p className="dsh__statsmall">Pencatatan sesuai filter pencarian, hari, bulan & tahun</p>
+            <p className="dsh__statsmall">
+              Pencatatan sesuai filter pencarian, hari, bulan & tahun
+            </p>
           </div>
 
           <div className="dsh__statcard">
             <p className="dsh__statlabel">Total Berat Timbangan</p>
             <p className="dsh__big">{kg(totalFilterKg)}</p>
-            <p className="dsh__statsmall">Bobot fisik sampah satuan & kiloan civitas kampus</p>
+            <p className="dsh__statsmall">
+              Bobot fisik sampah satuan & kiloan civitas kampus
+            </p>
           </div>
 
           <div className="dsh__statcard dsh__statcard--accent">
-            <span className="dsh__statbadge">
-              {totalBelumDiverifikasi > 0
-                ? `${totalBelumDiverifikasi} Perlu Verifikasi`
-                : "Semua Terverifikasi"}
-            </span>
             <p className="dsh__statlabel">Nilai Saldo Setoran</p>
             <p className="dsh__big dsh__big--amber">{rp(totalFilterRp)}</p>
             <p className="dsh__statsmall">
               {totalBelumDiverifikasi > 0
-                ? `${totalBelumDiverifikasi} setoran menunggu klik verifikasi petugas`
+                ? `${totalBelumDiverifikasi} setoran menunggu konfirmasi`
                 : "Seluruh setoran sudah valid & masuk saldo nasabah"}
+            </p>
+          </div>
+
+          <div className="dsh__statcard">
+            <p className="dsh__statlabel">Status Keaktifan Nasabah</p>
+            <p className="dsh__big dsh__big--green">{statistik.nasabahAktif} Aktif</p>
+            <p className="dsh__statsmall">
+              {statistik.nasabahTidakAktif} tidak aktif (&gt; 1 bulan belum menyetor)
             </p>
           </div>
         </div>
 
-        {/* 3. PANEL RIWAYAT PENCATATAN DENGAN FILTER HARI, BULAN, TAHUN */}
+        {/* PANEL RIWAYAT PENCATATAN DENGAN FILTER HARI, BULAN, TAHUN */}
         <section className="dsh__card" aria-label="Tabel Riwayat Pencatatan Petugas">
           <div className="dsh__cardhead" style={{ flexWrap: "wrap", gap: "16px" }}>
             <div>
@@ -296,9 +255,23 @@ export default function RingkasanPengelolaPage() {
               boxSizing: "border-box",
             }}
           >
-            {/* Input Pencarian Cepat */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: "1 1 220px", minWidth: "180px" }}>
-              <label style={{ fontSize: "11px", fontWeight: 700, color: "#666", textTransform: "uppercase" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "4px",
+                flex: "1 1 220px",
+                minWidth: "180px",
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  color: "#666",
+                  textTransform: "uppercase",
+                }}
+              >
                 Cari Riwayat Pencatatan
               </label>
               <input
@@ -311,9 +284,15 @@ export default function RingkasanPengelolaPage() {
               />
             </div>
 
-            {/* Filter Hari / Tanggal */}
             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              <label style={{ fontSize: "11px", fontWeight: 700, color: "#666", textTransform: "uppercase" }}>
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  color: "#666",
+                  textTransform: "uppercase",
+                }}
+              >
                 Filter Hari / Tanggal
               </label>
               <select
@@ -323,7 +302,7 @@ export default function RingkasanPengelolaPage() {
                 onChange={(e) => setFilterHari(e.target.value)}
               >
                 <option value="semua">Semua Hari / Tanggal</option>
-                <option value="hari-ini">Hari Ini (02 Nov 2026)</option>
+                <option value="hari-ini">Hari Ini (09 Nov 2026)</option>
                 {listHariUnik.map((tgl) => (
                   <option key={tgl} value={tgl}>
                     {tgl}
@@ -332,9 +311,15 @@ export default function RingkasanPengelolaPage() {
               </select>
             </div>
 
-            {/* Filter Bulan */}
             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              <label style={{ fontSize: "11px", fontWeight: 700, color: "#666", textTransform: "uppercase" }}>
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  color: "#666",
+                  textTransform: "uppercase",
+                }}
+              >
                 Filter Bulan
               </label>
               <select
@@ -344,16 +329,22 @@ export default function RingkasanPengelolaPage() {
                 onChange={(e) => setFilterBulan(e.target.value)}
               >
                 <option value="semua">Semua Bulan</option>
+                <option value="9">September</option>
                 <option value="10">Oktober</option>
                 <option value="11">November</option>
                 <option value="12">Desember</option>
-                <option value="9">September</option>
               </select>
             </div>
 
-            {/* Filter Tahun */}
             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              <label style={{ fontSize: "11px", fontWeight: 700, color: "#666", textTransform: "uppercase" }}>
+              <label
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  color: "#666",
+                  textTransform: "uppercase",
+                }}
+              >
                 Filter Tahun
               </label>
               <select
@@ -368,8 +359,10 @@ export default function RingkasanPengelolaPage() {
               </select>
             </div>
 
-            {/* Reset Filter Button */}
-            {(filterHari !== "semua" || filterBulan !== "semua" || filterTahun !== "semua" || cari.trim() !== "") && (
+            {(filterHari !== "semua" ||
+              filterBulan !== "semua" ||
+              filterTahun !== "semua" ||
+              cari.trim() !== "") && (
               <button
                 type="button"
                 onClick={() => {
@@ -405,14 +398,17 @@ export default function RingkasanPengelolaPage() {
                   <th scope="col">Kode & Jenis Sampah</th>
                   <th scope="col">Jumlah / Berat</th>
                   <th scope="col">Nilai Saldo (Rp)</th>
-                  <th scope="col">Status Verifikasi & Saldo</th>
+                  <th scope="col">Status Saldo</th>
                   <th scope="col">Petugas Jaga</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredRiwayatPetugas.length === 0 ? (
                   <tr>
-                    <td colSpan={7} style={{ textAlign: "center", padding: "32px", color: "#888" }}>
+                    <td
+                      colSpan={7}
+                      style={{ textAlign: "center", padding: "32px", color: "#888" }}
+                    >
                       Tidak ditemukan riwayat pencatatan untuk filter tanggal yang dipilih.
                     </td>
                   </tr>
@@ -421,7 +417,8 @@ export default function RingkasanPengelolaPage() {
                     ? filteredRiwayatPetugas
                     : filteredRiwayatPetugas.slice(0, 4)
                   ).map((item) => {
-                    const perluVerifikasi = item.statusVerifikasi === "menunggu_verifikasi";
+                    const perluVerifikasi =
+                      item.statusVerifikasi === "menunggu_verifikasi";
                     const nilaiRp = item.nilaiRealisasi ?? item.estimasiNilai;
                     return (
                       <tr key={item.id}>
@@ -442,15 +439,24 @@ export default function RingkasanPengelolaPage() {
                           <strong>{item.jumlahSatuan || kg(item.beratKg)}</strong>
                         </td>
                         <td>
-                          <strong className={perluVerifikasi ? "dsh__amber" : "dsh__green"}>
+                          <strong
+                            className={perluVerifikasi ? "dsh__amber" : "dsh__green"}
+                          >
                             {rp(nilaiRp)}
                           </strong>
                         </td>
                         <td>
                           {perluVerifikasi ? (
-                            <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "flex-start" }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "6px",
+                                alignItems: "flex-start",
+                              }}
+                            >
                               <span className="dsh__chip dsh__chip--amber">
-                                Menunggu Verifikasi
+                                Menunggu Konfirmasi
                               </span>
                               <button
                                 type="button"
@@ -463,12 +469,12 @@ export default function RingkasanPengelolaPage() {
                                 }}
                                 onClick={() => handleVerifikasiItem(item)}
                               >
-                                Verifikasi Setoran
+                                Sah & Masukkan Saldo
                               </button>
                             </div>
                           ) : (
                             <span className="dsh__chip dsh__chip--green">
-                              Terverifikasi
+                              Tercatat di Saldo
                             </span>
                           )}
                         </td>
@@ -502,10 +508,8 @@ export default function RingkasanPengelolaPage() {
   }
 
   /* ==============================================================
-     TAMPILAN 2: DASHBOARD BENDAHARA & ADMINISTRATOR SISTEM
+     TAMPILAN 2: MONITORING SISTEM (ADMIN) & RINGKASAN BENDAHARA
      ============================================================== */
-  const isAdmin = roleAktif === "admin";
-
   return (
     <div className="dsh__page">
       <header className="dsh__head">
@@ -513,9 +517,13 @@ export default function RingkasanPengelolaPage() {
           <span className="dsh__tagbadge">
             {isAdmin ? "Administrator Sistem BSS" : "Bendahara & Pengelola"}
           </span>
-          <span className="dsh__dot" aria-hidden="true">•</span>
+          <span className="dsh__dot" aria-hidden="true">
+            •
+          </span>
           <span className="dsh__meta">
-            {isAdmin ? "Pemantauan Menyeluruh & Master Data" : "Keuangan & Alur Pengepul"}
+            {isAdmin
+              ? "Monitoring Sistem, Staff & Keaktifan Nasabah"
+              : "Keuangan & Alur Pengepul"}
           </span>
         </div>
         <h1 className="dsh__h1">
@@ -523,24 +531,83 @@ export default function RingkasanPengelolaPage() {
         </h1>
         <p className="dsh__sub">
           {isAdmin
-            ? "Pemantauan terpadu pangkalan data nasabah, alur penyaluran pengepul, dan audit kas syariah."
+            ? "Pemantauan terpadu jumlah staff (petugas & bendahara), status keaktifan nasabah (aktif vs tidak aktif > 1 bulan), serta alur penyaluran dan kas syariah."
             : "Monitor saldo wadiah nasabah, stok gudang belum terjual, dan bagi hasil penjualan pengepul."}
         </p>
       </header>
 
-      {/* 4 Kartu Metrik Utama Bendahara */}
+      {/* =================================================================
+          BARIS 1 MONITORING SISTEM: JUMLAH STAFF (PETUGAS & BENDAHARA)
+          SERTA NASABAH AKTIF & TIDAK AKTIF (> 1 BULAN)
+          ================================================================= */}
+      <div className="dsh__statsgrid" style={{ marginBottom: "8px" }}>
+        <div className="dsh__statcard dsh__statcard--primary">
+          <span className="dsh__statbadge">SDM Operasional BSS</span>
+          <p className="dsh__statlabel">Jumlah Staff (Petugas &amp; Bendahara)</p>
+          <p className="dsh__big dsh__big--green">{statistik.jumlahStaff} Staff</p>
+          <p className="dsh__statsmall">
+            <strong>{statistik.jumlahPetugas} Petugas</strong> (@petugas.com) &amp;{" "}
+            <strong>{statistik.jumlahBendahara} Bendahara</strong> (@bendahara.com)
+          </p>
+        </div>
+
+        <div className="dsh__statcard">
+          <span className="dsh__statbadge">Rincian Staff &amp; Pengelola</span>
+          <p className="dsh__statlabel">Petugas vs Bendahara</p>
+          <p className="dsh__big">
+            {statistik.jumlahPetugas} / {statistik.jumlahBendahara}
+          </p>
+          <p className="dsh__statsmall">
+            {statistik.jumlahPetugas} Petugas Jaga • {statistik.jumlahBendahara}{" "}
+            Bendahara • {statistik.jumlahAdmin} Admin
+          </p>
+        </div>
+
+        <div className="dsh__statcard dsh__statcard--primary">
+          <span
+            className="dsh__statbadge"
+            style={{ background: "#eaf5eb", color: "#276b30", borderColor: "#c8e6c9" }}
+          >
+            Setor ≤ 1 Bulan
+          </span>
+          <p className="dsh__statlabel">Nasabah Aktif</p>
+          <p className="dsh__big dsh__big--green">
+            {statistik.nasabahAktif} Nasabah
+          </p>
+          <p className="dsh__statsmall">
+            Rutin menyetor sampah dalam ≤ 1 bulan terakhir (dari {statistik.totalNasabah} nasabah)
+          </p>
+        </div>
+
+        <div className="dsh__statcard dsh__statcard--accent">
+          <span className="dsh__statbadge">Tidak Setor &gt; 1 Bulan</span>
+          <p className="dsh__statlabel">Nasabah Tidak Aktif</p>
+          <p className="dsh__big dsh__big--amber">
+            {statistik.nasabahTidakAktif} Nasabah
+          </p>
+          <p className="dsh__statsmall">
+            Tidak menyetor &gt; 1 bulan • Otomatis aktif lagi saat menyetor sampah
+          </p>
+        </div>
+      </div>
+
+      {/* BARIS 2 METRIK KEUANGAN & GUDANG */}
       <div className="dsh__statsgrid">
         <div className="dsh__statcard dsh__statcard--primary">
           <span className="dsh__statbadge">Akad Wadiah</span>
           <p className="dsh__statlabel">Kewajiban Tabungan Nasabah</p>
           <p className="dsh__big dsh__big--green">{rp(admin.saldoTerutang)}</p>
-          <p className="dsh__statsmall">Saldo hak {admin.nasabahAktif} nasabah civitas akademika</p>
+          <p className="dsh__statsmall">
+            Akumulasi saldo tabungan seluruh nasabah terdaftar
+          </p>
         </div>
 
         <div className="dsh__statcard">
           <p className="dsh__statlabel">Stok Gudang (Belum Terjual)</p>
           <p className="dsh__big">{kg(totalGudang)}</p>
-          <p className="dsh__statsmall">Estimasi nilai acuan: {rp(estimasiGudangRp)}</p>
+          <p className="dsh__statsmall">
+            Estimasi nilai acuan: {rp(estimasiGudangRp)}
+          </p>
         </div>
 
         <div className="dsh__statcard dsh__statcard--accent">
@@ -563,7 +630,9 @@ export default function RingkasanPengelolaPage() {
           <div className="dsh__cardhead">
             <div>
               <h2 className="dsh__h2">Alur Penjualan Pengepul Terakhir</h2>
-              <p className="dsh__carddesc">Realisasi bagi hasil wadiah dan kas operasional BSS.</p>
+              <p className="dsh__carddesc">
+                Realisasi bagi hasil wadiah dan kas operasional BSS.
+              </p>
             </div>
             <Link className="dsh__link" href="/admin/pengepul">
               Buka Alur →
@@ -575,54 +644,57 @@ export default function RingkasanPengelolaPage() {
                 <div>
                   <strong>{b.id}</strong> — {b.tanggalJual}
                   <span className="dsh__subtext">
-                    {b.namaPengepul} • {kg(b.totalBeratKg)} • Diterima {rp(b.uangDiterima ?? 0)}
+                    {b.namaPengepul} • {kg(b.totalBeratKg)} • Diterima{" "}
+                    {rp(b.uangDiterima ?? 0)}
                   </span>
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <span className="dsh__chip dsh__chip--green">
                     Nasabah: +{rp(b.totalDisalurkan ?? 0)}
                   </span>
-                  <span className="dsh__subtext">Kas: +{rp(b.selisihKasBss ?? 0)}</span>
+                  <span className="dsh__subtext">
+                    Kas: +{rp(b.selisihKasBss ?? 0)}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="dsh__card" aria-label="Menu Pintas Bendahara">
+        <section className="dsh__card" aria-label="Menu Pintas Pengelola">
           <div className="dsh__cardhead">
             <div>
               <h2 className="dsh__h2">Akses Cepat Pengelolaan</h2>
-              <p className="dsh__carddesc">Navigasi langsung ke modul keuangan dan data acuan.</p>
+              <p className="dsh__carddesc">
+                Navigasi langsung ke modul keuangan, master data akun, dan daftar harga.
+              </p>
             </div>
           </div>
           <div className="dsh__quicklinks">
-            <Link className="dsh__quickcard" href="/admin/tarik">
-              <strong>Pencatatan Tarik Tunai</strong>
-              <span>Layanan pencairan tabungan nasabah di pos meja pelayanan.</span>
+            <Link className="dsh__quickcard" href="/admin/nasabah">
+              <strong>Master Data &amp; CRUD Akun</strong>
+              <span>
+                Kelola akun Nasabah, Petugas (@petugas.com), Bendahara (@bendahara.com), dan Admin.
+              </span>
+            </Link>
+            <Link className="dsh__quickcard" href="/admin/pricelist">
+              <strong>Master Pricelist</strong>
+              <span>
+                Atur nilai acuan per kg sampah terpilah (Kertas, Plastik, Logam, Kaca).
+              </span>
             </Link>
             <Link className="dsh__quickcard" href="/admin/pengepul">
               <strong>Kelola Penjualan Pengepul</strong>
-              <span>Hitung bagi hasil otomatis antara hak nasabah & kas BSS.</span>
+              <span>
+                Hitung bagi hasil otomatis antara hak nasabah &amp; kas BSS.
+              </span>
             </Link>
             <Link className="dsh__quickcard" href="/admin/rekap">
-              <strong>Rekap & Ekspor CSV</strong>
-              <span>Unduh laporan berkala untuk pimpinan fakultas & audit.</span>
+              <strong>Rekap &amp; Laporan Keuangan</strong>
+              <span>
+                Unduh laporan berkala untuk pimpinan fakultas &amp; audit.
+              </span>
             </Link>
-            <Link className="dsh__quickcard" href="/admin/nasabah">
-              <strong>Buku Tabungan Nasabah</strong>
-              <span>Pantau saldo per nasabah dan riwayat tabungan wadiah.</span>
-            </Link>
-            <Link className="dsh__quickcard" href="/admin/pricelist">
-              <strong>Daftar Harga Acuan (Pricelist)</strong>
-              <span>Atur nilai acuan per kg sampah terpilah (A1 s/d D7).</span>
-            </Link>
-            {isAdmin && (
-              <Link className="dsh__quickcard" href="/admin/aktivasi">
-                <strong>Verifikasi & Aktivasi Akun</strong>
-                <span>Validasi berkas bukti bayar registrasi pendaftar baru.</span>
-              </Link>
-            )}
           </div>
         </section>
       </div>

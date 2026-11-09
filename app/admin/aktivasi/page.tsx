@@ -14,6 +14,11 @@ export default function AktivasiAkunPage() {
     nama: string;
     nomor: string;
     foto?: string;
+    fotoBss?: string;
+    fotoLab?: string;
+    namaFileBss?: string;
+    namaFileLab?: string;
+    tanggalUpload?: string;
     metode?: string;
     tanggal?: string;
   } | null>(null);
@@ -134,7 +139,7 @@ export default function AktivasiAkunPage() {
             style={{
               background: "#fff",
               borderRadius: "8px",
-              maxWidth: "520px",
+              maxWidth: "680px",
               width: "100%",
               maxHeight: "90vh",
               overflowY: "auto",
@@ -153,10 +158,11 @@ export default function AktivasiAkunPage() {
             >
               <div>
                 <h3 style={{ margin: 0, fontSize: "17px", color: "#1f1b13" }}>
-                  Bukti Pembayaran Registrasi
+                  Bukti Pembayaran & Syarat Follow Instagram
                 </h3>
                 <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#6e685d" }}>
                   {modalBukti.nama} ({modalBukti.nomor}) • Metode: {modalBukti.metode?.toUpperCase() || "QRIS"}
+                  {modalBukti.tanggalUpload && ` • Upload: ${modalBukti.tanggalUpload}`}
                 </p>
               </div>
               <button
@@ -178,28 +184,219 @@ export default function AktivasiAkunPage() {
 
             <div
               style={{
-                textAlign: "center",
                 background: "#f7f6f2",
                 padding: "16px",
                 borderRadius: "6px",
                 marginBottom: "20px",
               }}
             >
-              {modalBukti.foto ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={modalBukti.foto}
-                  alt={`Bukti transfer ${modalBukti.nama}`}
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: "380px",
-                    objectFit: "contain",
-                    borderRadius: "4px",
-                    border: "1px solid #d9d6cd",
-                  }}
-                />
-              ) : (
-                <p style={{ color: "#777", fontSize: "13px", margin: "20px 0" }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    modalBukti.foto && modalBukti.foto !== modalBukti.fotoBss
+                      ? "repeat(auto-fit, minmax(200px, 1fr))"
+                      : modalBukti.fotoBss && modalBukti.fotoLab
+                      ? "1fr 1fr"
+                      : "1fr",
+                  gap: "14px",
+                }}
+              >
+                {/* Bukti Transfer / Pembayaran jika ada */}
+                {modalBukti.foto && modalBukti.foto !== modalBukti.fotoBss && (
+                  <div
+                    style={{
+                      background: "#fff",
+                      padding: "12px",
+                      borderRadius: "6px",
+                      border: "1px solid #d9d6cd",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <span style={{ fontSize: "12px", fontWeight: 700, color: "#1f1b13" }}>
+                        🧾 Struk / Bukti Bayar
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "10px",
+                          fontWeight: 700,
+                          background: "#edf7ee",
+                          color: "#25632d",
+                          padding: "1px 5px",
+                          borderRadius: "3px",
+                        }}
+                      >
+                        ✓ Terlampir
+                      </span>
+                    </div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={modalBukti.foto}
+                      alt="Struk transfer"
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "240px",
+                        objectFit: "contain",
+                        borderRadius: "4px",
+                        border: "1px solid #eee",
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Bukti Follow IG BSS */}
+                {modalBukti.fotoBss && (
+                  <div
+                    style={{
+                      background: "#fff",
+                      padding: "12px",
+                      borderRadius: "6px",
+                      border: "1px solid #d9d6cd",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <span style={{ fontSize: "12px", fontWeight: 700, color: "#25632d" }}>
+                        📸 Follow IG @bss_uinsa
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "10px",
+                          fontWeight: 700,
+                          background: "#edf7ee",
+                          color: "#25632d",
+                          padding: "1px 5px",
+                          borderRadius: "3px",
+                        }}
+                      >
+                        ✓ Terverifikasi
+                      </span>
+                    </div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={modalBukti.fotoBss}
+                      alt="Bukti follow IG BSS"
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "240px",
+                        objectFit: "contain",
+                        borderRadius: "4px",
+                        border: "1px solid #eee",
+                      }}
+                    />
+                    <span
+                      style={{
+                        display: "block",
+                        fontSize: "11px",
+                        color: "#666",
+                        marginTop: "6px",
+                        wordBreak: "break-all",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {modalBukti.namaFileBss || "follow-bss.webp"}
+                    </span>
+                  </div>
+                )}
+
+                {/* Bukti Follow IG Lab FEBI */}
+                {modalBukti.fotoLab && (
+                  <div
+                    style={{
+                      background: "#fff",
+                      padding: "12px",
+                      borderRadius: "6px",
+                      border: "1px solid #d9d6cd",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <span style={{ fontSize: "12px", fontWeight: 700, color: "#25632d" }}>
+                        🏛️ Follow IG Lab FEBI
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "10px",
+                          fontWeight: 700,
+                          background: "#edf7ee",
+                          color: "#25632d",
+                          padding: "1px 5px",
+                          borderRadius: "3px",
+                        }}
+                      >
+                        ✓ Terverifikasi
+                      </span>
+                    </div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={modalBukti.fotoLab}
+                      alt="Bukti follow IG Lab FEBI"
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "240px",
+                        objectFit: "contain",
+                        borderRadius: "4px",
+                        border: "1px solid #eee",
+                      }}
+                    />
+                    <span
+                      style={{
+                        display: "block",
+                        fontSize: "11px",
+                        color: "#666",
+                        marginTop: "6px",
+                        wordBreak: "break-all",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {modalBukti.namaFileLab || "follow-lab-febi.webp"}
+                    </span>
+                  </div>
+                )}
+
+                {/* Fallback jika hanya foto legacy */}
+                {!modalBukti.fotoBss && !modalBukti.fotoLab && modalBukti.foto && (
+                  <div style={{ textAlign: "center" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={modalBukti.foto}
+                      alt={`Bukti transfer ${modalBukti.nama}`}
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "360px",
+                        objectFit: "contain",
+                        borderRadius: "4px",
+                        border: "1px solid #d9d6cd",
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {!modalBukti.foto && !modalBukti.fotoBss && !modalBukti.fotoLab && (
+                <p style={{ color: "#777", fontSize: "13px", margin: "20px 0", textAlign: "center" }}>
                   Tidak ada berkas bukti gambar yang dilampirkan (kemungkinan bayar tunai di meja timbang).
                 </p>
               )}
@@ -312,32 +509,94 @@ export default function AktivasiAkunPage() {
                       </span>
                     </td>
                     <td>
-                      {a.buktiBayar ? (
+                      {a.buktiFollowBss || a.buktiFollowLab || a.buktiBayar ? (
                         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          {a.buktiBayar.startsWith("data:image/") && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={a.buktiBayar}
-                              alt="Bukti"
-                              style={{
-                                width: "32px",
-                                height: "32px",
-                                objectFit: "cover",
-                                borderRadius: "4px",
-                                border: "1px solid #ddd",
-                                cursor: "pointer",
-                              }}
-                              onClick={() =>
-                                setModalBukti({
-                                  nama: a.nama,
-                                  nomor: a.nomor,
-                                  foto: a.buktiBayar,
-                                  metode: a.metodeBayar,
-                                  tanggal: a.tanggalDaftar,
-                                })
-                              }
-                            />
-                          )}
+                          <div style={{ display: "flex", gap: "4px" }}>
+                            {a.buktiFollowBss && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={a.buktiFollowBss}
+                                alt="IG BSS"
+                                title={`Follow IG BSS: ${a.namaFileBuktiBss || "WebP"}`}
+                                style={{
+                                  width: "32px",
+                                  height: "32px",
+                                  objectFit: "cover",
+                                  borderRadius: "4px",
+                                  border: "1px solid #c2e2c5",
+                                  cursor: "pointer",
+                                }}
+                                onClick={() =>
+                                  setModalBukti({
+                                    nama: a.nama,
+                                    nomor: a.nomor,
+                                    foto: a.buktiBayar,
+                                    fotoBss: a.buktiFollowBss,
+                                    fotoLab: a.buktiFollowLab,
+                                    namaFileBss: a.namaFileBuktiBss,
+                                    namaFileLab: a.namaFileBuktiLab,
+                                    tanggalUpload: a.tanggalUploadBukti,
+                                    metode: a.metodeBayar,
+                                    tanggal: a.tanggalDaftar,
+                                  })
+                                }
+                              />
+                            )}
+                            {a.buktiFollowLab && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={a.buktiFollowLab}
+                                alt="IG Lab"
+                                title={`Follow Lab FEBI: ${a.namaFileBuktiLab || "WebP"}`}
+                                style={{
+                                  width: "32px",
+                                  height: "32px",
+                                  objectFit: "cover",
+                                  borderRadius: "4px",
+                                  border: "1px solid #c2e2c5",
+                                  cursor: "pointer",
+                                }}
+                                onClick={() =>
+                                  setModalBukti({
+                                    nama: a.nama,
+                                    nomor: a.nomor,
+                                    foto: a.buktiBayar,
+                                    fotoBss: a.buktiFollowBss,
+                                    fotoLab: a.buktiFollowLab,
+                                    namaFileBss: a.namaFileBuktiBss,
+                                    namaFileLab: a.namaFileBuktiLab,
+                                    tanggalUpload: a.tanggalUploadBukti,
+                                    metode: a.metodeBayar,
+                                    tanggal: a.tanggalDaftar,
+                                  })
+                                }
+                              />
+                            )}
+                            {!a.buktiFollowBss && !a.buktiFollowLab && a.buktiBayar?.startsWith("data:image/") && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={a.buktiBayar}
+                                alt="Bukti"
+                                style={{
+                                  width: "32px",
+                                  height: "32px",
+                                  objectFit: "cover",
+                                  borderRadius: "4px",
+                                  border: "1px solid #ddd",
+                                  cursor: "pointer",
+                                }}
+                                onClick={() =>
+                                  setModalBukti({
+                                    nama: a.nama,
+                                    nomor: a.nomor,
+                                    foto: a.buktiBayar,
+                                    metode: a.metodeBayar,
+                                    tanggal: a.tanggalDaftar,
+                                  })
+                                }
+                              />
+                            )}
+                          </div>
                           <button
                             type="button"
                             className="dsh__btnoutline"
@@ -347,6 +606,11 @@ export default function AktivasiAkunPage() {
                                 nama: a.nama,
                                 nomor: a.nomor,
                                 foto: a.buktiBayar,
+                                fotoBss: a.buktiFollowBss,
+                                fotoLab: a.buktiFollowLab,
+                                namaFileBss: a.namaFileBuktiBss,
+                                namaFileLab: a.namaFileBuktiLab,
+                                tanggalUpload: a.tanggalUploadBukti,
                                 metode: a.metodeBayar,
                                 tanggal: a.tanggalDaftar,
                               })

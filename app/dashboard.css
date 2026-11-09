@@ -414,12 +414,14 @@
   .dsh__side {
     display: flex;
     flex-direction: column;
-    gap: 26px;
+    gap: 20px;
     position: sticky;
     top: 0;
     height: 100dvh;
-    padding: 30px 22px 26px;
+    overflow-y: auto;
+    padding: 26px 22px 24px;
     background: var(--paper-2);
+    box-sizing: border-box;
   }
 
   .dsh__top,
@@ -2061,8 +2063,91 @@
 }
 
 /* ============================================================
-   Lembar Tabungan Nasabah BSS UINSA (Format Tabel Dashboard)
+   Floating Screen Alert & Modal Pop (Tampil Langsung pada Layar)
    ============================================================ */
+
+@keyframes dshAlertSlide {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@keyframes dshModalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.dsh__screenalert {
+  position: fixed !important;
+  top: 24px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 9999999 !important;
+  min-width: 340px !important;
+  max-width: min(520px, 92vw) !important;
+  padding: 14px 20px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+  animation: dshAlertSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+}
+
+.dsh__screenalert--success {
+  background: #174e22 !important;
+  color: #ffffff !important;
+  border: 1px solid #2f7d3a !important;
+}
+
+.dsh__screenalert--error {
+  background: #991b1b !important;
+  color: #ffffff !important;
+  border: 1px solid #dc2626 !important;
+}
+
+.dsh__screenmodal {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(17, 15, 12, 0.65) !important;
+  backdrop-filter: blur(5px) !important;
+  -webkit-backdrop-filter: blur(5px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 9999999 !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
+}
+
+.dsh__screenmodalcard {
+  background: #ffffff !important;
+  border-radius: 14px !important;
+  max-width: 440px !important;
+  width: 100% !important;
+  padding: 26px !important;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.32) !important;
+  animation: dshModalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+  box-sizing: border-box !important;
+}
+
 
 .dsh__tabunganhead {
   display: flex;
