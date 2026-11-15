@@ -703,6 +703,25 @@ export function masuk(
     return { ok: false, pesan: "Kata sandi salah. Coba lagi." };
   }
 
+  /*
+   * Nasabah hasil pendaftaran mandiri belum boleh masuk sebelum Petugas Jaga
+   * memverifikasi berkasnya di halaman /admin/aktivasi.
+   */
+  if (akun.role === "nasabah" && akun.statusVerifikasi && akun.statusVerifikasi !== "aktif") {
+    if (akun.statusVerifikasi === "ditolak") {
+      return {
+        ok: false,
+        pesan:
+          "Pendaftaran akun Anda ditolak Petugas Jaga. Hubungi petugas BSS di Pos Timbang untuk informasi lanjutan.",
+      };
+    }
+    return {
+      ok: false,
+      pesan:
+        "Akun Anda belum diverifikasi Petugas Jaga. Tunggu konfirmasi aktivasi dari petugas BSS di Pos Timbang, lalu coba masuk kembali.",
+    };
+  }
+
   const sesi: Sesi = {
     email: akun.email,
     nama: akun.nama,

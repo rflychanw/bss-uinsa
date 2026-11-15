@@ -5,11 +5,6 @@ export const metadata: Metadata = {
   title: "Bank Sampah Syariah UINSA",
   description:
     "Bank Sampah Syariah UIN Sunan Ampel Surabaya menimbang sampah anorganik mahasiswa dan warga kampus, mencatatnya di buku tabungan, lalu mengubahnya jadi rupiah.",
-  icons: {
-    icon: "/logo-96.png",
-    shortcut: "/logo-96.png",
-    apple: "/logo-192.png",
-  },
   openGraph: {
     title: "Bank Sampah Syariah UINSA",
     description:
@@ -25,9 +20,6 @@ export default function RootLayout({
   return (
     <html lang="id">
       <head>
-        <link rel="icon" href="/logo-96.png" sizes="any" />
-        <link rel="shortcut icon" href="/logo-96.png" />
-        <link rel="apple-touch-icon" href="/logo-192.png" />
         <link rel="preconnect" href="https://api.fontshare.com" />
         <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="" />
         <link

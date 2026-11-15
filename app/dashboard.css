@@ -382,6 +382,13 @@
   height: 100%;
 }
 
+/* Ikon inline pengganti emoji (komponen DashIcon) */
+.dsh__icoinline {
+  display: inline-block;
+  vertical-align: -2px;
+  flex-shrink: 0;
+}
+
 /* ---------- avatar ---------- */
 
 .dsh__avatar {

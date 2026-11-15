@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useState } from "react";
 import {
   DAFTAR_NASABAH_MASTER,
@@ -16,7 +17,9 @@ import {
 import { sesiSekarang, type Sesi } from "../../../lib/auth";
 
 export default function TarikTunaiAdminPage() {
+  const router = useRouter();
   const [sesi, setSesi] = useState<Sesi | null>(null);
+  const [siap, setSiap] = useState<boolean>(false);
   const [daftar, setDaftar] = useState<PenarikanUang[]>([]);
   const [cari, setCari] = useState<string>("");
   const [nasabahNomor, setNasabahNomor] = useState<string>(
@@ -24,7 +27,7 @@ export default function TarikTunaiAdminPage() {
   );
   const [nominal, setNominal] = useState<number>(10000);
   const [metode, setMetode] = useState<MetodePenarikan>("tunai");
-  const [tujuan, setTujuan] = useState<string>("Tunai di Pos Meja Timbang");
+  const [tujuan, setTujuan] = useState<string>("Tunai di Loket Bendahara");
   const [catatan, setCatatan] = useState<string>(
     "Pencairan saldo tabungan di loket petugas"
   );
@@ -38,10 +41,17 @@ export default function TarikTunaiAdminPage() {
   const idTujuan = useId();
   const idCatatan = useId();
 
+  /* Halaman kas & penarikan saldo hanya dibuka untuk Bendahara. */
   useEffect(() => {
-    setSesi(sesiSekarang());
+    const s = sesiSekarang();
+    if (!s || s.role !== "bendahara") {
+      router.replace("/admin");
+      return;
+    }
+    setSesi(s);
     setDaftar(getDaftarPenarikan());
-  }, []);
+    setSiap(true);
+  }, [router]);
 
   const nasabahTerpilih =
     DAFTAR_NASABAH_MASTER.find((n) => n.nomor === nasabahNomor) ||
@@ -93,11 +103,11 @@ export default function TarikTunaiAdminPage() {
   }, [daftar, cari, filterStatus]);
 
   const handleValidasi = (item: PenarikanUang) => {
-    const namaPetugas = sesi?.nama || "Ahmad Fauzi (Petugas Piket)";
-    const updated = validasiPenarikanTunai(item.id, namaPetugas);
+    const namaBendahara = sesi?.nama || "Siti Nurhaliza (Bendahara)";
+    const updated = validasiPenarikanTunai(item.id, namaBendahara);
     setDaftar(updated);
     setNotif(
-      `Penarikan ${item.id} sebesar ${rp(item.nominal)} (${formatMetodePenarikan(item.metode)}) untuk ${item.namaNasabah} (${item.nomorNasabah}) berhasil DIVALIDASI oleh Petugas.`
+      `Penarikan ${item.id} sebesar ${rp(item.nominal)} (${formatMetodePenarikan(item.metode)}) untuk ${item.namaNasabah} (${item.nomorNasabah}) berhasil DIVALIDASI oleh Bendahara.`
     );
     setTimeout(() => setNotif(""), 6000);
   };
@@ -123,7 +133,7 @@ export default function TarikTunaiAdminPage() {
       year: "numeric",
     }).format(new Date());
 
-    const namaPetugas = sesi?.nama || "Ahmad Fauzi (Petugas Piket)";
+    const namaBendahara = sesi?.nama || "Siti Nurhaliza (Bendahara)";
 
     tambahPenarikan({
       nomorNasabah: nasabahTerpilih.nomor,
@@ -133,11 +143,11 @@ export default function TarikTunaiAdminPage() {
       metode,
       tujuan:
         metode === "tunai"
-          ? "Tunai di Pos Meja Timbang"
+          ? "Tunai di Loket Bendahara"
           : tujuan || (metode === "ewallet" ? "E-Wallet Nasabah" : "Rekening Bank Nasabah"),
       catatan,
       status: "selesai",
-      petugas: namaPetugas,
+      petugas: namaBendahara,
     });
 
     setDaftar(getDaftarPenarikan());
@@ -149,11 +159,15 @@ export default function TarikTunaiAdminPage() {
     setTimeout(() => setNotif(""), 6000);
   };
 
+  if (!siap) {
+    return <div className="dsh__page" aria-busy="true" />;
+  }
+
   return (
     <div className="dsh__page">
       <header className="dsh__head">
         <div className="dsh__headrole">
-          <span className="dsh__tagbadge">Layanan Nasabah & Kasir Pos Jaga</span>
+          <span className="dsh__tagbadge">Layanan Kas & Bendahara</span>
           <span className="dsh__dot" aria-hidden="true">•</span>
           <span className="dsh__meta">
             Validasi Tarik Tunai, Bank & E-Wallet (Min. {rp(MINIMAL_PENARIKAN_RP)})
@@ -161,7 +175,7 @@ export default function TarikTunaiAdminPage() {
         </div>
         <h1 className="dsh__h1">Validasi & Riwayat Penarikan Saldo</h1>
         <p className="dsh__sub">
-          Validasi permintaan tarik tunai dari nasabah di meja jaga serta pantau pencairan ke rekening Bank dan E-Wallet.
+          Validasi permintaan penarikan saldo nasabah serta pantau pencairan tunai, transfer bank, dan e-wallet.
         </p>
       </header>
 
@@ -187,7 +201,7 @@ export default function TarikTunaiAdminPage() {
               ? `${totalMenungguValidasi.length} Antrean`
               : "Tidak Ada Antrean"}
           </span>
-          <p className="dsh__statlabel">Menunggu Validasi Petugas</p>
+          <p className="dsh__statlabel">Menunggu Validasi Bendahara</p>
           <p className="dsh__big dsh__big--amber">
             {totalMenungguValidasi.length} Pengajuan
           </p>
@@ -260,7 +274,7 @@ export default function TarikTunaiAdminPage() {
                   <th>Nasabah Penerima</th>
                   <th>Nominal Ditarik</th>
                   <th>Metode & Tujuan</th>
-                  <th>Petugas / Validator</th>
+                  <th>Bendahara / Validator</th>
                   <th>Status & Validasi</th>
                 </tr>
               </thead>
@@ -364,7 +378,7 @@ export default function TarikTunaiAdminPage() {
           <div className="dsh__cardhead">
             <div>
               <span className="dsh__tagbadge" style={{ marginBottom: "4px" }}>
-                Loket Kasir Pos Jaga
+                Loket Kas Bendahara
               </span>
               <h2 className="dsh__h2">Catat Penarikan Langsung</h2>
             </div>
@@ -429,12 +443,12 @@ export default function TarikTunaiAdminPage() {
                 onChange={(e) => {
                   const m = e.target.value as MetodePenarikan;
                   setMetode(m);
-                  if (m === "tunai") setTujuan("Tunai di Pos Meja Timbang");
+                  if (m === "tunai") setTujuan("Tunai di Loket Bendahara");
                   else if (m === "bank") setTujuan("Bank BSI — ");
                   else if (m === "ewallet") setTujuan("DANA — ");
                 }}
               >
-                <option value="tunai">Tunai di Pos Jaga (Tervalidasi Petugas)</option>
+                <option value="tunai">Tunai di Loket Bendahara (Tervalidasi)</option>
                 <option value="bank">Transfer Bank (BSI / BRI / Mandiri / BCA)</option>
                 <option value="ewallet">Saldo E-Wallet (DANA / GoPay / OVO / ShopeePay)</option>
               </select>

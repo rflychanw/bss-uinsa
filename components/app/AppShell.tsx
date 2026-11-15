@@ -134,7 +134,6 @@ const NAV_NASABAH = [
 const NAV_PETUGAS = [
   { href: "/admin", label: "Riwayat Pencatatan", mobileLabel: "Riwayat", icon: "list" },
   { href: "/admin/setoran", label: "Tambah Pencatatan", mobileLabel: "Tambah", icon: "scale" },
-  { href: "/admin/tarik", label: "Tarik Tunai Nasabah", mobileLabel: "Tarik Tunai", icon: "cash" },
   { href: "/admin/aktivasi", label: "Aktivasi Akun", mobileLabel: "Aktivasi", icon: "verify" },
 ];
 
@@ -329,78 +328,7 @@ export default function AppShell({
       </aside>
 
       {/* Isi konten halaman */}
-      <main className="dsh__main">
-        {role === "admin" && (
-          <div
-            className="no-print"
-            style={{
-              maxWidth: "1040px",
-              marginInline: "auto",
-              marginBottom: "18px",
-              padding: "10px 16px",
-              background: "#ffffff",
-              border: "1px solid #e5e3db",
-              borderRadius: "10px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: "12px",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "13px" }}>
-              <span
-                style={{
-                  width: "8px",
-                  height: "8px",
-                  borderRadius: "50%",
-                  background: "#2f7d3a",
-                  display: "inline-block",
-                }}
-              />
-              <span style={{ color: "#5c5546" }}>
-                Login sebagai: <strong style={{ color: "#17140f" }}>{namaUser}</strong>{" "}
-                ({sesi?.email || `${roleAktif}@bss.test`})
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={onKeluar}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                background: "#fef2f2",
-                border: "1px solid #fca5a5",
-                color: "#991b1b",
-                borderRadius: "8px",
-                padding: "6px 14px",
-                fontSize: "13px",
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              <svg
-                viewBox="0 0 20 20"
-                fill="none"
-                aria-hidden="true"
-                width={14}
-                height={14}
-              >
-                <path
-                  d="M7.5 17.5h-3a2 2 0 0 1-2-2V4.5a2 2 0 0 1 2-2h3M13.5 14.5l4-4.5-4-4.5M17.5 10H7.5"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Logout
-            </button>
-          </div>
-        )}
-        {children}
-      </main>
+      <main className="dsh__main">{children}</main>
 
       {/* Navigasi bawah ponsel (Bottom Navigation Bar < 940px) */}
       <nav className="dsh__bottom" aria-label="Menu navigasi bawah ponsel">
