@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   devIndicators: false,
+  experimental: {
+    agentUpgrade: "security",
+  },
 };
 
 export default nextConfig;
