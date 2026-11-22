@@ -1,15 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { hasSupabaseEnv } from "../lib/supabase/client";
+import { muatPricelistPublik } from "../lib/supabase/sync";
 
-const MATERIALS = [
-  { id: "pet", name: "Botol PET bening", price: 4000 },
-  { id: "petw", name: "Botol PET warna", price: 2500 },
-  { id: "cup", name: "Gelas plastik", price: 4500 },
-  { id: "kardus", name: "Kardus", price: 2000 },
-  { id: "hvs", name: "Kertas HVS", price: 2500 },
-  { id: "kaleng", name: "Kaleng aluminium", price: 12000 },
-  { id: "tembaga", name: "Tembaga", price: 54000 },
+const INITIAL_MATERIALS = [
+  { id: "pet", kode: "B1", name: "Botol PET bening bersih", price: 2500 },
+  { id: "petw", kode: "B3", name: "Botol PET warna bersih", price: 1100 },
+  { id: "cup", kode: "C1", name: "Tutup botol minuman", price: 1200 },
+  { id: "kardus", kode: "A1", name: "Kardus bagus", price: 1000 },
+  { id: "hvs", kode: "A4", name: "Kertas HVS", price: 1600 },
+  { id: "kaleng", kode: "D2", name: "Kaleng & aluminium", price: 12000 },
+  { id: "tembaga", kode: "D3", name: "Tembaga kupas", price: 55000 },
 ];
 
 const nf = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 });
@@ -18,17 +20,32 @@ const rp = (n: number) => `Rp ${nf.format(Math.round(n))}`;
 export default function Calculator() {
   const [kg, setKg] = useState<Record<string, number>>({});
   const [sedekah, setSedekah] = useState(false);
+  const [materials, setMaterials] = useState(INITIAL_MATERIALS);
+
+  useEffect(() => {
+    if (!hasSupabaseEnv()) return;
+    muatPricelistPublik().then((rows) => {
+      if (!rows.length) return;
+      const byKode = new Map(rows.map((r) => [r.kode, r]));
+      setMaterials((prev) =>
+        prev.map((m) => {
+          const live = byKode.get(m.kode);
+          return live ? { ...m, name: live.nama, price: live.hargaPerKg } : m;
+        })
+      );
+    });
+  }, []);
 
   const { total, weight } = useMemo(() => {
     let t = 0;
     let w = 0;
-    for (const m of MATERIALS) {
+    for (const m of materials) {
       const v = kg[m.id] ?? 0;
       t += v * m.price;
       w += v;
     }
     return { total: t, weight: w };
-  }, [kg]);
+  }, [kg, materials]);
 
   const step = (id: string, delta: number) =>
     setKg((prev) => {
@@ -50,7 +67,7 @@ export default function Calculator() {
       </div>
 
       <div className="calc__rows">
-        {MATERIALS.map((m) => {
+        {materials.map((m) => {
           const v = kg[m.id] ?? 0;
           return (
             <div className="calc__row" key={m.id}>

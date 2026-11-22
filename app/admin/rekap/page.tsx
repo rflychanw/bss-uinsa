@@ -2,17 +2,19 @@
 
 import { useEffect, useId, useMemo, useState } from "react";
 import {
-  BATCH_PENGEPUL_AWAL,
-  DAFTAR_NASABAH_MASTER,
+  getBatchesPengepul,
+  getDaftarNasabahMaster,
   getDaftarPenarikan,
   getDaftarSetoran,
   getKategoriSampah,
   hitungRingkasanSaldoNasabah,
   kg,
   rp,
+  type BatchPenjualanPengepul,
   type PenarikanUang,
   type SetoranNasabah,
 } from "../../../lib/bss";
+import { subscribeBssDataUpdated } from "../../../lib/supabase/store";
 
 type BarisLaporanPdf = {
   id: string;
@@ -101,12 +103,20 @@ export default function RekapKeuanganAdmin() {
   const [tampilSemua, setTampilSemua] = useState<boolean>(false);
   const [daftarSetoran, setDaftarSetoran] = useState<SetoranNasabah[]>([]);
   const [daftarPenarikan, setDaftarPenarikan] = useState<PenarikanUang[]>([]);
+  const [batches, setBatches] = useState<BatchPenjualanPengepul[]>(() =>
+    getBatchesPengepul()
+  );
 
   const idCari = useId();
 
   useEffect(() => {
-    setDaftarSetoran(getDaftarSetoran());
-    setDaftarPenarikan(getDaftarPenarikan());
+    const segarkan = () => {
+      setDaftarSetoran(getDaftarSetoran());
+      setDaftarPenarikan(getDaftarPenarikan());
+      setBatches(getBatchesPengepul());
+    };
+    segarkan();
+    return subscribeBssDataUpdated(segarkan);
   }, []);
 
   // Format Rupiah standar dokumen akuntansi (contoh: "Rp 17.600,00" atau "Rp 2,50")
@@ -123,7 +133,7 @@ export default function RekapKeuanganAdmin() {
     const list: BarisLaporanPdf[] = [...TRANSAKSI_PDF_RESMI];
 
     // Tambahkan data transaksi dari nasabah sistem terdaftar
-    DAFTAR_NASABAH_MASTER.forEach((nasabah, nIdx) => {
+    getDaftarNasabahMaster().forEach((nasabah, nIdx) => {
       const setoranUser = daftarSetoran.filter((s) => s.nomorNasabah === nasabah.nomor);
       const penarikanUser = daftarPenarikan.filter((p) => p.nomorNasabah === nasabah.nomor);
 
@@ -259,7 +269,7 @@ export default function RekapKeuanganAdmin() {
 
   const barisTampil = tampilSemua ? transaksiTerfilter : transaksiTerfilter.slice(0, 10);
 
-  const kasBssOperasional = BATCH_PENGEPUL_AWAL.reduce(
+  const kasBssOperasional = batches.reduce(
     (sum, b) => sum + (b.selisihKasBss || 0),
     0
   );

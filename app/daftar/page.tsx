@@ -4,6 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthShell from "../../components/app/AuthShell";
 import { beranda, daftar, sesiSekarang } from "../../lib/auth";
+import { hasSupabaseEnv } from "../../lib/supabase/client";
+import {
+  daftarSupabase,
+  sinkronkanDataSupabase,
+} from "../../lib/supabase/sync";
 import {
   konversiGambarKeWebp,
   type HasilKonversiWebp,
@@ -61,9 +66,16 @@ export default function DaftarPage() {
   const [salinVa, setSalinVa] = useState(false);
 
   const [pesanBayar, setPesanBayar] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [sukses, setSukses] = useState<Sukses | null>(null);
 
   useEffect(() => {
+    if (hasSupabaseEnv()) {
+      sinkronkanDataSupabase().then((sesi) => {
+        if (sesi) router.replace(beranda(sesi.role));
+      });
+      return;
+    }
     const sesi = sesiSekarang();
     if (sesi) router.replace(beranda(sesi.role));
   }, [router]);
@@ -191,7 +203,8 @@ export default function DaftarPage() {
     }
   };
 
-  const onKonfirmasiPembayaran = () => {
+  const onKonfirmasiPembayaran = async () => {
+    if (isSubmitting) return;
     setPesanBayar("");
 
     // Verifikasi bukti bayar untuk metode non-tunai
@@ -217,11 +230,12 @@ export default function DaftarPage() {
       return;
     }
 
-    const hasil = daftar({
+    setIsSubmitting(true);
+    const payload = {
       nama,
       email,
       sandi,
-      kategori: "umum",
+      kategori: "umum" as const,
       fakultas: "Umum",
       buktiBayar: buktiBayar?.dataUrl || buktiBss.dataUrl,
       namaFileBukti: buktiBayar?.namaFile || buktiBss.namaFile,
@@ -231,8 +245,13 @@ export default function DaftarPage() {
       namaFileBuktiLab: buktiLab.namaFile,
       tanggalUploadBukti: buktiBayar?.tanggalUpload || buktiBss.tanggalUpload,
       metodeBayar: metode,
-      statusVerifikasi: "menunggu",
-    });
+      statusVerifikasi: "menunggu" as const,
+    };
+
+    const hasil = hasSupabaseEnv()
+      ? await daftarSupabase(payload)
+      : daftar(payload);
+    setIsSubmitting(false);
 
     if (!hasil.ok) {
       setPesan(hasil.pesan);
@@ -1383,8 +1402,11 @@ export default function DaftarPage() {
               type="button"
               className="auth__btn"
               onClick={onKonfirmasiPembayaran}
+              disabled={isSubmitting}
             >
-              Kirim Bukti & Selesaikan Pendaftaran
+              {isSubmitting
+                ? "Mengunggah Bukti & Menyimpan Pendaftaran..."
+                : "Kirim Bukti & Selesaikan Pendaftaran"}
             </button>
             <p
               style={{

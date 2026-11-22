@@ -5,28 +5,44 @@ import { useEffect, useState } from "react";
 import { sesiSekarang, type Sesi } from "../../lib/auth";
 import {
   admin,
-  BATCH_PENGEPUL_AWAL,
+  getBatchesPengepul,
   getDaftarPenarikan,
   getDaftarSetoran,
+  hitungRingkasanSaldoNasabah,
   hitungStatistikMonitoring,
   kg,
-  RIWAYAT_SETORAN_AWAL,
   rp,
+  type BatchPenjualanPengepul,
   type PenarikanUang,
   type SetoranNasabah,
 } from "../../lib/bss";
+import { hasSupabaseEnv } from "../../lib/supabase/client";
+import { subscribeBssDataUpdated } from "../../lib/supabase/store";
 
 export default function BendaharaDashboardPage() {
-  const [sesi, setSesi] = useState<Sesi | null>(null);
-  const [riwayat, setRiwayat] = useState<SetoranNasabah[]>(RIWAYAT_SETORAN_AWAL);
-  const [penarikan, setPenarikan] = useState<PenarikanUang[]>([]);
+  const [, setSesi] = useState<Sesi | null>(null);
+  const [riwayat, setRiwayat] = useState<SetoranNasabah[]>(() =>
+    getDaftarSetoran()
+  );
+  const [penarikan, setPenarikan] = useState<PenarikanUang[]>(() =>
+    getDaftarPenarikan()
+  );
+  const [batches, setBatches] = useState<BatchPenjualanPengepul[]>(() =>
+    getBatchesPengepul()
+  );
   const [statistik, setStatistik] = useState(() => hitungStatistikMonitoring());
 
-  useEffect(() => {
+  const muatUlang = () => {
     setSesi(sesiSekarang());
     setRiwayat(getDaftarSetoran());
     setPenarikan(getDaftarPenarikan());
+    setBatches(getBatchesPengepul());
     setStatistik(hitungStatistikMonitoring());
+  };
+
+  useEffect(() => {
+    muatUlang();
+    return subscribeBssDataUpdated(muatUlang);
   }, []);
 
   const totalGudang = riwayat
@@ -37,10 +53,21 @@ export default function BendaharaDashboardPage() {
     .filter((s) => s.status === "belum_terjual")
     .reduce((s, r) => s + r.estimasiNilai, 0);
 
-  const kasOperasionalBss = BATCH_PENGEPUL_AWAL.reduce(
+  const kasOperasionalBss = batches.reduce(
     (sum, b) => sum + (b.selisihKasBss ?? 0),
     0
   );
+
+  const kewajibanWadiah = hasSupabaseEnv()
+    ? statistik.nasabahList.reduce(
+        (acc, n) => acc + hitungRingkasanSaldoNasabah(n.nomor).saldoTersedia,
+        0
+      )
+    : admin.saldoTerutang;
+
+  const totalBeratTerkelola = hasSupabaseEnv()
+    ? riwayat.reduce((acc, s) => acc + s.beratKg, 0)
+    : admin.beratBulan;
 
   return (
     <div className="dsh__page">
@@ -63,7 +90,7 @@ export default function BendaharaDashboardPage() {
         <div className="dsh__statcard dsh__statcard--primary">
           <span className="dsh__statbadge">Akad Wadiah</span>
           <p className="dsh__statlabel">Kewajiban Tabungan Nasabah</p>
-          <p className="dsh__big dsh__big--green">{rp(admin.saldoTerutang)}</p>
+          <p className="dsh__big dsh__big--green">{rp(kewajibanWadiah)}</p>
           <p className="dsh__statsmall">
             Akumulasi saldo tabungan seluruh nasabah terdaftar ({statistik.totalNasabah} akun)
           </p>
@@ -86,7 +113,7 @@ export default function BendaharaDashboardPage() {
 
         <div className="dsh__statcard">
           <p className="dsh__statlabel">Total Berat Terkelola</p>
-          <p className="dsh__big">{kg(admin.beratBulan)}</p>
+          <p className="dsh__big">{kg(totalBeratTerkelola)}</p>
           <p className="dsh__statsmall">Sejak program BSS FEBI diluncurkan</p>
         </div>
       </div>
@@ -106,7 +133,7 @@ export default function BendaharaDashboardPage() {
             </Link>
           </div>
           <div className="dsh__list">
-            {BATCH_PENGEPUL_AWAL.map((b) => (
+            {batches.map((b) => (
               <div key={b.id} className="dsh__item">
                 <div>
                   <strong>{b.id}</strong> — {b.tanggalJual}

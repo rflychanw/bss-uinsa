@@ -2,55 +2,83 @@
 
 import { useEffect, useId, useState } from "react";
 import {
-  BATCH_PENGEPUL_AWAL,
+  getBatchesPengepul,
   kg,
   rp,
   type BatchPenjualanPengepul,
   type TahapAlur,
 } from "../../../lib/bss";
 import { sesiSekarang, type Sesi } from "../../../lib/auth";
+import { hasSupabaseEnv } from "../../../lib/supabase/client";
+import { subscribeBssDataUpdated } from "../../../lib/supabase/store";
+import { updateTahapPengepulSupabase } from "../../../lib/supabase/sync";
 
 export default function PengepulAdmin() {
   const [sesi, setSesi] = useState<Sesi | null>(null);
-  const [batches, setBatches] =
-    useState<BatchPenjualanPengepul[]>(BATCH_PENGEPUL_AWAL);
+  const [batches, setBatches] = useState<BatchPenjualanPengepul[]>(() =>
+    getBatchesPengepul()
+  );
   const [filterTahap, setFilterTahap] = useState<string>("semua");
   const [batchAktif, setBatchAktif] = useState<BatchPenjualanPengepul>(
-    BATCH_PENGEPUL_AWAL[1]
+    () => getBatchesPengepul()[1] || getBatchesPengepul()[0]
   );
   const [notif, setNotif] = useState<string>("");
 
   useEffect(() => {
-    setSesi(sesiSekarang());
+    const segarkan = () => {
+      setSesi(sesiSekarang());
+      const next = getBatchesPengepul();
+      setBatches(next);
+      setBatchAktif((prev) => {
+        if (!next.length) return prev;
+        return next.find((b) => b.id === prev?.id) || next[1] || next[0];
+      });
+    };
+    segarkan();
+    return subscribeBssDataUpdated(segarkan);
   }, []);
 
   const idTahapSelect = useId();
 
-  const handleUpdateTahap = (
+  const handleUpdateTahap = async (
     batchId: string,
     tahapBaru: TahapAlur
   ) => {
-    const updated = batches.map((b) => {
-      if (b.id !== batchId) return b;
-      let disalurkan = b.totalDisalurkan;
-      let selisih = b.selisihKasBss;
-      if (tahapBaru === "disalurkan_ke_nasabah") {
-        disalurkan = b.penyaluran.reduce((acc, p) => acc + p.hakUang, 0);
-        selisih = b.uangDiterima - disalurkan;
+    if (hasSupabaseEnv()) {
+      const res = await updateTahapPengepulSupabase(batchId, tahapBaru);
+      if (!res.ok) {
+        alert(res.pesan);
+        return;
       }
-      return {
-        ...b,
-        tahap: tahapBaru,
-        totalDisalurkan: disalurkan,
-        selisihKasBss: selisih,
-        tanggalDisalurkan:
-          tahapBaru === "disalurkan_ke_nasabah" ? "28 Okt 2026" : b.tanggalDisalurkan,
-      };
-    });
+      const next = getBatchesPengepul();
+      setBatches(next);
+      const target = next.find((b) => b.id === batchId);
+      if (target) setBatchAktif(target);
+    } else {
+      const updated = batches.map((b) => {
+        if (b.id !== batchId) return b;
+        let disalurkan = b.totalDisalurkan;
+        let selisih = b.selisihKasBss;
+        if (tahapBaru === "disalurkan_ke_nasabah") {
+          disalurkan = b.penyaluran.reduce((acc, p) => acc + p.hakUang, 0);
+          selisih = b.uangDiterima - disalurkan;
+        }
+        return {
+          ...b,
+          tahap: tahapBaru,
+          totalDisalurkan: disalurkan,
+          selisihKasBss: selisih,
+          tanggalDisalurkan:
+            tahapBaru === "disalurkan_ke_nasabah"
+              ? "28 Okt 2026"
+              : b.tanggalDisalurkan,
+        };
+      });
 
-    setBatches(updated);
-    const target = updated.find((b) => b.id === batchId);
-    if (target) setBatchAktif(target);
+      setBatches(updated);
+      const target = updated.find((b) => b.id === batchId);
+      if (target) setBatchAktif(target);
+    }
 
     setNotif(`Status Batch ${batchId} berhasil diperbarui.`);
     setTimeout(() => setNotif(""), 4000);
@@ -60,6 +88,19 @@ export default function PengepulAdmin() {
     filterTahap === "semua"
       ? batches
       : batches.filter((b) => b.tahap === filterTahap);
+
+  if (!batchAktif) {
+    return (
+      <div className="dsh__page">
+        <header className="dsh__head">
+          <h1 className="dsh__h1">Alur Penjualan Pengepul & Penyaluran Dana</h1>
+        </header>
+        <section className="dsh__card">
+          <p className="dsh__empty">Belum ada data batch penjualan pengepul.</p>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="dsh__page">
@@ -159,36 +200,44 @@ export default function PengepulAdmin() {
                 </tr>
               </thead>
               <tbody>
-                {batchAktif.penyaluran.map((p) => {
-                  const totalDana =
-                    batchAktif.totalDisalurkan && batchAktif.totalDisalurkan > 0
-                      ? batchAktif.totalDisalurkan
-                      : batchAktif.penyaluran.reduce((a, b) => a + b.hakUang, 0);
+                {batchAktif.penyaluran.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: "center", padding: "20px", color: "#666" }}>
+                      Belum ada rincian distribusi nasabah yang ditautkan ke batch ini.
+                    </td>
+                  </tr>
+                ) : (
+                  batchAktif.penyaluran.map((p) => {
+                    const totalDana =
+                      batchAktif.totalDisalurkan && batchAktif.totalDisalurkan > 0
+                        ? batchAktif.totalDisalurkan
+                        : batchAktif.penyaluran.reduce((a, b) => a + b.hakUang, 0);
 
-                  return (
-                    <tr key={p.nomorNasabah}>
-                      <td>
-                        <strong>{p.namaNasabah}</strong>
-                        <span className="dsh__subtext">{p.nomorNasabah}</span>
-                      </td>
-                      <td>
-                        <strong>{kg(p.beratKg)}</strong>
-                      </td>
-                      <td>
-                        <span className="dsh__badgepct">{p.proporsiPersen}%</span>
-                        <span className="dsh__subtext">dari {kg(batchAktif.totalBeratKg)}</span>
-                      </td>
-                      <td>
-                        <code style={{ fontSize: "11px", color: "#444" }}>
-                          ({p.beratKg} kg / {batchAktif.totalBeratKg} kg) × {rp(totalDana)}
-                        </code>
-                      </td>
-                      <td>
-                        <strong className="dsh__green">{rp(p.hakUang)}</strong>
-                      </td>
-                    </tr>
-                  );
-                })}
+                    return (
+                      <tr key={p.nomorNasabah}>
+                        <td>
+                          <strong>{p.namaNasabah}</strong>
+                          <span className="dsh__subtext">{p.nomorNasabah}</span>
+                        </td>
+                        <td>
+                          <strong>{kg(p.beratKg)}</strong>
+                        </td>
+                        <td>
+                          <span className="dsh__badgepct">{p.proporsiPersen}%</span>
+                          <span className="dsh__subtext">dari {kg(batchAktif.totalBeratKg)}</span>
+                        </td>
+                        <td>
+                          <code style={{ fontSize: "11px", color: "#444" }}>
+                            ({p.beratKg} kg / {batchAktif.totalBeratKg} kg) × {rp(totalDana)}
+                          </code>
+                        </td>
+                        <td>
+                          <strong className="dsh__green">{rp(p.hakUang)}</strong>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
               <tfoot>
                 <tr style={{ background: "#f7f6f2", fontWeight: 700 }}>

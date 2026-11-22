@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   DAFTAR_NASABAH_MASTER,
+  getDaftarNasabahMaster,
   getDaftarPenarikan,
   getDaftarSetoran,
   kg,
@@ -11,6 +12,7 @@ import {
   type SetoranNasabah,
 } from "../../lib/bss";
 import { sesiSekarang } from "../../lib/auth";
+import { subscribeBssDataUpdated } from "../../lib/supabase/store";
 
 type BarisBukuTabungan = {
   nomorUrut: number;
@@ -92,25 +94,32 @@ export default function LembarBukuTabungan({
   const [filterTipe, setFilterTipe] = useState<"semua" | "kredit" | "debet">("semua");
 
   useEffect(() => {
-    const sesi = sesiSekarang();
-    const targetNomor = nomorNasabahProp || sesi?.nomor || "BSS-0142";
-    const master =
-      DAFTAR_NASABAH_MASTER.find((n) => n.nomor === targetNomor) ||
-      DAFTAR_NASABAH_MASTER[0];
+    const segarkan = () => {
+      const sesi = sesiSekarang();
+      const targetNomor = nomorNasabahProp || sesi?.nomor || "BSS-0142";
+      const listMaster = getDaftarNasabahMaster();
+      const master =
+        listMaster.find((n) => n.nomor === targetNomor) ||
+        DAFTAR_NASABAH_MASTER.find((n) => n.nomor === targetNomor) ||
+        listMaster[0] ||
+        DAFTAR_NASABAH_MASTER[0];
 
-    const sesiFakultas = sesi?.fakultas
-      ? sesi.kategori === "umum"
-        ? "Masyarakat Umum"
-        : `${sesi.fakultas}${sesi.prodi ? ` (${sesi.prodi})` : ""}`
-      : null;
+      const sesiFakultas = sesi?.fakultas
+        ? sesi.kategori === "umum"
+          ? "Masyarakat Umum"
+          : `${sesi.fakultas}${sesi.prodi ? ` (${sesi.prodi})` : ""}`
+        : null;
 
-    setNomorNasabah(targetNomor);
-    setNamaNasabah(namaNasabahProp || sesi?.nama || master.nama);
-    setProdiFakultas(prodiFakultasProp || sesiFakultas || master.fakultas);
+      setNomorNasabah(targetNomor);
+      setNamaNasabah(namaNasabahProp || sesi?.nama || master.nama);
+      setProdiFakultas(prodiFakultasProp || sesiFakultas || master.fakultas);
 
-    setSemuaSetoran(getDaftarSetoran());
-    setSemuaPenarikan(getDaftarPenarikan());
-    setMounted(true);
+      setSemuaSetoran(getDaftarSetoran());
+      setSemuaPenarikan(getDaftarPenarikan());
+      setMounted(true);
+    };
+    segarkan();
+    return subscribeBssDataUpdated(segarkan);
   }, [nomorNasabahProp, namaNasabahProp, prodiFakultasProp]);
 
   // Hitung baris transaksi kronologis lengkap

@@ -4,13 +4,22 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthShell from "../../components/app/AuthShell";
 import {
+  AKUN_AWAL_MASTER,
   AKUN_DEMO,
   beranda,
+  keluar,
   masuk,
   semuaAkun,
   sesiSekarang,
   type Akun,
+  type Sesi,
 } from "../../lib/auth";
+import { hasSupabaseEnv } from "../../lib/supabase/client";
+import {
+  keluarSupabase,
+  masukSupabase,
+  sinkronkanDataSupabase,
+} from "../../lib/supabase/sync";
 
 export default function MasukPage() {
   const router = useRouter();
@@ -19,6 +28,7 @@ export default function MasukPage() {
   const [lihat, setLihat] = useState(false);
   const [pesan, setPesan] = useState("");
   const [kirim, setKirim] = useState(false);
+  const [sesiAktif, setSesiAktif] = useState<Sesi | null>(null);
   const [daftarAkunDemo, setDaftarAkunDemo] = useState<Akun[]>(() =>
     AKUN_DEMO.filter((a) => a.role === "nasabah")
   );
@@ -27,15 +37,19 @@ export default function MasukPage() {
     email?: string;
   } | null>(null);
 
-  /* sudah punya sesi? langsung ke ruangnya */
   useEffect(() => {
-    const sesi = sesiSekarang();
-    if (sesi) router.replace(beranda(sesi.role));
-
-    const semua = semuaAkun();
-    const nasabahDemo = semua.filter((a) => a.role === "nasabah").slice(0, 2);
-    if (nasabahDemo.length > 0) {
-      setDaftarAkunDemo(nasabahDemo);
+    if (hasSupabaseEnv()) {
+      sinkronkanDataSupabase().then((s) => setSesiAktif(s));
+      setDaftarAkunDemo(
+        AKUN_AWAL_MASTER.filter((a) => a.role === "nasabah").slice(0, 2)
+      );
+    } else {
+      setSesiAktif(sesiSekarang());
+      const semua = semuaAkun();
+      const nasabahDemo = semua.filter((a) => a.role === "nasabah").slice(0, 2);
+      if (nasabahDemo.length > 0) {
+        setDaftarAkunDemo(nasabahDemo);
+      }
     }
 
     if (typeof window !== "undefined") {
@@ -50,7 +64,7 @@ export default function MasukPage() {
         if (em) setEmail(em);
       }
     }
-  }, [router]);
+  }, []);
 
   const isiDemo = (akun: Akun) => {
     setEmail(akun.email);
@@ -58,16 +72,21 @@ export default function MasukPage() {
     setPesan("");
   };
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setPesan("");
     setKirim(true);
 
-    const hasil = masuk(email, sandi, {
-      izinkanRole: ["nasabah"],
+    const opsi = {
+      izinkanRole: ["nasabah" as const],
       pesanTolakRole:
         "Halaman ini khusus untuk akun Nasabah. Pengelola internal BSS silakan masuk melalui portal pengelola resmi.",
-    });
+    };
+
+    const hasil = hasSupabaseEnv()
+      ? await masukSupabase(email, sandi, opsi)
+      : masuk(email, sandi, opsi);
+
     if (!hasil.ok) {
       setPesan(hasil.pesan);
       setKirim(false);
@@ -90,6 +109,46 @@ export default function MasukPage() {
       sub="Pantau saldo tabungan sampah, riwayat penimbangan, dan ajukan pencairan dana Anda."
       catatan="Layanan nasabah Bank Sampah Syariah UINSA · Mode demo browser."
     >
+      {sesiAktif ? (
+        <div className="auth__session" role="status">
+          <div>
+            {sesiAktif.role === "nasabah" ? (
+              <>
+                Anda sudah masuk sebagai <strong>{sesiAktif.nama}</strong> ({sesiAktif.nomor}).
+              </>
+            ) : (
+              <>
+                Sesi pengelola (<strong>{sesiAktif.nama}</strong>) masih aktif di browser ini.
+              </>
+            )}
+          </div>
+          <div className="auth__sessionact">
+            {sesiAktif.role === "nasabah" ? (
+              <button
+                type="button"
+                className="auth__sessionbtn"
+                onClick={() => router.push("/nasabah")}
+              >
+                Buka Ruang Nasabah
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="auth__sessionout"
+              onClick={async () => {
+                if (hasSupabaseEnv()) {
+                  await keluarSupabase();
+                } else {
+                  keluar();
+                }
+                setSesiAktif(null);
+              }}
+            >
+              Keluar sesi
+            </button>
+          </div>
+        </div>
+      ) : null}
       {infoVerifikasi && (
         <div
           style={{

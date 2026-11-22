@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { sesiSekarang } from "../../../lib/auth";
 import {
-  DAFTAR_NASABAH_MASTER,
+  getDaftarNasabahMaster,
   hitungRingkasanSaldoNasabah,
   kg,
   MINIMAL_PENARIKAN_RP,
@@ -12,6 +12,7 @@ import {
   rp,
 } from "../../../lib/bss";
 import LembarBukuTabungan from "../../../components/app/LembarBukuTabungan";
+import { subscribeBssDataUpdated } from "../../../lib/supabase/store";
 
 export default function ProfilNasabah() {
   const [nama, setNama] = useState(NASABAH_DEMO.nama);
@@ -21,26 +22,30 @@ export default function ProfilNasabah() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const sesi = sesiSekarang();
-    if (sesi && sesi.role === "nasabah") {
-      setNama(sesi.nama);
-      setNomor(sesi.nomor);
-      setEmail(sesi.email);
-      if (sesi.fakultas) {
-        setProdiFakultas(
-          sesi.kategori === "umum"
-            ? "Masyarakat Umum"
-            : `${sesi.fakultas}${sesi.prodi ? ` (${sesi.prodi})` : ""}`
-        );
+    const segarkan = () => {
+      const sesi = sesiSekarang();
+      if (sesi && sesi.role === "nasabah") {
+        setNama(sesi.nama);
+        setNomor(sesi.nomor);
+        setEmail(sesi.email);
+        if (sesi.fakultas) {
+          setProdiFakultas(
+            sesi.kategori === "umum"
+              ? "Masyarakat Umum"
+              : `${sesi.fakultas}${sesi.prodi ? ` (${sesi.prodi})` : ""}`
+          );
+        }
       }
-    }
-    const master =
-      DAFTAR_NASABAH_MASTER.find((n) => n.nomor === (sesi?.nomor || nomor)) ||
-      DAFTAR_NASABAH_MASTER[0];
-    if (master && (!sesi || !sesi.fakultas)) {
-      setProdiFakultas(master.fakultas);
-    }
-    setMounted(true);
+      const list = getDaftarNasabahMaster();
+      const master =
+        list.find((n) => n.nomor === (sesi?.nomor || nomor)) || list[0];
+      if (master && (!sesi || !sesi.fakultas)) {
+        setProdiFakultas(master.fakultas);
+      }
+      setMounted(true);
+    };
+    segarkan();
+    return subscribeBssDataUpdated(segarkan);
   }, [nomor]);
 
   const ringkasan = mounted
@@ -159,7 +164,9 @@ export default function ProfilNasabah() {
               Data pendaftaran civitas akademika pemegang rekening tabungan syariah.
             </p>
           </div>
-          <span className="dsh__meta">Terdaftar Sejak {NASABAH_DEMO.terdaftarSejak}</span>
+          <span className="dsh__meta">
+            Terdaftar Sejak {sesiSekarang()?.tanggalDaftar || NASABAH_DEMO.terdaftarSejak}
+          </span>
         </div>
 
         <dl className="dsh__ledger">
@@ -176,8 +183,8 @@ export default function ProfilNasabah() {
             <dd>{email}</dd>
           </div>
           <div className="dsh__ledgeritem">
-            <dt>Kategori</dt>
-            <dd>Nasabah Umum</dd>
+            <dt>Kategori / Asal</dt>
+            <dd>{prodiFakultas}</dd>
           </div>
           <div className="dsh__ledgeritem">
             <dt>Skema Akad</dt>

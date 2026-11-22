@@ -8,10 +8,15 @@
  * 4. admin     - Mengakses /admin (monitoring sistem, manajemen akun CRUD, master pricelist)
  */
 
+import { hasSupabaseEnv } from "./supabase/client";
+import { getSupabaseStore } from "./supabase/store";
+
 export type Role = "nasabah" | "petugas" | "bendahara" | "admin";
 export type KategoriNasabah = "umum" | "internal";
 
 export type Akun = {
+  dbId?: string;
+  nasabahDbId?: string;
   email: string;
   sandi: string;
   role: Role;
@@ -39,6 +44,8 @@ export type Akun = {
 };
 
 export type Sesi = {
+  dbId?: string;
+  nasabahDbId?: string;
   email: string;
   nama: string;
   nomor: string;
@@ -266,7 +273,10 @@ export function formatEmailSesuaiRole(rawInput: string, role: Role): string {
 
 /** Mengambil seluruh daftar akun dari penyimpanan master (Nasabah, Petugas, Bendahara, Admin). */
 export function semuaAkun(): Akun[] {
-  if (!ada()) return AKUN_AWAL_MASTER;
+  if (!ada()) return hasSupabaseEnv() ? [] : AKUN_AWAL_MASTER;
+  if (hasSupabaseEnv()) {
+    return getSupabaseStore().akunList;
+  }
   const master = baca<Akun[]>(AKUN_MASTER_KEY);
   if (Array.isArray(master) && master.length > 0) {
     return master;
@@ -808,6 +818,10 @@ export function daftarAkunMenunggu(): Akun[] {
 }
 
 export function sesiSekarang(): Sesi | null {
+  if (hasSupabaseEnv()) {
+    if (!ada()) return null;
+    return getSupabaseStore().sesi;
+  }
   const sesi = baca<Sesi>(SESI_KEY);
   if (!sesi || typeof sesi !== "object") return null;
   const roles: Role[] = ["nasabah", "petugas", "bendahara", "admin"];

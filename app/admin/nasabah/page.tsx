@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { hitungStatistikMonitoring } from "../../../lib/bss";
 import ManajemenAkunCrud from "../../../components/app/ManajemenAkunCrud";
+import { subscribeBssDataUpdated } from "../../../lib/supabase/store";
 
 export default function NasabahAdmin() {
   const [statistik, setStatistik] = useState(() => hitungStatistikMonitoring());
@@ -13,6 +14,7 @@ export default function NasabahAdmin() {
 
   useEffect(() => {
     muatData();
+    return subscribeBssDataUpdated(muatData);
   }, []);
 
   return (

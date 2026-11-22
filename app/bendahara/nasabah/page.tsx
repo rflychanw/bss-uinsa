@@ -9,6 +9,7 @@ import {
   rp,
 } from "../../../lib/bss";
 import LembarBukuTabungan from "../../../components/app/LembarBukuTabungan";
+import { subscribeBssDataUpdated } from "../../../lib/supabase/store";
 
 type NasabahRow = {
   nomor: string;
@@ -56,6 +57,7 @@ export default function NasabahBendaharaPage() {
 
   useEffect(() => {
     muatData();
+    return subscribeBssDataUpdated(muatData);
   }, []);
 
   // Filter Data

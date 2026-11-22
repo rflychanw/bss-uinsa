@@ -12,6 +12,9 @@ import {
   verifikasiSetoran,
   type SetoranNasabah,
 } from "../../lib/bss";
+import { hasSupabaseEnv } from "../../lib/supabase/client";
+import { subscribeBssDataUpdated } from "../../lib/supabase/store";
+import { verifikasiSetoranSupabase } from "../../lib/supabase/sync";
 
 export default function PetugasDashboardPage() {
   const [sesi, setSesi] = useState<Sesi | null>(null);
@@ -21,7 +24,9 @@ export default function PetugasDashboardPage() {
   const [filterHari, setFilterHari] = useState<string>("semua");
   const [filterBulan, setFilterBulan] = useState<string>("semua");
   const [filterTahun, setFilterTahun] = useState<string>("semua");
-  const [riwayat, setRiwayat] = useState<SetoranNasabah[]>(RIWAYAT_SETORAN_AWAL);
+  const [riwayat, setRiwayat] = useState<SetoranNasabah[]>(() =>
+    getDaftarSetoran()
+  );
   const [suksesMsg, setSuksesMsg] = useState<string | null>(null);
   const [tampilSemuaPetugas, setTampilSemuaPetugas] = useState(false);
   const [statistik, setStatistik] = useState(() => hitungStatistikMonitoring());
@@ -34,12 +39,22 @@ export default function PetugasDashboardPage() {
 
   useEffect(() => {
     muatUlangData();
+    return subscribeBssDataUpdated(muatUlangData);
   }, []);
 
-  const handleVerifikasiItem = (item: SetoranNasabah) => {
-    const namaPetugas = sesi?.nama || "Ahmad Fauzi (Petugas Piket)";
-    const updated = verifikasiSetoran(item.id, namaPetugas);
-    setRiwayat(updated);
+  const handleVerifikasiItem = async (item: SetoranNasabah) => {
+    if (hasSupabaseEnv()) {
+      const res = await verifikasiSetoranSupabase(item.id);
+      if (!res.ok) {
+        alert(res.pesan);
+        return;
+      }
+      muatUlangData();
+    } else {
+      const namaPetugas = sesi?.nama || "Ahmad Fauzi (Petugas Piket)";
+      const updated = verifikasiSetoran(item.id, namaPetugas);
+      setRiwayat(updated);
+    }
     setSuksesMsg(
       `Setoran ${item.id} (${rp(item.estimasiNilai)}) atas nama ${item.namaNasabah} berhasil DIVERIFIKASI oleh Petugas Jaga dan langsung masuk ke Saldo Valid Nasabah.`
     );

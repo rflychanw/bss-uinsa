@@ -9,6 +9,9 @@ import {
   rp,
   type JenisSampah,
 } from "../../../lib/bss";
+import { hasSupabaseEnv } from "../../../lib/supabase/client";
+import { subscribeBssDataUpdated } from "../../../lib/supabase/store";
+import { muatPricelistPublik } from "../../../lib/supabase/sync";
 
 const KATEGORI_FILTER = [
   { id: "Semua", label: "Semua" },
@@ -19,12 +22,18 @@ const KATEGORI_FILTER = [
 ];
 
 export default function KalkulatorNasabahPage() {
-  const [pricelist, setPricelist] = useState<JenisSampah[]>(PRICELIST_AWAL);
+  const [pricelist, setPricelist] = useState<JenisSampah[]>(() => getPricelist());
   const [kategoriAktif, setKategoriAktif] = useState<string>("Semua");
   const [tampilSemua, setTampilSemua] = useState<boolean>(false);
 
   useEffect(() => {
     setPricelist(getPricelist());
+    if (hasSupabaseEnv()) {
+      muatPricelistPublik().then(() => setPricelist(getPricelist()));
+    }
+    return subscribeBssDataUpdated(() => {
+      setPricelist(getPricelist());
+    });
   }, []);
 
   const daftarTerfilter = useMemo(() => {

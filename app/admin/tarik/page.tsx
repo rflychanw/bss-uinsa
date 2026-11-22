@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useState } from "react";
 import {
-  DAFTAR_NASABAH_MASTER,
   formatMetodePenarikan,
+  getDaftarNasabahMaster,
   getDaftarPenarikan,
   hitungRingkasanSaldoNasabah,
   MINIMAL_PENARIKAN_RP,
@@ -15,15 +15,25 @@ import {
   type PenarikanUang,
 } from "../../../lib/bss";
 import { beranda, sesiSekarang, type Sesi } from "../../../lib/auth";
+import { hasSupabaseEnv } from "../../../lib/supabase/client";
+import { subscribeBssDataUpdated } from "../../../lib/supabase/store";
+import {
+  sinkronkanDataSupabase,
+  tambahPenarikanSupabase,
+  validasiPenarikanSupabase,
+} from "../../../lib/supabase/sync";
 
 export default function TarikTunaiAdminPage() {
   const router = useRouter();
   const [sesi, setSesi] = useState<Sesi | null>(null);
   const [siap, setSiap] = useState<boolean>(false);
   const [daftar, setDaftar] = useState<PenarikanUang[]>([]);
+  const [daftarNasabah, setDaftarNasabah] = useState(() =>
+    getDaftarNasabahMaster()
+  );
   const [cari, setCari] = useState<string>("");
   const [nasabahNomor, setNasabahNomor] = useState<string>(
-    DAFTAR_NASABAH_MASTER[0].nomor
+    () => getDaftarNasabahMaster()[0]?.nomor || ""
   );
   const [nominal, setNominal] = useState<number>(10000);
   const [metode, setMetode] = useState<MetodePenarikan>("tunai");
@@ -43,24 +53,49 @@ export default function TarikTunaiAdminPage() {
 
   /* Halaman kas & penarikan saldo dibuka untuk Bendahara & Admin. */
   useEffect(() => {
-    const s = sesiSekarang();
-    if (!s || (s.role !== "bendahara" && s.role !== "admin")) {
-      router.replace(s ? beranda(s.role) : "/portal-bss");
-      return;
-    }
-    setSesi(s);
-    setDaftar(getDaftarPenarikan());
-    setSiap(true);
+    let aktif = true;
+    const segarkan = () => {
+      const s = sesiSekarang();
+      if (!s) return;
+      setSesi(s);
+      setDaftar(getDaftarPenarikan());
+      const master = getDaftarNasabahMaster();
+      setDaftarNasabah(master);
+      setNasabahNomor((prev) =>
+        master.some((n) => n.nomor === prev) ? prev : master[0]?.nomor || ""
+      );
+    };
+
+    const init = async () => {
+      const s = hasSupabaseEnv()
+        ? await sinkronkanDataSupabase()
+        : sesiSekarang();
+      if (!aktif) return;
+      if (!s || (s.role !== "bendahara" && s.role !== "admin")) {
+        router.replace(s ? beranda(s.role) : "/portal-bss");
+        return;
+      }
+      segarkan();
+      setSiap(true);
+    };
+
+    init();
+    const unsub = subscribeBssDataUpdated(segarkan);
+    return () => {
+      aktif = false;
+      unsub();
+    };
   }, [router]);
 
   const nasabahTerpilih =
-    DAFTAR_NASABAH_MASTER.find((n) => n.nomor === nasabahNomor) ||
-    DAFTAR_NASABAH_MASTER[0];
+    daftarNasabah.find((n) => n.nomor === nasabahNomor) || daftarNasabah[0];
 
   const ringkasanNasabahTerpilih = useMemo(() => {
-    return hitungRingkasanSaldoNasabah(nasabahNomor);
+    return nasabahNomor
+      ? hitungRingkasanSaldoNasabah(nasabahNomor)
+      : { saldoTersedia: 0 };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nasabahNomor, daftar]);
+  }, [nasabahNomor, daftar, daftarNasabah]);
 
   const totalDitarikSelesai = useMemo(() => {
     return daftar
@@ -102,18 +137,31 @@ export default function TarikTunaiAdminPage() {
     );
   }, [daftar, cari, filterStatus]);
 
-  const handleValidasi = (item: PenarikanUang) => {
-    const namaBendahara = sesi?.nama || "Siti Nurhaliza (Bendahara)";
-    const updated = validasiPenarikanTunai(item.id, namaBendahara);
-    setDaftar(updated);
+  const handleValidasi = async (item: PenarikanUang) => {
+    if (hasSupabaseEnv()) {
+      const res = await validasiPenarikanSupabase(item.id);
+      if (!res.ok) {
+        alert(res.pesan);
+        return;
+      }
+      setDaftar(getDaftarPenarikan());
+    } else {
+      const namaBendahara = sesi?.nama || "Siti Nurhaliza (Bendahara)";
+      const updated = validasiPenarikanTunai(item.id, namaBendahara);
+      setDaftar(updated);
+    }
     setNotif(
       `Penarikan ${item.id} sebesar ${rp(item.nominal)} (${formatMetodePenarikan(item.metode)}) untuk ${item.namaNasabah} (${item.nomorNasabah}) berhasil DIVALIDASI oleh Bendahara.`
     );
     setTimeout(() => setNotif(""), 6000);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!nasabahTerpilih) {
+      alert("Belum ada nasabah yang dipilih.");
+      return;
+    }
     if (nominal < MINIMAL_PENARIKAN_RP) {
       alert(`Minimal penarikan saldo adalah ${rp(MINIMAL_PENARIKAN_RP)}.`);
       return;
@@ -127,30 +175,51 @@ export default function TarikTunaiAdminPage() {
       return;
     }
 
-    const tanggalHariIni = new Intl.DateTimeFormat("id-ID", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    }).format(new Date());
+    const tujuanFinal =
+      metode === "tunai"
+        ? "Tunai di Loket Bendahara"
+        : tujuan ||
+          (metode === "ewallet"
+            ? "E-Wallet Nasabah"
+            : "Rekening Bank Nasabah");
 
-    const namaBendahara = sesi?.nama || "Siti Nurhaliza (Bendahara)";
+    if (hasSupabaseEnv()) {
+      const res = await tambahPenarikanSupabase({
+        nomorNasabah: nasabahTerpilih.nomor,
+        nominal,
+        metode,
+        tujuan: tujuanFinal,
+        catatan,
+        status: "selesai",
+      });
+      if (!res.ok) {
+        alert(res.pesan);
+        return;
+      }
+      setDaftar(getDaftarPenarikan());
+    } else {
+      const tanggalHariIni = new Intl.DateTimeFormat("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(new Date());
 
-    tambahPenarikan({
-      nomorNasabah: nasabahTerpilih.nomor,
-      namaNasabah: nasabahTerpilih.nama,
-      tanggal: tanggalHariIni,
-      nominal,
-      metode,
-      tujuan:
-        metode === "tunai"
-          ? "Tunai di Loket Bendahara"
-          : tujuan || (metode === "ewallet" ? "E-Wallet Nasabah" : "Rekening Bank Nasabah"),
-      catatan,
-      status: "selesai",
-      petugas: namaBendahara,
-    });
+      const namaBendahara = sesi?.nama || "Siti Nurhaliza (Bendahara)";
 
-    setDaftar(getDaftarPenarikan());
+      tambahPenarikan({
+        nomorNasabah: nasabahTerpilih.nomor,
+        namaNasabah: nasabahTerpilih.nama,
+        tanggal: tanggalHariIni,
+        nominal,
+        metode,
+        tujuan: tujuanFinal,
+        catatan,
+        status: "selesai",
+        petugas: namaBendahara,
+      });
+
+      setDaftar(getDaftarPenarikan());
+    }
     setNotif(
       `Penarikan ${rp(nominal)} (${formatMetodePenarikan(metode)}) atas nama ${
         nasabahTerpilih.nama
@@ -399,7 +468,7 @@ export default function TarikTunaiAdminPage() {
                 value={nasabahNomor}
                 onChange={(e) => setNasabahNomor(e.target.value)}
               >
-                {DAFTAR_NASABAH_MASTER.map((n) => {
+                {daftarNasabah.map((n) => {
                   const sld = hitungRingkasanSaldoNasabah(n.nomor).saldoTersedia;
                   return (
                     <option key={n.nomor} value={n.nomor}>

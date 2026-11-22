@@ -2,6 +2,9 @@
 
 import { useEffect, useId, useMemo, useState } from "react";
 import { getPricelist, PRICELIST_AWAL, rp, type JenisSampah } from "../../lib/bss";
+import { hasSupabaseEnv } from "../../lib/supabase/client";
+import { subscribeBssDataUpdated } from "../../lib/supabase/store";
+import { muatPricelistPublik } from "../../lib/supabase/sync";
 
 export interface ItemKalkulatorInput {
   uid: string;
@@ -34,10 +37,18 @@ export default function KalkulatorPintar({
     estimasiRp: number;
   }) => void;
 }) {
-  const [daftarPricelist, setDaftarPricelist] = useState<JenisSampah[]>(PRICELIST_AWAL);
+  const [daftarPricelist, setDaftarPricelist] = useState<JenisSampah[]>(() =>
+    getPricelist()
+  );
 
   useEffect(() => {
     setDaftarPricelist(getPricelist());
+    if (hasSupabaseEnv()) {
+      muatPricelistPublik().then(() => setDaftarPricelist(getPricelist()));
+    }
+    return subscribeBssDataUpdated(() => {
+      setDaftarPricelist(getPricelist());
+    });
   }, []);
 
   const [items, setItems] = useState<ItemKalkulatorInput[]>([

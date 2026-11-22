@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import KalkulatorPintar, { type ItemKalkulatorHasil } from "../../../components/app/KalkulatorPintar";
 import {
-  DAFTAR_NASABAH_MASTER,
   getDaftarNasabahMaster,
   getDaftarSetoran,
   kg,
@@ -14,27 +13,34 @@ import {
   type SetoranNasabah,
 } from "../../../lib/bss";
 import { sesiSekarang } from "../../../lib/auth";
+import { hasSupabaseEnv } from "../../../lib/supabase/client";
+import { subscribeBssDataUpdated } from "../../../lib/supabase/store";
+import { tambahBanyakSetoranSupabase } from "../../../lib/supabase/sync";
 
 export default function SetoranAdmin() {
   const [daftarNasabah, setDaftarNasabah] = useState(() =>
     getDaftarNasabahMaster()
   );
   const [nasabahTerpilih, setNasabahTerpilih] = useState(
-    DAFTAR_NASABAH_MASTER[0].nomor
+    () => getDaftarNasabahMaster()[0]?.nomor || ""
   );
   const [suksesMsg, setSuksesMsg] = useState<string>("");
 
   const idSelectNasabah = useId();
 
   useEffect(() => {
-    const list = getDaftarNasabahMaster();
-    setDaftarNasabah(list);
-    if (list.length > 0) {
-      setNasabahTerpilih(list[0].nomor);
-    }
+    const segarkan = () => {
+      const list = getDaftarNasabahMaster();
+      setDaftarNasabah(list);
+      setNasabahTerpilih((prev) =>
+        list.some((n) => n.nomor === prev) ? prev : list[0]?.nomor || ""
+      );
+    };
+    segarkan();
+    return subscribeBssDataUpdated(segarkan);
   }, []);
 
-  const handleSimpanSetoran = (data: {
+  const handleSimpanSetoran = async (data: {
     items?: ItemKalkulatorHasil[];
     langsungVerifikasi?: boolean;
     jenis: JenisSampah;
@@ -63,30 +69,59 @@ export default function SetoranAdmin() {
       daftarNasabah.find((n) => n.nomor === nasabahTerpilih) ||
       daftarNasabah[0];
 
-    const sesi = sesiSekarang();
-    const namaPencatat = sesi?.nama || "Ahmad Fauzi (Petugas Piket)";
-    const statusVerif = "menunggu_verifikasi";
+    if (!targetNasabah) {
+      alert("Pilih nasabah terlebih dahulu.");
+      return;
+    }
 
-    const tanggalHariIni = "09 Nov 2026";
+    if (hasSupabaseEnv()) {
+      const res = await tambahBanyakSetoranSupabase(
+        validItems.map((it) => ({
+          jenisKode: it.jenis.kode || it.jenis.id,
+          beratKg: it.beratKg,
+          jumlahSatuan: it.jumlahSatuan,
+          estimasiNilai: it.estimasiRp,
+        })),
+        targetNasabah.nomor,
+        Boolean(data.langsungVerifikasi)
+      );
+      if (!res.ok) {
+        alert(res.pesan);
+        return;
+      }
+      setDaftarNasabah(getDaftarNasabahMaster());
+    } else {
+      const sesi = sesiSekarang();
+      const namaPencatat = sesi?.nama || "Ahmad Fauzi (Petugas Piket)";
+      const statusVerif = data.langsungVerifikasi
+        ? "terverifikasi"
+        : "menunggu_verifikasi";
 
-    const currentLen = getDaftarSetoran().length;
-    const newEntries: SetoranNasabah[] = validItems.map((it, idx) => ({
-      id: `S-0${914 + currentLen + idx}`,
-      nomorNasabah: targetNasabah.nomor,
-      namaNasabah: targetNasabah.nama,
-      tanggal: tanggalHariIni,
-      jenisSampahId: it.jenis.id,
-      jenisSampahNama: `${it.jenis.kode} · ${it.jenis.nama}`,
-      beratKg: it.beratKg,
-      jumlahSatuan: it.jumlahSatuan,
-      estimasiNilai: it.estimasiRp,
-      status: "belum_terjual",
-      statusVerifikasi: statusVerif,
-      dicatatOleh: namaPencatat,
-    }));
+      const tanggalHariIni = new Intl.DateTimeFormat("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(new Date());
 
-    tambahBanyakSetoranBaru(newEntries);
-    setDaftarNasabah(getDaftarNasabahMaster());
+      const currentLen = getDaftarSetoran().length;
+      const newEntries: SetoranNasabah[] = validItems.map((it, idx) => ({
+        id: `S-0${914 + currentLen + idx}`,
+        nomorNasabah: targetNasabah.nomor,
+        namaNasabah: targetNasabah.nama,
+        tanggal: tanggalHariIni,
+        jenisSampahId: it.jenis.id,
+        jenisSampahNama: `${it.jenis.kode} · ${it.jenis.nama}`,
+        beratKg: it.beratKg,
+        jumlahSatuan: it.jumlahSatuan,
+        estimasiNilai: it.estimasiRp,
+        status: "belum_terjual",
+        statusVerifikasi: statusVerif,
+        dicatatOleh: namaPencatat,
+      }));
+
+      tambahBanyakSetoranBaru(newEntries);
+      setDaftarNasabah(getDaftarNasabahMaster());
+    }
 
     const totalEst = validItems.reduce((acc, c) => acc + c.estimasiRp, 0);
     const totalKgVal = validItems.reduce((acc, c) => acc + c.beratKg, 0);

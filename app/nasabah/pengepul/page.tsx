@@ -2,18 +2,26 @@
 
 import { useEffect, useState } from "react";
 import {
-  BATCH_PENGEPUL_AWAL,
+  getBatchesPengepul,
   kg,
   type BatchPenjualanPengepul,
 } from "../../../lib/bss";
 import { sesiSekarang, type Sesi } from "../../../lib/auth";
+import { subscribeBssDataUpdated } from "../../../lib/supabase/store";
 
 export default function PengepulNasabah() {
   const [sesi, setSesi] = useState<Sesi | null>(null);
-  const [batches] = useState<BatchPenjualanPengepul[]>(BATCH_PENGEPUL_AWAL);
+  const [batches, setBatches] = useState<BatchPenjualanPengepul[]>(() =>
+    getBatchesPengepul()
+  );
 
   useEffect(() => {
-    setSesi(sesiSekarang());
+    const segarkan = () => {
+      setSesi(sesiSekarang());
+      setBatches(getBatchesPengepul());
+    };
+    segarkan();
+    return subscribeBssDataUpdated(segarkan);
   }, []);
 
   return (

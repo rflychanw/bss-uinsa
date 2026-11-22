@@ -5,11 +5,19 @@ import { useRouter } from "next/navigation";
 import {
   AKUN_DEMO,
   beranda,
+  keluar,
   masuk,
   semuaAkun,
   sesiSekarang,
   type Akun,
+  type Sesi,
 } from "../../lib/auth";
+import { hasSupabaseEnv } from "../../lib/supabase/client";
+import {
+  keluarSupabase,
+  masukSupabase,
+  sinkronkanDataSupabase,
+} from "../../lib/supabase/sync";
 
 const ROLE_LABEL: Record<string, string> = {
   admin: "ADMIN",
@@ -24,16 +32,19 @@ export default function PortalBssPage() {
   const [lihat, setLihat] = useState(false);
   const [pesan, setPesan] = useState("");
   const [kirim, setKirim] = useState(false);
+  const [sesiAktif, setSesiAktif] = useState<Sesi | null>(null);
   const [akunStafDemo, setAkunStafDemo] = useState<Akun[]>(() =>
     AKUN_DEMO.filter((a) => a.role !== "nasabah")
   );
 
   useEffect(() => {
-    const sesi = sesiSekarang();
-    if (sesi) {
-      router.replace(beranda(sesi.role));
+    if (hasSupabaseEnv()) {
+      sinkronkanDataSupabase().then((s) => setSesiAktif(s));
+      setAkunStafDemo(AKUN_DEMO.filter((a) => a.role !== "nasabah"));
       return;
     }
+
+    setSesiAktif(sesiSekarang());
 
     const semua = semuaAkun();
     const pilihan: Akun[] = [];
@@ -44,7 +55,7 @@ export default function PortalBssPage() {
     if (pilihan.length > 0) {
       setAkunStafDemo(pilihan);
     }
-  }, [router]);
+  }, []);
 
   const peranTerdeteksi = useMemo(() => {
     const clean = email.trim().toLowerCase();
@@ -67,16 +78,20 @@ export default function PortalBssPage() {
     setPesan("");
   };
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setPesan("");
     setKirim(true);
 
-    const hasil = masuk(email, sandi, {
-      izinkanRole: ["admin", "bendahara", "petugas"],
+    const opsi = {
+      izinkanRole: ["admin" as const, "bendahara" as const, "petugas" as const],
       pesanTolakRole:
         "Akun nasabah tidak memiliki otorisasi di Portal Pengelola BSS. Silakan masuk melalui halaman masuk nasabah.",
-    });
+    };
+
+    const hasil = hasSupabaseEnv()
+      ? await masukSupabase(email, sandi, opsi)
+      : masuk(email, sandi, opsi);
 
     if (!hasil.ok) {
       setPesan(hasil.pesan);
@@ -174,6 +189,48 @@ export default function PortalBssPage() {
                 Administrator Sistem BSS.
               </p>
             </header>
+
+            {sesiAktif ? (
+              <div className="auth__session" role="status">
+                <div>
+                  {sesiAktif.role === "nasabah" ? (
+                    <>
+                      Sesi nasabah (<strong>{sesiAktif.nama}</strong>) masih aktif di browser ini.
+                    </>
+                  ) : (
+                    <>
+                      Sesi aktif: <strong>{sesiAktif.nama}</strong> (
+                      {ROLE_LABEL[sesiAktif.role] || sesiAktif.role.toUpperCase()}).
+                    </>
+                  )}
+                </div>
+                <div className="auth__sessionact">
+                  {sesiAktif.role !== "nasabah" ? (
+                    <button
+                      type="button"
+                      className="auth__sessionbtn"
+                      onClick={() => router.push(beranda(sesiAktif.role))}
+                    >
+                      Buka dashboard
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="auth__sessionout"
+                    onClick={async () => {
+                      if (hasSupabaseEnv()) {
+                        await keluarSupabase();
+                      } else {
+                        keluar();
+                      }
+                      setSesiAktif(null);
+                    }}
+                  >
+                    Keluar sesi
+                  </button>
+                </div>
+              </div>
+            ) : null}
 
             <form className="auth__fields" onSubmit={onSubmit} noValidate>
               <div className="auth__field">

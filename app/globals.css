@@ -2520,3 +2520,59 @@ section[id] {
   line-height: 1.5;
   color: var(--ink-soft);
 }
+
+.auth__session {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  padding: 12px 14px;
+  background: var(--paper);
+  border: 1px solid rgba(18, 48, 29, 0.22);
+  border-left: 3px solid var(--green-deep);
+  font-size: 0.85rem;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.auth__sessionact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth__sessionbtn {
+  background: var(--green-deep);
+  color: var(--paper);
+  border: none;
+  border-radius: 999px;
+  padding: 6px 13px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s var(--ease);
+}
+
+.auth__sessionbtn:hover {
+  background: var(--ink);
+}
+
+.auth__sessionout {
+  background: transparent;
+  color: #a31c1c;
+  border: 1px solid rgba(163, 28, 28, 0.35);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s var(--ease);
+}
+
+.auth__sessionout:hover {
+  background: #fbf0f0;
+}

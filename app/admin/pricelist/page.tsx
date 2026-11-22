@@ -8,12 +8,24 @@ import {
   simpanPricelist,
   type JenisSampah,
 } from "../../../lib/bss";
+import { hasSupabaseEnv } from "../../../lib/supabase/client";
+import { subscribeBssDataUpdated } from "../../../lib/supabase/store";
+import {
+  tambahJenisSampahSupabase,
+  updateHargaPricelistSupabase,
+} from "../../../lib/supabase/sync";
 
 export default function PricelistAdmin() {
-  const [pricelist, setPricelist] = useState<JenisSampah[]>(PRICELIST_AWAL);
-  const [selectedId, setSelectedId] = useState<string>(PRICELIST_AWAL[0].id);
-  const [hargaEdit, setHargaEdit] = useState<number>(PRICELIST_AWAL[0].hargaPerKg);
-  const [satuanEdit, setSatuanEdit] = useState<string>(PRICELIST_AWAL[0].satuan || "kg");
+  const [pricelist, setPricelist] = useState<JenisSampah[]>(() => getPricelist());
+  const [selectedId, setSelectedId] = useState<string>(
+    () => getPricelist()[0]?.id || PRICELIST_AWAL[0].id
+  );
+  const [hargaEdit, setHargaEdit] = useState<number>(
+    () => getPricelist()[0]?.hargaPerKg || PRICELIST_AWAL[0].hargaPerKg
+  );
+  const [satuanEdit, setSatuanEdit] = useState<string>(
+    () => getPricelist()[0]?.satuan || "kg"
+  );
 
   // State Tambah Barang Baru
   const [namaBaru, setNamaBaru] = useState<string>("");
@@ -37,13 +49,20 @@ export default function PricelistAdmin() {
   const idSatuanBaru = useId();
 
   useEffect(() => {
-    const list = getPricelist();
-    setPricelist(list);
-    if (list.length > 0) {
-      setSelectedId(list[0].id);
-      setHargaEdit(list[0].hargaPerKg);
-      setSatuanEdit(list[0].satuan || "kg");
-    }
+    const segarkan = () => {
+      const list = getPricelist();
+      setPricelist(list);
+      if (list.length > 0) {
+        setSelectedId((prev) => {
+          const cur = list.find((p) => p.id === prev) || list[0];
+          setHargaEdit(cur.hargaPerKg);
+          setSatuanEdit(cur.satuan || "kg");
+          return cur.id;
+        });
+      }
+    };
+    segarkan();
+    return subscribeBssDataUpdated(segarkan);
   }, []);
 
   const handlePilihEdit = (id: string) => {
@@ -55,30 +74,42 @@ export default function PricelistAdmin() {
     }
   };
 
-  const handleUpdateHarga = (e: React.FormEvent) => {
+  const handleUpdateHarga = async (e: React.FormEvent) => {
     e.preventDefault();
     if (hargaEdit <= 0) {
       alert("Harga harus lebih besar dari Rp 0.");
       return;
     }
 
-    const updated = pricelist.map((p) =>
-      p.id === selectedId
-        ? {
-            ...p,
-            hargaPerKg: hargaEdit,
-            updateTerakhir: "Hari ini",
-          }
-        : p
-    );
-    setPricelist(updated);
-    simpanPricelist(updated);
     const itemTarget = pricelist.find((p) => p.id === selectedId);
+    if (hasSupabaseEnv()) {
+      const res = await updateHargaPricelistSupabase(
+        itemTarget?.kode || selectedId,
+        hargaEdit
+      );
+      if (!res.ok) {
+        alert(res.pesan);
+        return;
+      }
+      setPricelist(getPricelist());
+    } else {
+      const updated = pricelist.map((p) =>
+        p.id === selectedId
+          ? {
+              ...p,
+              hargaPerKg: hargaEdit,
+              updateTerakhir: "Hari ini",
+            }
+          : p
+      );
+      setPricelist(updated);
+      simpanPricelist(updated);
+    }
     setPesan(`Harga acuan "${itemTarget?.kode} · ${itemTarget?.nama}" berhasil diperbarui menjadi ${rp(hargaEdit)}/${satuanEdit}.`);
     setTimeout(() => setPesan(""), 4000);
   };
 
-  const handleTambahJenis = (e: React.FormEvent) => {
+  const handleTambahJenis = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!namaBaru.trim() || hargaBaru <= 0) {
       alert("Nama barang dan harga acuan wajib diisi.");
@@ -109,9 +140,25 @@ export default function PricelistAdmin() {
       updateTerakhir: "Hari ini",
     };
 
-    const updated = [...pricelist, baru];
-    setPricelist(updated);
-    simpanPricelist(updated);
+    if (hasSupabaseEnv()) {
+      const res = await tambahJenisSampahSupabase({
+        kode: baru.kode,
+        nama: baru.nama,
+        jenis: baru.jenis || jenisBaru,
+        satuan: baru.satuan,
+        hargaPerKg: baru.hargaPerKg,
+        deskripsi: baru.deskripsi,
+      });
+      if (!res.ok) {
+        alert(res.pesan);
+        return;
+      }
+      setPricelist(getPricelist());
+    } else {
+      const updated = [...pricelist, baru];
+      setPricelist(updated);
+      simpanPricelist(updated);
+    }
     setPesan(`Barang baru "${baru.kode} · ${baru.nama}" (${baru.jenis}) berhasil ditambahkan.`);
     setNamaBaru("");
     setKodeBaru("");

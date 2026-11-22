@@ -7,9 +7,16 @@ import {
   verifikasiAkun,
   type Akun,
 } from "../../../lib/auth";
+import { hasSupabaseEnv } from "../../../lib/supabase/client";
+import { subscribeBssDataUpdated } from "../../../lib/supabase/store";
+import {
+  ambilSignedUrlBukti,
+  verifikasiNasabahSupabase,
+} from "../../../lib/supabase/sync";
 
 export default function AktivasiAkunPage() {
   const [semua, setSemua] = useState<Akun[]>([]);
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [modalBukti, setModalBukti] = useState<{
     nama: string;
     nomor: string;
@@ -25,21 +32,49 @@ export default function AktivasiAkunPage() {
   const [pesan, setPesan] = useState<{ tipe: "sukses" | "info"; teks: string } | null>(null);
   const [cari, setCari] = useState<string>("");
 
+  const resolveSrc = (val?: string) => {
+    if (!val) return undefined;
+    if (val.startsWith("data:") || val.startsWith("http")) return val;
+    return signedUrls[val];
+  };
+
   const muatData = () => {
     const data = akunLokal();
     setSemua(data);
+    if (hasSupabaseEnv()) {
+      const paths = data
+        .filter((a) => a.statusVerifikasi === "menunggu")
+        .flatMap((a) => [a.buktiBayar, a.buktiFollowBss, a.buktiFollowLab]);
+      if (paths.some(Boolean)) {
+        ambilSignedUrlBukti(paths).then((urls) => {
+          if (Object.keys(urls).length > 0) {
+            setSignedUrls((prev) => ({ ...prev, ...urls }));
+          }
+        });
+      }
+    }
   };
 
   useEffect(() => {
     muatData();
+    return subscribeBssDataUpdated(muatData);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const antrean = semua.filter((a) => a.statusVerifikasi === "menunggu");
   const aktif = semua.filter((a) => a.statusVerifikasi === "aktif");
   const ditolak = semua.filter((a) => a.statusVerifikasi === "ditolak");
 
-  const handleVerifikasi = (a: Akun) => {
-    verifikasiAkun(a.email);
+  const handleVerifikasi = async (a: Akun) => {
+    if (hasSupabaseEnv()) {
+      const ok = await verifikasiNasabahSupabase(a.email, "aktif");
+      if (!ok) {
+        alert("Gagal memverifikasi akun nasabah di Supabase.");
+        return;
+      }
+    } else {
+      verifikasiAkun(a.email);
+    }
     muatData();
     if (modalBukti?.nomor === a.nomor) setModalBukti(null);
     setPesan({
@@ -49,13 +84,21 @@ export default function AktivasiAkunPage() {
     setTimeout(() => setPesan(null), 6000);
   };
 
-  const handleTolak = (a: Akun) => {
+  const handleTolak = async (a: Akun) => {
     const konfirm = window.confirm(
       `Yakin ingin menolak pendaftaran nasabah ${a.nama} (${a.nomor})?`
     );
     if (!konfirm) return;
 
-    tolakAkun(a.email);
+    if (hasSupabaseEnv()) {
+      const ok = await verifikasiNasabahSupabase(a.email, "ditolak");
+      if (!ok) {
+        alert("Gagal menolak akun nasabah di Supabase.");
+        return;
+      }
+    } else {
+      tolakAkun(a.email);
+    }
     muatData();
     if (modalBukti?.nomor === a.nomor) setModalBukti(null);
     setPesan({
@@ -512,10 +555,10 @@ export default function AktivasiAkunPage() {
                       {a.buktiFollowBss || a.buktiFollowLab || a.buktiBayar ? (
                         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                           <div style={{ display: "flex", gap: "4px" }}>
-                            {a.buktiFollowBss && (
+                            {a.buktiFollowBss && resolveSrc(a.buktiFollowBss) && (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img
-                                src={a.buktiFollowBss}
+                                src={resolveSrc(a.buktiFollowBss)}
                                 alt="IG BSS"
                                 title={`Follow IG BSS: ${a.namaFileBuktiBss || "WebP"}`}
                                 style={{
@@ -530,9 +573,9 @@ export default function AktivasiAkunPage() {
                                   setModalBukti({
                                     nama: a.nama,
                                     nomor: a.nomor,
-                                    foto: a.buktiBayar,
-                                    fotoBss: a.buktiFollowBss,
-                                    fotoLab: a.buktiFollowLab,
+                                    foto: resolveSrc(a.buktiBayar),
+                                    fotoBss: resolveSrc(a.buktiFollowBss),
+                                    fotoLab: resolveSrc(a.buktiFollowLab),
                                     namaFileBss: a.namaFileBuktiBss,
                                     namaFileLab: a.namaFileBuktiLab,
                                     tanggalUpload: a.tanggalUploadBukti,
@@ -542,10 +585,10 @@ export default function AktivasiAkunPage() {
                                 }
                               />
                             )}
-                            {a.buktiFollowLab && (
+                            {a.buktiFollowLab && resolveSrc(a.buktiFollowLab) && (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img
-                                src={a.buktiFollowLab}
+                                src={resolveSrc(a.buktiFollowLab)}
                                 alt="IG Lab"
                                 title={`Follow Lab FEBI: ${a.namaFileBuktiLab || "WebP"}`}
                                 style={{
@@ -560,9 +603,9 @@ export default function AktivasiAkunPage() {
                                   setModalBukti({
                                     nama: a.nama,
                                     nomor: a.nomor,
-                                    foto: a.buktiBayar,
-                                    fotoBss: a.buktiFollowBss,
-                                    fotoLab: a.buktiFollowLab,
+                                    foto: resolveSrc(a.buktiBayar),
+                                    fotoBss: resolveSrc(a.buktiFollowBss),
+                                    fotoLab: resolveSrc(a.buktiFollowLab),
                                     namaFileBss: a.namaFileBuktiBss,
                                     namaFileLab: a.namaFileBuktiLab,
                                     tanggalUpload: a.tanggalUploadBukti,
@@ -572,10 +615,10 @@ export default function AktivasiAkunPage() {
                                 }
                               />
                             )}
-                            {!a.buktiFollowBss && !a.buktiFollowLab && a.buktiBayar?.startsWith("data:image/") && (
+                            {!a.buktiFollowBss && !a.buktiFollowLab && resolveSrc(a.buktiBayar) && (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img
-                                src={a.buktiBayar}
+                                src={resolveSrc(a.buktiBayar)}
                                 alt="Bukti"
                                 style={{
                                   width: "32px",
@@ -589,7 +632,7 @@ export default function AktivasiAkunPage() {
                                   setModalBukti({
                                     nama: a.nama,
                                     nomor: a.nomor,
-                                    foto: a.buktiBayar,
+                                    foto: resolveSrc(a.buktiBayar),
                                     metode: a.metodeBayar,
                                     tanggal: a.tanggalDaftar,
                                   })
@@ -605,9 +648,9 @@ export default function AktivasiAkunPage() {
                               setModalBukti({
                                 nama: a.nama,
                                 nomor: a.nomor,
-                                foto: a.buktiBayar,
-                                fotoBss: a.buktiFollowBss,
-                                fotoLab: a.buktiFollowLab,
+                                foto: resolveSrc(a.buktiBayar),
+                                fotoBss: resolveSrc(a.buktiFollowBss),
+                                fotoLab: resolveSrc(a.buktiFollowLab),
                                 namaFileBss: a.namaFileBuktiBss,
                                 namaFileLab: a.namaFileBuktiLab,
                                 tanggalUpload: a.tanggalUploadBukti,

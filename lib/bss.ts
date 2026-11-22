@@ -11,6 +11,8 @@
  */
 
 import { catatSetoranTerakhirAkun, semuaAkun } from "./auth";
+import { hasSupabaseEnv } from "./supabase/client";
+import { getSupabaseStore } from "./supabase/store";
 
 export type StatusSetoran = "belum_terjual" | "disalurkan";
 export type StatusVerifikasiSetoran = "menunggu_verifikasi" | "terverifikasi";
@@ -705,6 +707,9 @@ export function formatMetodePenarikan(metode: MetodePenarikan): string {
 }
 
 export function getDaftarPenarikan(): PenarikanUang[] {
+  if (hasSupabaseEnv() && adaJendela() && getSupabaseStore().ready) {
+    return getSupabaseStore().penarikanList;
+  }
   if (!adaJendela()) return DAFTAR_PENARIKAN_AWAL;
   try {
     const raw = window.localStorage.getItem(PENARIKAN_KEY);
@@ -750,6 +755,9 @@ export function validasiPenarikanTunai(id: string, namaPetugas: string): Penarik
 export const validasiPenarikan = validasiPenarikanTunai;
 
 export function getPricelist(): JenisSampah[] {
+  if (hasSupabaseEnv() && adaJendela() && getSupabaseStore().pricelistReady) {
+    return getSupabaseStore().pricelist;
+  }
   if (!adaJendela()) return PRICELIST_AWAL;
   try {
     const raw = window.localStorage.getItem(PRICELIST_KEY);
@@ -757,6 +765,13 @@ export function getPricelist(): JenisSampah[] {
   } catch {
     return PRICELIST_AWAL;
   }
+}
+
+export function getBatchesPengepul(): BatchPenjualanPengepul[] {
+  if (hasSupabaseEnv() && adaJendela() && getSupabaseStore().ready) {
+    return getSupabaseStore().batchList;
+  }
+  return BATCH_PENGEPUL_AWAL;
 }
 
 export function simpanPricelist(list: JenisSampah[]) {
@@ -769,6 +784,9 @@ export function simpanPricelist(list: JenisSampah[]) {
 }
 
 export function getDaftarSetoran(): SetoranNasabah[] {
+  if (hasSupabaseEnv() && adaJendela() && getSupabaseStore().ready) {
+    return getSupabaseStore().setoranList;
+  }
   if (!adaJendela()) return RIWAYAT_SETORAN_AWAL;
   try {
     const raw = window.localStorage.getItem(SETORAN_KEY);
@@ -909,6 +927,9 @@ export function getDaftarNasabahMaster(): (NasabahMaster & {
   aktif: boolean;
   sandi?: string;
 })[] {
+  if (hasSupabaseEnv() && adaJendela() && getSupabaseStore().ready) {
+    return getSupabaseStore().nasabahMasterList;
+  }
   const akunNasabah = semuaAkun().filter((a) => a.role === "nasabah");
   return akunNasabah.map((a) => {
     const fallbackMaster = DAFTAR_NASABAH_MASTER.find((m) => m.nomor === a.nomor);

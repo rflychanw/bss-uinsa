@@ -18,6 +18,9 @@ import {
 } from "../../../lib/bss";
 import { sesiSekarang, type Sesi } from "../../../lib/auth";
 import LembarBukuTabungan from "../../../components/app/LembarBukuTabungan";
+import { hasSupabaseEnv } from "../../../lib/supabase/client";
+import { subscribeBssDataUpdated } from "../../../lib/supabase/store";
+import { tambahPenarikanSupabase } from "../../../lib/supabase/sync";
 
 export default function RiwayatNasabah() {
   const [sesi, setSesi] = useState<Sesi | null>(null);
@@ -43,9 +46,12 @@ export default function RiwayatNasabah() {
   const idNomorTujuan = useId();
 
   useEffect(() => {
-    setSesi(sesiSekarang());
-    setSemuaSetoranState(getDaftarSetoran());
-    setDaftarPenarikan(getDaftarPenarikan());
+    const segarkan = () => {
+      setSesi(sesiSekarang());
+      setSemuaSetoranState(getDaftarSetoran());
+      setDaftarPenarikan(getDaftarPenarikan());
+    };
+    segarkan();
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       if (params.get("tab") === "penarikan") {
@@ -54,6 +60,7 @@ export default function RiwayatNasabah() {
         setTabUtama("buku");
       }
     }
+    return subscribeBssDataUpdated(segarkan);
   }, []);
 
   const noNasabah = sesi?.nomor || "BSS-0142";
@@ -109,7 +116,7 @@ export default function RiwayatNasabah() {
     }
   };
 
-  const handleAjukanTarikSaldo = (e: React.FormEvent) => {
+  const handleAjukanTarikSaldo = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorTarik("");
     setNotifTarik("");
@@ -142,21 +149,39 @@ export default function RiwayatNasabah() {
       ? "Tunai di Pos Jaga"
       : `${namaPenyedia} · ${nomorTujuan.trim()}`;
 
-    const baru = tambahPenarikan({
-      nomorNasabah: noNasabah,
-      namaNasabah,
-      tanggal: tanggalHariIni,
-      nominal: nominalTarik,
-      metode: metodeTarik,
-      tujuan: infoTujuan,
-      catatan: "Penarikan saldo tabungan",
-      status: "menunggu",
-      petugas: "Menunggu Validasi Petugas / Kasir BSS",
-    });
+    let trxId = "";
+    if (hasSupabaseEnv()) {
+      const res = await tambahPenarikanSupabase({
+        nomorNasabah: noNasabah,
+        nominal: nominalTarik,
+        metode: metodeTarik,
+        tujuan: infoTujuan,
+        catatan: "Penarikan saldo tabungan",
+        status: "menunggu",
+      });
+      if (!res.ok) {
+        setErrorTarik(res.pesan);
+        return;
+      }
+      trxId = res.id;
+    } else {
+      const baru = tambahPenarikan({
+        nomorNasabah: noNasabah,
+        namaNasabah,
+        tanggal: tanggalHariIni,
+        nominal: nominalTarik,
+        metode: metodeTarik,
+        tujuan: infoTujuan,
+        catatan: "Penarikan saldo tabungan",
+        status: "menunggu",
+        petugas: "Menunggu Validasi Petugas / Kasir BSS",
+      });
+      trxId = baru.id;
+    }
 
     setDaftarPenarikan(getDaftarPenarikan());
     setNotifTarik(
-      `Pengajuan penarikan ${baru.id} (${rp(nominalTarik)}) berhasil dikirim dengan status Menunggu Validasi Petugas.`
+      `Pengajuan penarikan ${trxId} (${rp(nominalTarik)}) berhasil dikirim dengan status Menunggu Validasi Petugas.`
     );
   };
 

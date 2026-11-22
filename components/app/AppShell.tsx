@@ -4,6 +4,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { keluar, sesiSekarang, type Sesi } from "../../lib/auth";
+import { hasSupabaseEnv } from "../../lib/supabase/client";
+import { subscribeBssDataUpdated } from "../../lib/supabase/store";
+import { keluarSupabase } from "../../lib/supabase/sync";
 
 const ICONS: Record<string, ReactNode> = {
   home: (
@@ -167,6 +170,9 @@ export default function AppShell({
 
   useEffect(() => {
     setSesi(sesiSekarang());
+    return subscribeBssDataUpdated(() => {
+      setSesi(sesiSekarang());
+    });
   }, [pathname]);
 
   const roleAktif = sesi?.role || role;
@@ -212,9 +218,13 @@ export default function AppShell({
       ? "Ruang Bendahara Keuangan"
       : "Ruang Nasabah";
 
-  const onKeluar = () => {
+  const onKeluar = async () => {
     const tujuanKeluar = roleAktif === "nasabah" ? "/masuk" : "/portal-bss";
-    keluar();
+    if (hasSupabaseEnv()) {
+      await keluarSupabase();
+    } else {
+      keluar();
+    }
     router.replace(tujuanKeluar);
   };
 

@@ -1,8 +1,10 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { beranda, sesiSekarang, type Role } from "../../lib/auth";
+import { hasSupabaseEnv } from "../../lib/supabase/client";
+import { sinkronkanDataSupabase } from "../../lib/supabase/sync";
 
 /**
  * Penjaga rute dashboard.
@@ -23,32 +25,46 @@ export default function AuthGuard({
   const [siap, setSiap] = useState(false);
 
   useEffect(() => {
-    const sesi = sesiSekarang();
+    let aktif = true;
 
-    if (!sesi) {
-      const next = pathname ? `?next=${encodeURIComponent(pathname)}` : "";
-      const tujuanMasuk = role === "nasabah" ? "/masuk" : "/portal-bss";
-      router.replace(`${tujuanMasuk}${next}`);
-      return;
-    }
+    const cekSesi = async () => {
+      const sesi = hasSupabaseEnv()
+        ? await sinkronkanDataSupabase()
+        : sesiSekarang();
 
-    let diizinkan = false;
-    if (role === "nasabah") {
-      diizinkan = sesi.role === "nasabah";
-    } else if (role === "admin") {
-      diizinkan = sesi.role === "admin";
-    } else if (role === "petugas") {
-      diizinkan = sesi.role === "petugas" || sesi.role === "admin";
-    } else if (role === "bendahara") {
-      diizinkan = sesi.role === "bendahara" || sesi.role === "admin";
-    }
+      if (!aktif) return;
 
-    if (!diizinkan) {
-      router.replace(beranda(sesi.role));
-      return;
-    }
+      if (!sesi) {
+        const next = pathname ? `?next=${encodeURIComponent(pathname)}` : "";
+        const tujuanMasuk = role === "nasabah" ? "/masuk" : "/portal-bss";
+        router.replace(`${tujuanMasuk}${next}`);
+        return;
+      }
 
-    setSiap(true);
+      let diizinkan = false;
+      if (role === "nasabah") {
+        diizinkan = sesi.role === "nasabah";
+      } else if (role === "admin") {
+        diizinkan = sesi.role === "admin";
+      } else if (role === "petugas") {
+        diizinkan = sesi.role === "petugas" || sesi.role === "admin";
+      } else if (role === "bendahara") {
+        diizinkan = sesi.role === "bendahara" || sesi.role === "admin";
+      }
+
+      if (!diizinkan) {
+        router.replace(beranda(sesi.role));
+        return;
+      }
+
+      setSiap(true);
+    };
+
+    cekSesi();
+
+    return () => {
+      aktif = false;
+    };
   }, [role, pathname, router]);
 
   if (!siap) {

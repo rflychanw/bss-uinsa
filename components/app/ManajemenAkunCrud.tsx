@@ -18,6 +18,13 @@ import {
   kg,
   rp,
 } from "../../lib/bss";
+import { hasSupabaseEnv } from "../../lib/supabase/client";
+import { subscribeBssDataUpdated } from "../../lib/supabase/store";
+import {
+  hapusAkunSupabase,
+  tambahAkunSupabase,
+  updateAkunSupabase,
+} from "../../lib/supabase/sync";
 
 type RoleStaff = "petugas" | "bendahara";
 
@@ -80,6 +87,7 @@ export default function ManajemenAkunCrud({
   useEffect(() => {
     setMounted(true);
     muatUlang();
+    return subscribeBssDataUpdated(muatUlang);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -112,17 +120,26 @@ export default function ManajemenAkunCrud({
   }, [emailInputBaru, roleBaru]);
 
   // Tambah Akun Baru (CREATE — khusus Petugas & Bendahara)
-  const handleTambahAkun = (e: React.FormEvent) => {
+  const handleTambahAkun = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const res = tambahAkunCRUD({
-      nama: namaBaru,
-      email: emailInputBaru,
-      sandi: sandiBaru,
-      role: roleBaru,
-      nomor: nomorBaru,
-      jabatan: jabatanBaru,
-    });
+    const res = hasSupabaseEnv()
+      ? await tambahAkunSupabase({
+          nama: namaBaru,
+          email: emailInputBaru,
+          sandi: sandiBaru,
+          role: roleBaru,
+          nomor: nomorBaru,
+          jabatan: jabatanBaru,
+        })
+      : tambahAkunCRUD({
+          nama: namaBaru,
+          email: emailInputBaru,
+          sandi: sandiBaru,
+          role: roleBaru,
+          nomor: nomorBaru,
+          jabatan: jabatanBaru,
+        });
 
     if (!res.ok) {
       tampilkanNotif("error", res.pesan);
@@ -145,25 +162,32 @@ export default function ManajemenAkunCrud({
     setAkunDiedit(a);
     setEditNama(a.nama);
     setEditEmail(a.email);
-    setEditSandi(a.sandi);
+    setEditSandi(a.sandi || "");
     setEditRole(a.role);
     setEditNomor(a.nomor);
     setEditJabatan(a.jabatan || "");
   };
 
   // Simpan Perubahan Edit (UPDATE — khusus Petugas & Bendahara)
-  const handleSimpanEdit = (e: React.FormEvent) => {
+  const handleSimpanEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!akunDiedit) return;
 
-    const res = updateAkunCRUD(akunDiedit.nomor, {
+    const payload = {
       nama: editNama,
       email: editEmail,
       sandi: editSandi,
       role: editRole as Role,
       nomor: editNomor,
       jabatan: editJabatan,
-    });
+    };
+
+    const res = hasSupabaseEnv()
+      ? await updateAkunSupabase(
+          { userId: akunDiedit.dbId, identitasLama: akunDiedit.nomor },
+          payload
+        )
+      : updateAkunCRUD(akunDiedit.nomor, payload);
 
     if (!res.ok) {
       tampilkanNotif("error", res.pesan);
@@ -179,10 +203,15 @@ export default function ManajemenAkunCrud({
   };
 
   // Konfirmasi & Eksekusi Hapus Akun (DELETE — berlaku untuk Petugas, Bendahara, dan Nasabah)
-  const konfirmasiHapusAkun = () => {
+  const konfirmasiHapusAkun = async () => {
     if (!akunAkanDihapus) return;
     const target = akunAkanDihapus;
-    const res = hapusAkunCRUD(target.nomor);
+    const res = hasSupabaseEnv()
+      ? await hapusAkunSupabase({
+          userId: target.dbId,
+          identitas: target.email || target.nomor,
+        })
+      : hapusAkunCRUD(target.nomor);
     setAkunAkanDihapus(null);
 
     if (!res.ok) {
@@ -965,11 +994,14 @@ export default function ManajemenAkunCrud({
                   </div>
 
                   <div className="dsh__field">
-                    <label className="dsh__label">Kata Sandi</label>
+                    <label className="dsh__label">
+                      Kata Sandi {hasSupabaseEnv() ? "(Opsional jika tidak diubah)" : ""}
+                    </label>
                     <input
                       type="text"
                       className="dsh__input"
-                      required
+                      required={!hasSupabaseEnv()}
+                      placeholder={hasSupabaseEnv() ? "Kosongkan jika tetap pakai sandi lama" : ""}
                       value={editSandi}
                       onChange={(e) => setEditSandi(e.target.value)}
                     />

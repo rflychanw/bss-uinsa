@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { sesiSekarang, type Sesi } from "../../lib/auth";
 import {
-  BATCH_PENGEPUL_AWAL,
-  DAFTAR_NASABAH_MASTER,
+  getBatchesPengepul,
+  getDaftarNasabahMaster,
   formatMetodePenarikan,
   getDaftarPenarikan,
   getDaftarSetoran,
@@ -15,19 +15,30 @@ import {
   RIWAYAT_SETORAN_AWAL,
   rp,
   tambahPenarikan,
+  type BatchPenjualanPengepul,
   type MetodePenarikan,
   type PenarikanUang,
   type SetoranNasabah,
 } from "../../lib/bss";
 import KalkulatorPintar from "../../components/app/KalkulatorPintar";
 import LembarBukuTabungan from "../../components/app/LembarBukuTabungan";
+import { hasSupabaseEnv } from "../../lib/supabase/client";
+import { subscribeBssDataUpdated } from "../../lib/supabase/store";
+import { tambahPenarikanSupabase } from "../../lib/supabase/sync";
 
 export default function DashboardNasabah() {
   const [sesi, setSesi] = useState<Sesi | null>(null);
   const [mounted, setMounted] = useState(false);
   const [sembunyiSaldo, setSembunyiSaldo] = useState(false);
-  const [, setSetoranList] = useState<SetoranNasabah[]>(RIWAYAT_SETORAN_AWAL);
-  const [penarikanList, setPenarikanList] = useState<PenarikanUang[]>([]);
+  const [, setSetoranList] = useState<SetoranNasabah[]>(() =>
+    getDaftarSetoran()
+  );
+  const [penarikanList, setPenarikanList] = useState<PenarikanUang[]>(() =>
+    getDaftarPenarikan()
+  );
+  const [batches, setBatches] = useState<BatchPenjualanPengepul[]>(() =>
+    getBatchesPengepul()
+  );
 
   // Modal Tarik Saldo
   const [bukaModalTarik, setBukaModalTarik] = useState(false);
@@ -41,23 +52,25 @@ export default function DashboardNasabah() {
   const [strukBerhasil, setStrukBerhasil] = useState<PenarikanUang | null>(null);
 
   const muatUlangData = () => {
+    setSesi(sesiSekarang());
     setSetoranList(getDaftarSetoran());
     setPenarikanList(getDaftarPenarikan());
+    setBatches(getBatchesPengepul());
   };
 
   useEffect(() => {
-    setSesi(sesiSekarang());
     muatUlangData();
     setMounted(true);
+    return subscribeBssDataUpdated(muatUlangData);
   }, []);
 
+  const nasabahList = getDaftarNasabahMaster();
   const nasabahData =
-    DAFTAR_NASABAH_MASTER.find((n) => n.nomor === sesi?.nomor) ||
-    DAFTAR_NASABAH_MASTER[0];
+    nasabahList.find((n) => n.nomor === sesi?.nomor) || nasabahList[0];
 
-  const namaLengkap = sesi?.nama || nasabahData.nama;
+  const namaLengkap = sesi?.nama || nasabahData?.nama || "Nasabah BSS";
   const namaDepan = namaLengkap.split(" ")[0];
-  const nomorNasabah = sesi?.nomor || nasabahData.nomor;
+  const nomorNasabah = sesi?.nomor || nasabahData?.nomor || "BSS-0142";
 
   const ringkasan = mounted
     ? hitungRingkasanSaldoNasabah(nomorNasabah)
@@ -91,7 +104,7 @@ export default function DashboardNasabah() {
     setBukaModalTarik(true);
   };
 
-  const handleProsesTarik = (e: React.FormEvent) => {
+  const handleProsesTarik = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorTarik("");
 
@@ -120,6 +133,35 @@ export default function DashboardNasabah() {
     const infoTujuan = isTunai
       ? "Tunai di Pos Meja Timbang"
       : `${provider} — ${nomorTujuan.trim()}`;
+
+    if (hasSupabaseEnv()) {
+      const res = await tambahPenarikanSupabase({
+        nomorNasabah,
+        nominal: nominalTarik,
+        metode: metodeTarik,
+        tujuan: infoTujuan,
+        catatan: catatanTarik || "Penarikan saldo tabungan",
+        status: "menunggu",
+      });
+      if (!res.ok) {
+        setErrorTarik(res.pesan);
+        return;
+      }
+      muatUlangData();
+      setStrukBerhasil({
+        id: res.id,
+        nomorNasabah,
+        namaNasabah: namaLengkap,
+        tanggal: tanggalHariIni,
+        nominal: nominalTarik,
+        metode: metodeTarik,
+        tujuan: infoTujuan,
+        catatan: catatanTarik || "Penarikan saldo tabungan",
+        status: "menunggu",
+        petugas: "Menunggu Validasi Petugas / Kasir BSS",
+      });
+      return;
+    }
 
     const trxBaru = tambahPenarikan({
       nomorNasabah,
@@ -866,7 +908,7 @@ export default function DashboardNasabah() {
               Realisasi Penjualan ke Pengepul Terkini
             </h3>
             <div className="dsh__list">
-              {BATCH_PENGEPUL_AWAL.map((b) => (
+              {batches.map((b) => (
                 <div key={b.id} className="dsh__item" style={{ padding: "10px 12px" }}>
                   <div>
                     <strong>{b.nomorBatch}</strong> — {b.tanggalJual}
