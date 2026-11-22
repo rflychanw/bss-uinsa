@@ -276,14 +276,14 @@ export default function KalkulatorPintar({
                 items: hasilItems,
                 totalBeratKg,
                 totalEstimasiRp,
-                langsungVerifikasi: true,
+                langsungVerifikasi: false,
                 jenis: hasilItems[0].jenis,
                 beratKg: hasilItems[0].beratKg,
                 estimasiRp: hasilItems[0].estimasiRp,
               })
             }
           >
-            Verifikasi & Masuk Saldo ({rp(totalEstimasiRp)})
+            Simpan Pencatatan ({rp(totalEstimasiRp)})
           </button>
           <button
             type="button"

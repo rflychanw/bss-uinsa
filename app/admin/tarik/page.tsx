@@ -14,7 +14,7 @@ import {
   type MetodePenarikan,
   type PenarikanUang,
 } from "../../../lib/bss";
-import { sesiSekarang, type Sesi } from "../../../lib/auth";
+import { beranda, sesiSekarang, type Sesi } from "../../../lib/auth";
 
 export default function TarikTunaiAdminPage() {
   const router = useRouter();
@@ -41,11 +41,11 @@ export default function TarikTunaiAdminPage() {
   const idTujuan = useId();
   const idCatatan = useId();
 
-  /* Halaman kas & penarikan saldo hanya dibuka untuk Bendahara. */
+  /* Halaman kas & penarikan saldo dibuka untuk Bendahara & Admin. */
   useEffect(() => {
     const s = sesiSekarang();
-    if (!s || s.role !== "bendahara") {
-      router.replace("/admin");
+    if (!s || (s.role !== "bendahara" && s.role !== "admin")) {
+      router.replace(s ? beranda(s.role) : "/masuk");
       return;
     }
     setSesi(s);

@@ -98,7 +98,7 @@ export default function ProfilNasabah() {
             <div className="dsh__walletmeta">
               <span>{nama}</span>
               <span>·</span>
-              <span>{prodiFakultas}</span>
+              <span>Nasabah Umum</span>
               <span>·</span>
               <span>Min. Tarik {rp(MINIMAL_PENARIKAN_RP)}</span>
             </div>
@@ -172,12 +172,12 @@ export default function ProfilNasabah() {
             <dd>{nama}</dd>
           </div>
           <div className="dsh__ledgeritem">
-            <dt>Email Civitas</dt>
+            <dt>Email Nasabah</dt>
             <dd>{email}</dd>
           </div>
           <div className="dsh__ledgeritem">
-            <dt>Unit / Fakultas</dt>
-            <dd>{prodiFakultas}</dd>
+            <dt>Kategori</dt>
+            <dd>Nasabah Umum</dd>
           </div>
           <div className="dsh__ledgeritem">
             <dt>Skema Akad</dt>

@@ -7,7 +7,9 @@ import { beranda, sesiSekarang, type Role } from "../../lib/auth";
 /**
  * Penjaga rute dashboard.
  * - Untuk halaman nasabah: hanya role nasabah yang diizinkan.
- * - Untuk halaman admin/pengelola: role admin, petugas, dan bendahara diizinkan.
+ * - Untuk halaman admin: hanya role admin yang diizinkan.
+ * - Untuk halaman petugas: role petugas dan admin yang diizinkan.
+ * - Untuk halaman bendahara: role bendahara dan admin yang diizinkan.
  */
 export default function AuthGuard({
   role,
@@ -29,10 +31,16 @@ export default function AuthGuard({
       return;
     }
 
-    const diizinkan =
-      role === "nasabah"
-        ? sesi.role === "nasabah"
-        : ["admin", "petugas", "bendahara"].includes(sesi.role);
+    let diizinkan = false;
+    if (role === "nasabah") {
+      diizinkan = sesi.role === "nasabah";
+    } else if (role === "admin") {
+      diizinkan = sesi.role === "admin";
+    } else if (role === "petugas") {
+      diizinkan = sesi.role === "petugas" || sesi.role === "admin";
+    } else if (role === "bendahara") {
+      diizinkan = sesi.role === "bendahara" || sesi.role === "admin";
+    }
 
     if (!diizinkan) {
       router.replace(beranda(sesi.role));

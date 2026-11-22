@@ -65,8 +65,7 @@ export default function SetoranAdmin() {
 
     const sesi = sesiSekarang();
     const namaPencatat = sesi?.nama || "Ahmad Fauzi (Petugas Piket)";
-    const statusVerif =
-      data.langsungVerifikasi === false ? "menunggu_verifikasi" : "terverifikasi";
+    const statusVerif = "menunggu_verifikasi";
 
     const tanggalHariIni = "09 Nov 2026";
 

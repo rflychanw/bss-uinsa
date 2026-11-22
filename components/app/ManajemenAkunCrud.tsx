@@ -630,10 +630,12 @@ export default function ManajemenAkunCrud({
                       <td>
                         <strong>{a.nama}</strong>
                         <span className="dsh__subtext">
-                          {a.jabatan ||
-                            (a.fakultas
-                              ? `${a.fakultas}${a.prodi ? ` (${a.prodi})` : ""}`
-                              : "BSS UINSA")}
+                          {isNasabah
+                            ? "Nasabah Umum"
+                            : (a.jabatan ||
+                              (a.fakultas
+                                ? `${a.fakultas}${a.prodi ? ` (${a.prodi})` : ""}`
+                                : "BSS UINSA"))}
                         </span>
                       </td>
                       <td>

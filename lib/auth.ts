@@ -111,10 +111,8 @@ export const AKUN_AWAL_MASTER: Akun[] = [
     role: "nasabah",
     nama: "Aisyah Rahmawati",
     nomor: "BSS-0142",
-    kategori: "internal",
-    fakultas: "FEBI",
-    prodi: "Sistem Informasi",
-    jabatan: "Civitas UINSA (FEBI - Sistem Informasi)",
+    kategori: "umum",
+    jabatan: "Nasabah",
     statusVerifikasi: "aktif",
     tanggalDaftar: "12 Mar 2025",
     terakhirSetor: "29 Okt 2026",
@@ -128,10 +126,8 @@ export const AKUN_AWAL_MASTER: Akun[] = [
     role: "nasabah",
     nama: "Bagus Prakoso",
     nomor: "BSS-0087",
-    kategori: "internal",
-    fakultas: "FST",
-    prodi: "Teknik Lingkungan",
-    jabatan: "Civitas UINSA (FST - Teknik Lingkungan)",
+    kategori: "umum",
+    jabatan: "Nasabah",
     statusVerifikasi: "aktif",
     tanggalDaftar: "05 Apr 2025",
     terakhirSetor: "28 Okt 2026",
@@ -145,10 +141,8 @@ export const AKUN_AWAL_MASTER: Akun[] = [
     role: "nasabah",
     nama: "Nadia Salma",
     nomor: "BSS-0210",
-    kategori: "internal",
-    fakultas: "FDK",
-    prodi: "Ilmu Komunikasi",
-    jabatan: "Civitas UINSA (FDK - Ilmu Komunikasi)",
+    kategori: "umum",
+    jabatan: "Nasabah",
     statusVerifikasi: "aktif",
     tanggalDaftar: "19 Mei 2025",
     terakhirSetor: "27 Okt 2026",
@@ -162,10 +156,8 @@ export const AKUN_AWAL_MASTER: Akun[] = [
     role: "nasabah",
     nama: "Rizal Hamdani",
     nomor: "BSS-0033",
-    kategori: "internal",
-    fakultas: "FEBI",
-    prodi: "Ekonomi Syariah",
-    jabatan: "Civitas UINSA (FEBI - Ekonomi Syariah)",
+    kategori: "umum",
+    jabatan: "Nasabah",
     statusVerifikasi: "aktif",
     tanggalDaftar: "02 Jun 2025",
     terakhirSetor: "21 Okt 2026",
@@ -179,10 +171,8 @@ export const AKUN_AWAL_MASTER: Akun[] = [
     role: "nasabah",
     nama: "Siti Fauziah",
     nomor: "BSS-0176",
-    kategori: "internal",
-    fakultas: "FTK",
-    prodi: "Pendidikan Agama Islam",
-    jabatan: "Civitas UINSA (FTK - Pendidikan Agama Islam)",
+    kategori: "umum",
+    jabatan: "Nasabah",
     statusVerifikasi: "aktif",
     tanggalDaftar: "14 Jul 2025",
     terakhirSetor: "20 Sep 2026", // > 1 bulan tidak menyetor -> Tidak Aktif
@@ -196,10 +186,8 @@ export const AKUN_AWAL_MASTER: Akun[] = [
     role: "nasabah",
     nama: "Yusuf Maulana",
     nomor: "BSS-0198",
-    kategori: "internal",
-    fakultas: "FSH",
-    prodi: "Ilmu Hukum",
-    jabatan: "Civitas UINSA (FSH - Ilmu Hukum)",
+    kategori: "umum",
+    jabatan: "Nasabah",
     statusVerifikasi: "aktif",
     tanggalDaftar: "22 Agu 2025",
     terakhirSetor: "05 Sep 2026", // > 1 bulan tidak menyetor -> Tidak Aktif
@@ -219,7 +207,7 @@ export const AKUN_DEMO: Akun[] = [
 
 const SESI_KEY = "bss:sesi";
 const AKUN_KEY = "bss:akun";
-const AKUN_MASTER_KEY = "bss:akun_master:v4";
+const AKUN_MASTER_KEY = "bss:akun_master:v5";
 
 const ada = () => typeof window !== "undefined";
 
@@ -418,9 +406,7 @@ export function tambahAkunCRUD(input: {
       ? "Bendahara Pengelola BSS"
       : input.role === "admin"
       ? "Administrator Sistem BSS"
-      : kategori === "internal"
-      ? `Civitas UINSA (${fakultas}${prodi ? ` - ${prodi}` : ""})`
-      : "Nasabah Umum");
+      : "Nasabah");
 
   const akunBaru: Akun = {
     nama,
@@ -823,4 +809,9 @@ export function keluar() {
 }
 
 /** Halaman tujuan bawaan untuk sebuah peran. */
-export const beranda = (role: Role) => (role === "nasabah" ? "/nasabah" : "/admin");
+export const beranda = (role: Role) => {
+  if (role === "nasabah") return "/nasabah";
+  if (role === "petugas") return "/petugas";
+  if (role === "bendahara") return "/bendahara";
+  return "/admin";
+};

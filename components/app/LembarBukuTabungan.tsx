@@ -345,10 +345,6 @@ export default function LembarBukuTabungan({
             <span>
               Nasabah: <strong>{namaNasabah}</strong>
             </span>
-            <span>·</span>
-            <span>
-              Unit: <strong>{prodiFakultas}</strong>
-            </span>
           </div>
         </div>
 

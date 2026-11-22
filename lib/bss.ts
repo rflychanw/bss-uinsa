@@ -47,6 +47,7 @@ export type JenisSampah = {
   kode: string;
   nama: string;
   kategori: string;
+  jenis?: string;
   hargaPerKg: number;
   satuan: string;
   deskripsi: string;
@@ -153,24 +154,38 @@ export const kg0 = (n: number) => `${Math.round(n).toLocaleString("id-ID")} kg`;
 
 export const PRICELIST_AWAL: JenisSampah[] = [
   // [A] KERTAS
-  { id: "A1", kode: "A1", nama: "Kardus", kategori: "Kertas", hargaPerKg: 2000, satuan: "kg", deskripsi: "Kardus kering & bersih" },
-  { id: "A2", kode: "A2", nama: "Kertas HVS", kategori: "Kertas", hargaPerKg: 2500, satuan: "kg", deskripsi: "Kertas arsip / cetak putih" },
-  { id: "A3", kode: "A3", nama: "Koran & Buram", kategori: "Kertas", hargaPerKg: 1800, satuan: "kg", deskripsi: "Koran, buram, atau duplek" },
+  { id: "A1", kode: "A1", nama: "Kardus Bagus", kategori: "Kardus Bagus", jenis: "[A] KERTAS", hargaPerKg: 1000, satuan: "kg", deskripsi: "Kardus coklat tebal & kering" },
+  { id: "A2", kode: "A2", nama: "Kardus Jelek", kategori: "Kardus Jelek", jenis: "[A] KERTAS", hargaPerKg: 900, satuan: "kg", deskripsi: "Kardus tipis / berdebu" },
+  { id: "A3", kode: "A3", nama: "Koran", kategori: "Koran", jenis: "[A] KERTAS", hargaPerKg: 2800, satuan: "kg", deskripsi: "Koran bekas berkas bacaan" },
+  { id: "A4", kode: "A4", nama: "HVS", kategori: "HVS", jenis: "[A] KERTAS", hargaPerKg: 1600, satuan: "kg", deskripsi: "Kertas putih HVS / arsip / skripsi" },
+  { id: "A5", kode: "A5", nama: "Buram", kategori: "Buram", jenis: "[A] KERTAS", hargaPerKg: 800, satuan: "kg", deskripsi: "Kertas buram cetak" },
+  { id: "A6", kode: "A6", nama: "Majalah", kategori: "Majalah", jenis: "[A] KERTAS", hargaPerKg: 600, satuan: "kg", deskripsi: "Majalah & kertas glossy" },
+  { id: "A7", kode: "A7", nama: "Sak Semen", kategori: "Sak Semen", jenis: "[A] KERTAS", hargaPerKg: 800, satuan: "kg", deskripsi: "Kantong sak semen bersih" },
+  { id: "A8", kode: "A8", nama: "Duplek", kategori: "Duplek", jenis: "[A] KERTAS", hargaPerKg: 200, satuan: "kg", deskripsi: "Karton duplek kemasan makanan" },
 
-  // [B] PLASTIK
-  { id: "B1", kode: "B1", nama: "Botol PET Bening", kategori: "Plastik", hargaPerKg: 4000, satuan: "kg", deskripsi: "Botol air mineral bening bersih" },
-  { id: "B2", kode: "B2", nama: "Botol PET Warna", kategori: "Plastik", hargaPerKg: 2500, satuan: "kg", deskripsi: "Botol plastik warna / campur" },
-  { id: "B3", kode: "B3", nama: "Gelas Plastik", kategori: "Plastik", hargaPerKg: 2500, satuan: "kg", deskripsi: "Cup minuman plastik bersih" },
-  { id: "B4", kode: "B4", nama: "Galon Utuh", kategori: "Plastik", hargaPerKg: 6000, satuan: "pcs", deskripsi: "Galon air mineral utuh" },
+  // [B] PLASTIK 1
+  { id: "B1", kode: "B1", nama: "Botol PET Bening Bersih", kategori: "Botol PET Bening Bersih", jenis: "[B] PLASTIK 1", hargaPerKg: 2500, satuan: "kg", deskripsi: "Botol plastik bening tanpa label" },
+  { id: "B2", kode: "B2", nama: "Botol PET Biru Muda Bersih", kategori: "Botol PET Biru Muda Bersih", jenis: "[B] PLASTIK 1", hargaPerKg: 2000, satuan: "kg", deskripsi: "Botol air mineral biru muda bening" },
+  { id: "B3", kode: "B3", nama: "Botol PET Warna Bersih", kategori: "Botol PET Warna Bersih", jenis: "[B] PLASTIK 1", hargaPerKg: 1100, satuan: "kg", deskripsi: "Botol plastik hijau / warna transparan" },
+  { id: "B4", kode: "B4", nama: "Botol PET Kotor", kategori: "Botol PET Kotor", jenis: "[B] PLASTIK 1", hargaPerKg: 700, satuan: "kg", deskripsi: "Botol bercampur label & sedotan" },
+  { id: "B6", kode: "B6", nama: "Botol PET Jelek/Minyak", kategori: "Botol PET Jelek/Minyak", jenis: "[B] PLASTIK 1", hargaPerKg: 50, satuan: "kg", deskripsi: "Botol bekas minyak / oli pekat" },
 
-  // [C] LOGAM & BESI
-  { id: "C1", kode: "C1", nama: "Besi Tebal", kategori: "Logam", hargaPerKg: 4500, satuan: "kg", deskripsi: "Besi padat, rangka, atau plat" },
-  { id: "C2", kode: "C2", nama: "Aluminium & Kaleng", kategori: "Logam", hargaPerKg: 12000, satuan: "kg", deskripsi: "Kaleng minuman & panci aluminium" },
-  { id: "C3", kode: "C3", nama: "Tembaga", kategori: "Logam", hargaPerKg: 55000, satuan: "kg", deskripsi: "Kawat / kabel tembaga kupas" },
+  // [C] PLASTIK 2
+  { id: "C1", kode: "C1", nama: "Tutup Botol Minuman", kategori: "Tutup Botol Minuman", jenis: "[C] PLASTIK 2", hargaPerKg: 1200, satuan: "kg", deskripsi: "Tutup botol air mineral HDPE" },
+  { id: "C2", kode: "C2", nama: "Tutup Galon", kategori: "Tutup Galon", jenis: "[C] PLASTIK 2", hargaPerKg: 1900, satuan: "kg", deskripsi: "Tutup galon air mineral" },
 
-  // [D] KACA & LAINNYA
-  { id: "D1", kode: "D1", nama: "Botol Kaca", kategori: "Kaca", hargaPerKg: 1500, satuan: "kg", deskripsi: "Botol kaca sirup / kecap utuh" },
-  { id: "E1", kode: "E1", nama: "Minyak Jelantah", kategori: "Lain-lain", hargaPerKg: 5500, satuan: "kg", deskripsi: "Minyak goreng bekas saring" },
+  // [C] PLASTIK 3
+  { id: "C3", kode: "C3", nama: "Tutup Botol Minuman", kategori: "Tutup Botol Minuman", jenis: "[C] PLASTIK 3", hargaPerKg: 1200, satuan: "kg", deskripsi: "Tutup botol campur warna" },
+  { id: "C4", kode: "C4", nama: "Tutup Galon", kategori: "Tutup Galon", jenis: "[C] PLASTIK 3", hargaPerKg: 1900, satuan: "kg", deskripsi: "Tutup galon biru pekat" },
+
+  // [D] LOGAM & BESI
+  { id: "D1", kode: "D1", nama: "Besi Padat / Rangka", kategori: "Besi Padat / Rangka", jenis: "[D] LOGAM & BESI", hargaPerKg: 4500, satuan: "kg", deskripsi: "Besi padat, rangka plat" },
+  { id: "D2", kode: "D2", nama: "Aluminium & Kaleng", kategori: "Aluminium & Kaleng", jenis: "[D] LOGAM & BESI", hargaPerKg: 12000, satuan: "kg", deskripsi: "Kaleng minuman soda & panci aluminium" },
+  { id: "D3", kode: "D3", nama: "Tembaga Kupas", kategori: "Tembaga Kupas", jenis: "[D] LOGAM & BESI", hargaPerKg: 55000, satuan: "kg", deskripsi: "Kabel / kawat tembaga murni" },
+
+  // [E] KACA & LAINNYA
+  { id: "E1", kode: "E1", nama: "Botol Kaca Utuh", kategori: "Botol Kaca Utuh", jenis: "[E] KACA & LAINNYA", hargaPerKg: 1500, satuan: "kg", deskripsi: "Botol kecap, saus, sirup utuh" },
+  { id: "E2", kode: "E2", nama: "Minyak Jelantah Saring", kategori: "Minyak Jelantah Saring", jenis: "[E] KACA & LAINNYA", hargaPerKg: 5500, satuan: "kg", deskripsi: "Minyak goreng jelantah disaring bersih" },
 ];
 
 /* ------------------------------------------------------------- Profil Nasabah */
@@ -678,7 +693,7 @@ export const DAFTAR_PENARIKAN_AWAL: PenarikanUang[] = [
 /* --------------------------------- Storage Helpers untuk Sinkronisasi Dinamis & Persisten */
 
 const PENARIKAN_KEY = "bss:penarikan:v3";
-const PRICELIST_KEY = "bss:pricelist:v3";
+const PRICELIST_KEY = "bss:pricelist:v4";
 const SETORAN_KEY = "bss:setoran:v3";
 
 const adaJendela = () => typeof window !== "undefined";

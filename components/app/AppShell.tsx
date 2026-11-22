@@ -126,24 +126,24 @@ const ICONS: Record<string, ReactNode> = {
 const NAV_NASABAH = [
   { href: "/nasabah", label: "Ringkasan", mobileLabel: "Ringkasan", icon: "home" },
   { href: "/nasabah/riwayat", label: "Riwayat Transaksi", mobileLabel: "Riwayat", icon: "list" },
-  { href: "/nasabah/pengepul", label: "Alur Penjualan Pengepul", mobileLabel: "Pengepul", icon: "flow" },
-  { href: "/nasabah/kalkulator", label: "Kalkulator Pintar", mobileLabel: "Kalkulator", icon: "calc" },
+  { href: "/nasabah/pengepul", label: "Alur Penjualan", mobileLabel: "Pengepul", icon: "flow" },
+  { href: "/nasabah/kalkulator", label: "Kalkulator", mobileLabel: "Kalkulator", icon: "calc" },
   { href: "/nasabah/profil", label: "Buku Tabungan", mobileLabel: "Tabungan", icon: "user" },
 ];
 
 const NAV_PETUGAS = [
-  { href: "/admin", label: "Riwayat Pencatatan", mobileLabel: "Riwayat", icon: "list" },
-  { href: "/admin/setoran", label: "Tambah Pencatatan", mobileLabel: "Tambah", icon: "scale" },
-  { href: "/admin/aktivasi", label: "Aktivasi Akun", mobileLabel: "Aktivasi", icon: "verify" },
+  { href: "/petugas", label: "Riwayat Pencatatan", mobileLabel: "Riwayat", icon: "list" },
+  { href: "/petugas/setoran", label: "Tambah Pencatatan", mobileLabel: "Tambah", icon: "scale" },
+  { href: "/petugas/aktivasi", label: "Aktivasi Akun", mobileLabel: "Aktivasi", icon: "verify" },
 ];
 
 const NAV_BENDAHARA = [
-  { href: "/admin", label: "Ringkasan Keuangan", mobileLabel: "Ringkasan", icon: "home" },
-  { href: "/admin/pengepul", label: "Alur Pengepul & Bagi Hasil", mobileLabel: "Pengepul", icon: "flow" },
-  { href: "/admin/rekap", label: "Rekap & Ekspor CSV", mobileLabel: "Rekap", icon: "report" },
-  { href: "/admin/tarik", label: "Riwayat Tarik Tunai", mobileLabel: "Tarik Tunai", icon: "cash" },
-  { href: "/admin/nasabah", label: "Buku Tabungan Nasabah", mobileLabel: "Nasabah", icon: "user" },
-  { href: "/admin/pricelist", label: "Master Pricelist", mobileLabel: "Pricelist", icon: "price" },
+  { href: "/bendahara", label: "Ringkasan Keuangan", mobileLabel: "Ringkasan", icon: "home" },
+  { href: "/bendahara/pengepul", label: "Alur Pengepul", mobileLabel: "Pengepul", icon: "flow" },
+  { href: "/bendahara/rekap", label: "Rekap & Ekspor", mobileLabel: "Rekap", icon: "report" },
+  { href: "/bendahara/tarik", label: "Riwayat Tarik Tunai", mobileLabel: "Tarik Tunai", icon: "cash" },
+  { href: "/bendahara/nasabah", label: "Tabungan Nasabah", mobileLabel: "Nasabah", icon: "user" },
+  { href: "/bendahara/pricelist", label: "Master Pricelist", mobileLabel: "Pricelist", icon: "price" },
 ];
 
 const NAV_ADMIN = [
@@ -158,7 +158,7 @@ export default function AppShell({
   role,
   children,
 }: {
-  role: "nasabah" | "admin";
+  role: "nasabah" | "admin" | "petugas" | "bendahara";
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -169,7 +169,7 @@ export default function AppShell({
     setSesi(sesiSekarang());
   }, [pathname]);
 
-  const roleAktif = sesi?.role || (role === "nasabah" ? "nasabah" : "admin");
+  const roleAktif = sesi?.role || role;
 
   const items =
     roleAktif === "nasabah"
@@ -191,15 +191,15 @@ export default function AppShell({
       : "Siti Nurhaliza");
 
   const subUser =
-    sesi?.jabatan ||
-    sesi?.nomor ||
-    (roleAktif === "nasabah"
-      ? "BSS-0142"
-      : roleAktif === "petugas"
-      ? "Petugas Jaga Pos"
-      : roleAktif === "admin"
-      ? "Administrator Sistem BSS"
-      : "Bendahara Keuangan");
+    roleAktif === "nasabah"
+      ? (sesi?.nomor || "BSS-0142")
+      : (sesi?.jabatan ||
+        sesi?.nomor ||
+        (roleAktif === "petugas"
+          ? "Petugas Jaga Pos"
+          : roleAktif === "admin"
+          ? "Administrator Sistem BSS"
+          : "Bendahara Keuangan"));
 
   const initial = namaUser.charAt(0);
 
@@ -218,7 +218,12 @@ export default function AppShell({
   };
 
   const isActive = (href: string) => {
-    if (href === "/admin" || href === "/nasabah") {
+    if (
+      href === "/admin" ||
+      href === "/nasabah" ||
+      href === "/petugas" ||
+      href === "/bendahara"
+    ) {
       return pathname === href;
     }
     return pathname.startsWith(href);
@@ -236,23 +241,6 @@ export default function AppShell({
         </Link>
         <div className="dsh__topwho">
           <span>{namaUser.split(" ")[0]}</span>
-          <button
-            type="button"
-            onClick={onKeluar}
-            style={{
-              background: "#fef2f2",
-              border: "1px solid #fca5a5",
-              borderRadius: "6px",
-              padding: "5px 12px",
-              fontSize: "12px",
-              cursor: "pointer",
-              color: "#991b1b",
-              fontWeight: 700,
-            }}
-            aria-label="Logout / Keluar dari akun"
-          >
-            Logout
-          </button>
         </div>
       </header>
 
