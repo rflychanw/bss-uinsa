@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   formatEmailSesuaiRole,
   hapusAkunCRUD,
@@ -61,6 +62,9 @@ export default function ManajemenAkunCrud({
   // State Alert Modal Konfirmasi Delete
   const [akunAkanDihapus, setAkunAkanDihapus] = useState<Akun | null>(null);
 
+  // Status mounted untuk React Portal agar render langsung ke document.body (layar penuh)
+  const [mounted, setMounted] = useState(false);
+
   const idSearch = useId();
 
   const muatUlang = () => {
@@ -74,6 +78,7 @@ export default function ManajemenAkunCrud({
   };
 
   useEffect(() => {
+    setMounted(true);
     muatUlang();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -246,48 +251,95 @@ export default function ManajemenAkunCrud({
 
   return (
     <div style={{ display: "grid", gap: "24px" }}>
-      {/* Alert Banner Notifikasi */}
-      {notif && (
-        <div
-          className={`dsh__alert ${
-            notif.tipe === "sukses" ? "dsh__alert--success" : ""
-          }`}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "12px",
-            ...(notif.tipe === "error"
-              ? {
-                  background: "#fef2f2",
-                  border: "1px solid #fecaca",
-                  color: "#991b1b",
-                }
-              : {}),
-          }}
-          role="alert"
-        >
-          <div>
-            <strong>{notif.tipe === "sukses" ? "Berhasil:" : "Perhatian:"}</strong>{" "}
-            {notif.pesan}
-          </div>
-          <button
-            type="button"
-            onClick={() => setNotif(null)}
-            style={{
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              color: "inherit",
-              fontSize: "15px",
-              padding: "2px 6px",
-            }}
-            aria-label="Tutup notifikasi"
+      {/* Floating Screen Alert (Notifikasi Mengambang di Seluruh Layar) */}
+      {mounted &&
+        notif &&
+        createPortal(
+          <aside
+            className={`dsh__screenalert ${
+              notif.tipe === "sukses"
+                ? "dsh__screenalert--success"
+                : "dsh__screenalert--error"
+            }`}
+            role="alert"
+            aria-live="assertive"
           >
-            ✕
-          </button>
-        </div>
-      )}
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              {notif.tipe === "sukses" ? (
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  width={22}
+                  height={22}
+                  aria-hidden="true"
+                  style={{ flexShrink: 0 }}
+                >
+                  <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.6" />
+                  <path
+                    d="m6.5 10 2.5 2.5 4.5-5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  width={22}
+                  height={22}
+                  aria-hidden="true"
+                  style={{ flexShrink: 0 }}
+                >
+                  <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.6" />
+                  <path
+                    d="M10 6.5v4.5M10 14h.01"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              )}
+              <div>
+                <strong
+                  style={{
+                    display: "block",
+                    fontSize: "13px",
+                    letterSpacing: "0.01em",
+                    marginBottom: "1px",
+                  }}
+                >
+                  {notif.tipe === "sukses" ? "Berhasil:" : "Perhatian:"}
+                </strong>
+                <span style={{ fontSize: "13.5px", lineHeight: 1.4 }}>{notif.pesan}</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setNotif(null)}
+              style={{
+                background: "rgba(255, 255, 255, 0.2)",
+                border: "none",
+                cursor: "pointer",
+                color: "#ffffff",
+                fontSize: "14px",
+                borderRadius: "6px",
+                width: "28px",
+                height: "28px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                marginLeft: "8px",
+              }}
+              aria-label="Tutup notifikasi"
+            >
+              ✕
+            </button>
+          </aside>,
+          document.body
+        )}
 
       {/* ===================================================================
           BAGIAN 1: PEMBUATAN AKUN STAFF (KHUSUS PETUGAS & BENDAHARA)
@@ -798,141 +850,318 @@ export default function ManajemenAkunCrud({
 
       {/* ===================================================================
           MODAL EDIT AKUN (UPDATE CRUD — KHUSUS PETUGAS & BENDAHARA)
+          Ditampilkan langsung pada seluruh layar via React Portal
           =================================================================== */}
-      {akunDiedit && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0, 0, 0, 0.55)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-            padding: "20px",
-          }}
-          onClick={() => setAkunDiedit(null)}
-        >
+      {mounted &&
+        akunDiedit &&
+        createPortal(
           <div
-            style={{
-              background: "#ffffff",
-              borderRadius: "12px",
-              maxWidth: "500px",
-              width: "100%",
-              maxHeight: "90vh",
-              overflowY: "auto",
-              padding: "24px",
-              boxShadow: "0 20px 40px rgba(0,0,0,0.22)",
-            }}
-            onClick={(e) => e.stopPropagation()}
+            className="dsh__screenmodal"
+            onClick={() => setAkunDiedit(null)}
+            role="dialog"
+            aria-modal="true"
           >
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "16px",
-                paddingBottom: "12px",
-                borderBottom: "1px solid #eee",
+                background: "#ffffff",
+                borderRadius: "14px",
+                maxWidth: "520px",
+                width: "100%",
+                maxHeight: "90vh",
+                overflowY: "auto",
+                padding: "26px",
+                boxShadow: "0 24px 56px rgba(0, 0, 0, 0.32)",
+                boxSizing: "border-box",
+                animation: "dshModalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1) both",
               }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <div>
-                <span className="dsh__tagbadge">Perbarui Akun Staff</span>
-                <h3 style={{ margin: "4px 0 0", fontSize: "18px" }}>
-                  {akunDiedit.nama}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setAkunDiedit(null)}
+              <div
                 style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: "20px",
-                  cursor: "pointer",
-                  color: "#666",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "16px",
+                  paddingBottom: "12px",
+                  borderBottom: "1px solid #eee",
                 }}
               >
-                ✕
-              </button>
-            </div>
+                <div>
+                  <span className="dsh__tagbadge">Perbarui Akun Staff</span>
+                  <h3 style={{ margin: "4px 0 0", fontSize: "18px" }}>
+                    {akunDiedit.nama}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAkunDiedit(null)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: "20px",
+                    cursor: "pointer",
+                    color: "#666",
+                  }}
+                  aria-label="Tutup modal edit"
+                >
+                  ✕
+                </button>
+              </div>
 
-            <form onSubmit={handleSimpanEdit} className="dsh__form">
-              <div className="dsh__grid2">
+              <form onSubmit={handleSimpanEdit} className="dsh__form">
+                <div className="dsh__grid2">
+                  <div className="dsh__field">
+                    <label className="dsh__label">Peran Staff</label>
+                    <select
+                      className="dsh__select"
+                      value={editRole}
+                      onChange={(e) => {
+                        const r = e.target.value as RoleStaff;
+                        setEditRole(r);
+                        setEditEmail(formatEmailSesuaiRole(editEmail, r));
+                      }}
+                    >
+                      <option value="petugas">Petugas (@petugas.com)</option>
+                      <option value="bendahara">Bendahara (@bendahara.com)</option>
+                    </select>
+                  </div>
+
+                  <div className="dsh__field">
+                    <label className="dsh__label">Nomor ID</label>
+                    <input
+                      type="text"
+                      className="dsh__input"
+                      required
+                      value={editNomor}
+                      onChange={(e) => setEditNomor(e.target.value)}
+                    />
+                  </div>
+                </div>
+
                 <div className="dsh__field">
-                  <label className="dsh__label">Peran Staff</label>
-                  <select
-                    className="dsh__select"
-                    value={editRole}
-                    onChange={(e) => {
-                      const r = e.target.value as RoleStaff;
-                      setEditRole(r);
-                      setEditEmail(formatEmailSesuaiRole(editEmail, r));
+                  <label className="dsh__label">Nama Lengkap</label>
+                  <input
+                    type="text"
+                    className="dsh__input"
+                    required
+                    value={editNama}
+                    onChange={(e) => setEditNama(e.target.value)}
+                  />
+                </div>
+
+                <div className="dsh__grid2">
+                  <div className="dsh__field">
+                    <label className="dsh__label">Alamat Email</label>
+                    <input
+                      type="text"
+                      className="dsh__input"
+                      required
+                      value={editEmail}
+                      onChange={(e) => setEditEmail(e.target.value)}
+                    />
+                    <span className="dsh__subtext">
+                      Domain wajib: <strong>@{editRole}.com</strong>
+                    </span>
+                  </div>
+
+                  <div className="dsh__field">
+                    <label className="dsh__label">Kata Sandi</label>
+                    <input
+                      type="text"
+                      className="dsh__input"
+                      required
+                      value={editSandi}
+                      onChange={(e) => setEditSandi(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="dsh__field">
+                  <label className="dsh__label">Jabatan Operasional</label>
+                  <input
+                    type="text"
+                    className="dsh__input"
+                    value={editJabatan}
+                    onChange={(e) => setEditJabatan(e.target.value)}
+                  />
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    gap: "10px",
+                    marginTop: "10px",
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="dsh__btnoutline"
+                    onClick={() => setAkunDiedit(null)}
+                  >
+                    Batal
+                  </button>
+                  <button type="submit" className="dsh__btn">
+                    Simpan Perubahan
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {/* ===================================================================
+          ALERT DIALOG KONFIRMASI DELETE AKUN (TAMPIL DI SELURUH LAYAR)
+          Ditampilkan di tengah layar penuh via React Portal
+          =================================================================== */}
+      {mounted &&
+        akunAkanDihapus &&
+        createPortal(
+          <div
+            className="dsh__screenmodal"
+            onClick={() => setAkunAkanDihapus(null)}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="alert-hapus-title"
+          >
+            <div
+              className="dsh__screenmodalcard"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "14px",
+                  marginBottom: "16px",
+                }}
+              >
+                <div
+                  style={{
+                    width: "46px",
+                    height: "46px",
+                    borderRadius: "12px",
+                    background: "#fee2e2",
+                    border: "1px solid #fecaca",
+                    color: "#dc2626",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    width={24}
+                    height={24}
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M12 9v4m0 4h.01M4.93 19h14.14c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.2 16c-.77 1.33.19 3 1.73 3Z"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
+                      color: "#b91c1c",
                     }}
                   >
-                    <option value="petugas">Petugas (@petugas.com)</option>
-                    <option value="bendahara">Bendahara (@bendahara.com)</option>
-                  </select>
-                </div>
-
-                <div className="dsh__field">
-                  <label className="dsh__label">Nomor ID</label>
-                  <input
-                    type="text"
-                    className="dsh__input"
-                    required
-                    value={editNomor}
-                    onChange={(e) => setEditNomor(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="dsh__field">
-                <label className="dsh__label">Nama Lengkap</label>
-                <input
-                  type="text"
-                  className="dsh__input"
-                  required
-                  value={editNama}
-                  onChange={(e) => setEditNama(e.target.value)}
-                />
-              </div>
-
-              <div className="dsh__grid2">
-                <div className="dsh__field">
-                  <label className="dsh__label">Alamat Email</label>
-                  <input
-                    type="text"
-                    className="dsh__input"
-                    required
-                    value={editEmail}
-                    onChange={(e) => setEditEmail(e.target.value)}
-                  />
-                  <span className="dsh__subtext">
-                    Domain wajib: <strong>@{editRole}.com</strong>
+                    Peringatan Hapus
                   </span>
-                </div>
-
-                <div className="dsh__field">
-                  <label className="dsh__label">Kata Sandi</label>
-                  <input
-                    type="text"
-                    className="dsh__input"
-                    required
-                    value={editSandi}
-                    onChange={(e) => setEditSandi(e.target.value)}
-                  />
+                  <h3
+                    id="alert-hapus-title"
+                    style={{
+                      margin: "2px 0 0",
+                      fontSize: "18px",
+                      fontWeight: 700,
+                      color: "#17140f",
+                    }}
+                  >
+                    Konfirmasi Hapus Akun
+                  </h3>
                 </div>
               </div>
 
-              <div className="dsh__field">
-                <label className="dsh__label">Jabatan Operasional</label>
-                <input
-                  type="text"
-                  className="dsh__input"
-                  value={editJabatan}
-                  onChange={(e) => setEditJabatan(e.target.value)}
-                />
+              <p
+                style={{
+                  margin: "0 0 16px",
+                  fontSize: "14px",
+                  color: "#5c5546",
+                  lineHeight: 1.5,
+                }}
+              >
+                Apakah Anda yakin ingin menghapus akun{" "}
+                <strong style={{ color: "#17140f" }}>
+                  {akunAkanDihapus.nama}
+                </strong>{" "}
+                (
+                <span
+                  style={{
+                    textTransform: "uppercase",
+                    fontWeight: 700,
+                    color: "#276b30",
+                  }}
+                >
+                  {akunAkanDihapus.role}
+                </span>
+                ) dari sistem? Tindakan ini tidak dapat dibatalkan.
+              </p>
+
+              <div
+                style={{
+                  background: "#faf9f5",
+                  border: "1px solid #e7e5de",
+                  borderRadius: "10px",
+                  padding: "12px 14px",
+                  fontSize: "13px",
+                  color: "#3b362c",
+                  marginBottom: "22px",
+                  display: "grid",
+                  gap: "6px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <span style={{ color: "#78716c" }}>Nomor ID:</span>
+                  <code className="dsh__code">{akunAkanDihapus.nomor}</code>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <span style={{ color: "#78716c" }}>Email:</span>
+                  <code
+                    style={{
+                      fontSize: "12px",
+                      color: "#1e5225",
+                      fontWeight: 600,
+                      wordBreak: "break-all",
+                    }}
+                  >
+                    {akunAkanDihapus.email}
+                  </code>
+                </div>
               </div>
 
               <div
@@ -940,169 +1169,38 @@ export default function ManajemenAkunCrud({
                   display: "flex",
                   justifyContent: "flex-end",
                   gap: "10px",
-                  marginTop: "10px",
                 }}
               >
                 <button
                   type="button"
                   className="dsh__btnoutline"
-                  onClick={() => setAkunDiedit(null)}
+                  onClick={() => setAkunAkanDihapus(null)}
+                  style={{ padding: "9px 18px", fontSize: "13.5px" }}
                 >
                   Batal
                 </button>
-                <button type="submit" className="dsh__btn">
-                  Simpan Perubahan
+                <button
+                  type="button"
+                  onClick={konfirmasiHapusAkun}
+                  style={{
+                    background: "#dc2626",
+                    color: "#ffffff",
+                    border: "1px solid #b91c1c",
+                    borderRadius: "999px",
+                    padding: "9px 20px",
+                    fontSize: "13.5px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    boxShadow: "0 2px 8px rgba(220, 38, 38, 0.28)",
+                  }}
+                >
+                  Ya, Hapus Akun
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ===================================================================
-          CUSTOM ALERT DIALOG KONFIRMASI DELETE AKUN
-          =================================================================== */}
-      {akunAkanDihapus && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(23, 20, 15, 0.55)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-            padding: "20px",
-          }}
-          onClick={() => setAkunAkanDihapus(null)}
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby="alert-hapus-title"
-        >
-          <div
-            style={{
-              background: "#ffffff",
-              borderRadius: "12px",
-              maxWidth: "420px",
-              width: "100%",
-              padding: "24px",
-              boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
-              border: "1px solid #f5c2c2",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              style={{
-                width: "44px",
-                height: "44px",
-                borderRadius: "50%",
-                background: "#fef2f2",
-                border: "1px solid #fecaca",
-                color: "#dc2626",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: "14px",
-              }}
-            >
-              <svg
-                viewBox="0 0 20 20"
-                fill="none"
-                width={22}
-                height={22}
-                aria-hidden="true"
-              >
-                <path
-                  d="M10 6.5v4M10 13.5h.01M3.4 15.5h13.2c1.1 0 1.8-1.2 1.2-2.1L11.2 3.2c-.5-.9-1.9-.9-2.4 0L2.2 13.4c-.6.9.1 2.1 1.2 2.1Z"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
             </div>
-
-            <h3
-              id="alert-hapus-title"
-              style={{
-                margin: "0 0 8px",
-                fontSize: "17px",
-                fontWeight: 700,
-                color: "#17140f",
-              }}
-            >
-              Konfirmasi Hapus Akun
-            </h3>
-            <p
-              style={{
-                margin: "0 0 14px",
-                fontSize: "13.5px",
-                color: "#5c5546",
-                lineHeight: 1.5,
-              }}
-            >
-              Apakah Anda yakin ingin menghapus akun{" "}
-              <strong style={{ color: "#17140f" }}>
-                {akunAkanDihapus.nama}
-              </strong>{" "}
-              ({akunAkanDihapus.role.toUpperCase()}) dari sistem?
-            </p>
-
-            <div
-              style={{
-                background: "#faf9f5",
-                border: "1px solid #e7e5de",
-                borderRadius: "8px",
-                padding: "10px 12px",
-                fontSize: "12.5px",
-                color: "#4a4436",
-                marginBottom: "20px",
-                display: "grid",
-                gap: "4px",
-              }}
-            >
-              <div>
-                ID Akun: <code>{akunAkanDihapus.nomor}</code>
-              </div>
-              <div>
-                Email: <code>{akunAkanDihapus.email}</code>
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: "10px",
-              }}
-            >
-              <button
-                type="button"
-                className="dsh__btnoutline"
-                onClick={() => setAkunAkanDihapus(null)}
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={konfirmasiHapusAkun}
-                style={{
-                  background: "#dc2626",
-                  color: "#ffffff",
-                  border: "1px solid #b91c1c",
-                  borderRadius: "8px",
-                  padding: "9px 16px",
-                  fontSize: "13.5px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                Ya, Hapus Akun
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
