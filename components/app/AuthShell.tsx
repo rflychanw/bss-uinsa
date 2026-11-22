@@ -2,11 +2,13 @@ import type { ReactNode } from "react";
 
 /** Kerangka dua kolom untuk halaman /masuk dan /daftar. */
 export default function AuthShell({
+  kicker,
   judul,
   sub,
   catatan,
   children,
 }: {
+  kicker?: string;
   judul: string;
   sub: string;
   catatan: string;
@@ -55,6 +57,7 @@ export default function AuthShell({
 
           <section className="auth__form" aria-labelledby="auth-judul">
             <header className="auth__head">
+              {kicker ? <span className="auth__kicker">{kicker}</span> : null}
               <h1 className="auth__title" id="auth-judul">
                 {judul}
               </h1>

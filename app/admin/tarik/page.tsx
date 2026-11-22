@@ -45,7 +45,7 @@ export default function TarikTunaiAdminPage() {
   useEffect(() => {
     const s = sesiSekarang();
     if (!s || (s.role !== "bendahara" && s.role !== "admin")) {
-      router.replace(s ? beranda(s.role) : "/masuk");
+      router.replace(s ? beranda(s.role) : "/portal-bss");
       return;
     }
     setSesi(s);

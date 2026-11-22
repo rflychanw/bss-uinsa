@@ -418,16 +418,13 @@ export default function Home() {
               <h3>Akun</h3>
               <ul>
                 <li>
-                  <a href="/masuk">Masuk</a>
+                  <a href="/masuk">Masuk nasabah</a>
                 </li>
                 <li>
                   <a href="/daftar">Daftar jadi nasabah</a>
                 </li>
                 <li>
                   <a href="/nasabah">Ruang nasabah</a>
-                </li>
-                <li>
-                  <a href="/admin">Ruang petugas</a>
                 </li>
               </ul>
             </div>

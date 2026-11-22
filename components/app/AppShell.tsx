@@ -213,8 +213,9 @@ export default function AppShell({
       : "Ruang Nasabah";
 
   const onKeluar = () => {
+    const tujuanKeluar = roleAktif === "nasabah" ? "/masuk" : "/portal-bss";
     keluar();
-    router.replace("/masuk");
+    router.replace(tujuanKeluar);
   };
 
   const isActive = (href: string) => {

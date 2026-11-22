@@ -661,7 +661,11 @@ export function catatSetoranTerakhirAkun(nomorNasabah: string, tanggal: string) 
 
 export function masuk(
   email: string,
-  sandi: string
+  sandi: string,
+  opsi?: {
+    izinkanRole?: Role[];
+    pesanTolakRole?: string;
+  }
 ): { ok: true; sesi: Sesi } | { ok: false; pesan: string } {
   const cari = email.trim().toLowerCase();
   if (!cari) return { ok: false, pesan: "Email belum diisi." };
@@ -680,13 +684,26 @@ export function masuk(
   }
 
   if (!akun) {
+    const khususStaf =
+      opsi?.izinkanRole && !opsi.izinkanRole.includes("nasabah");
     return {
       ok: false,
-      pesan: "Email belum terdaftar di sistem. Gunakan akun yang tersedia atau buat akun terlebih dahulu.",
+      pesan: khususStaf
+        ? "Email tidak terdaftar atau tidak memiliki otorisasi pengelola BSS."
+        : "Email belum terdaftar di sistem. Periksa kembali alamat email atau daftar terlebih dahulu.",
     };
   }
   if (akun.sandi !== sandi) {
     return { ok: false, pesan: "Kata sandi salah. Coba lagi." };
+  }
+
+  if (opsi?.izinkanRole && !opsi.izinkanRole.includes(akun.role)) {
+    return {
+      ok: false,
+      pesan:
+        opsi.pesanTolakRole ||
+        "Akun ini tidak memiliki akses untuk masuk melalui halaman ini.",
+    };
   }
 
   /*

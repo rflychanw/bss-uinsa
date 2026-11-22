@@ -19,7 +19,9 @@ export default function MasukPage() {
   const [lihat, setLihat] = useState(false);
   const [pesan, setPesan] = useState("");
   const [kirim, setKirim] = useState(false);
-  const [daftarAkunDemo, setDaftarAkunDemo] = useState<Akun[]>(AKUN_DEMO);
+  const [daftarAkunDemo, setDaftarAkunDemo] = useState<Akun[]>(() =>
+    AKUN_DEMO.filter((a) => a.role === "nasabah")
+  );
   const [infoVerifikasi, setInfoVerifikasi] = useState<{
     nomor?: string;
     email?: string;
@@ -31,13 +33,9 @@ export default function MasukPage() {
     if (sesi) router.replace(beranda(sesi.role));
 
     const semua = semuaAkun();
-    const pilihan: Akun[] = [];
-    for (const r of ["admin", "petugas", "bendahara", "nasabah"] as const) {
-      const perRole = semua.filter((a) => a.role === r);
-      pilihan.push(...perRole.slice(0, 2));
-    }
-    if (pilihan.length > 0) {
-      setDaftarAkunDemo(pilihan);
+    const nasabahDemo = semua.filter((a) => a.role === "nasabah").slice(0, 2);
+    if (nasabahDemo.length > 0) {
+      setDaftarAkunDemo(nasabahDemo);
     }
 
     if (typeof window !== "undefined") {
@@ -65,7 +63,11 @@ export default function MasukPage() {
     setPesan("");
     setKirim(true);
 
-    const hasil = masuk(email, sandi);
+    const hasil = masuk(email, sandi, {
+      izinkanRole: ["nasabah"],
+      pesanTolakRole:
+        "Halaman ini khusus untuk akun Nasabah. Pengelola internal BSS silakan masuk melalui portal pengelola resmi.",
+    });
     if (!hasil.ok) {
       setPesan(hasil.pesan);
       setKirim(false);
@@ -83,9 +85,10 @@ export default function MasukPage() {
 
   return (
     <AuthShell
-      judul="Masuk Akun"
-      sub="Silakan masuk sesuai peran Anda (Nasabah, Petugas Jaga, Bendahara, atau Admin) sesuai SRS Bank Sampah Syariah UINSA."
-      catatan="Mode demo — akun contoh tersedia di formulir ini. Sesi tersimpan di browser Anda."
+      kicker="Portal Nasabah"
+      judul="Masuk Akun Nasabah"
+      sub="Pantau saldo tabungan sampah, riwayat penimbangan, dan ajukan pencairan dana Anda."
+      catatan="Layanan nasabah Bank Sampah Syariah UINSA · Mode demo browser."
     >
       {infoVerifikasi && (
         <div
@@ -190,11 +193,11 @@ export default function MasukPage() {
       </form>
 
       <div className="auth__demo">
-        <p className="auth__demotitle">Akun terdaftar siap pakai (Admin, Petugas, Bendahara, Nasabah)</p>
+        <p className="auth__demotitle">Akun contoh nasabah siap pakai</p>
         {daftarAkunDemo.map((akun) => (
           <div className="auth__demorow" key={akun.nomor + akun.email}>
             <div className="auth__demoinfo">
-              <b>{akun.jabatan || akun.role.toUpperCase()}</b>
+              <b>{akun.nama}</b>
               <code>{akun.email}</code>
               <code>{akun.sandi}</code>
             </div>

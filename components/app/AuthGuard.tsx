@@ -27,7 +27,8 @@ export default function AuthGuard({
 
     if (!sesi) {
       const next = pathname ? `?next=${encodeURIComponent(pathname)}` : "";
-      router.replace(`/masuk${next}`);
+      const tujuanMasuk = role === "nasabah" ? "/masuk" : "/portal-bss";
+      router.replace(`${tujuanMasuk}${next}`);
       return;
     }
 

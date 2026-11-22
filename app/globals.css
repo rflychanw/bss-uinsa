@@ -2240,3 +2240,283 @@ section[id] {
   color: var(--amber-deep);
   font-weight: 700;
 }
+
+.auth__kicker {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+/* ============================================================
+   PORTAL PENGELOLA BSS (/portal-bss)
+   Konsol masuk khusus internal: Admin, Bendahara, Petugas.
+   Satu bahasa material dengan BSS UINSA, tanpa ornamen berlebih.
+   ============================================================ */
+
+.portal {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(20px, 4vw, 48px) var(--edge);
+  background: var(--paper);
+}
+
+.portal__wrap {
+  width: 100%;
+  max-width: 1020px;
+  display: grid;
+  gap: 16px;
+}
+
+.portal__topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.portal__env {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+
+.portal__card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  background: var(--card);
+  border: 1px solid rgba(23, 20, 15, 0.14);
+}
+
+@media (min-width: 820px) {
+  .portal__card {
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  }
+}
+
+.portal__aside {
+  background: var(--green-deep);
+  color: var(--paper);
+  padding: clamp(28px, 4vw, 46px);
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.portal__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--paper);
+  text-decoration: none;
+}
+
+.portal__brand img {
+  border-radius: 50%;
+  border: 1px solid rgba(236, 235, 231, 0.25);
+}
+
+.portal__brandtext {
+  display: grid;
+  gap: 2px;
+}
+
+.portal__brandtext strong {
+  font-size: var(--body);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.portal__brandtext span {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(236, 235, 231, 0.7);
+}
+
+.portal__intro {
+  display: grid;
+  gap: 10px;
+}
+
+.portal__intro h2 {
+  font-size: clamp(1.45rem, 1.15rem + 1vw, 1.9rem);
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  color: var(--paper);
+}
+
+.portal__intro p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(236, 235, 231, 0.78);
+}
+
+.portal__roles {
+  display: grid;
+  border-top: 1px solid rgba(236, 235, 231, 0.16);
+}
+
+.portal__roleitem {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+  padding-block: 12px;
+  border-bottom: 1px solid rgba(236, 235, 231, 0.16);
+}
+
+.portal__rolecode {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--amber);
+}
+
+.portal__roledesc {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: rgba(236, 235, 231, 0.86);
+}
+
+.portal__asidefoot {
+  margin-top: auto;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: rgba(236, 235, 231, 0.68);
+}
+
+.portal__main {
+  padding: clamp(28px, 4vw, 48px);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.portal__labelrow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.portal__detected {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  color: var(--green);
+  font-weight: 600;
+}
+
+.portal__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 1.5rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--green-deep);
+  color: var(--paper);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    background-color 0.2s var(--ease),
+    translate 0.2s var(--ease);
+}
+
+.portal__submit:hover:not(:disabled) {
+  background: var(--ink);
+  translate: 0 -1px;
+}
+
+.portal__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.portal__submit:focus-visible {
+  outline: 2px solid var(--amber-deep);
+  outline-offset: 3px;
+}
+
+.portal__ledger {
+  border: 1px solid rgba(23, 20, 15, 0.14);
+  background: var(--paper);
+  padding: 14px 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.portal__ledgertitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.portal__ledgerrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(23, 20, 15, 0.1);
+}
+
+.portal__ledgerinfo {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.portal__ledgerrole {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.portal__tag {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border: 1px solid rgba(18, 48, 29, 0.25);
+  color: var(--green-deep);
+  background: rgba(47, 125, 58, 0.08);
+}
+
+.portal__cred {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  word-break: break-all;
+}
+
+.portal__policy {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid rgba(23, 20, 15, 0.1);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
