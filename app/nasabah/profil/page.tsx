@@ -183,8 +183,8 @@ export default function ProfilNasabah() {
             <dd>{email}</dd>
           </div>
           <div className="dsh__ledgeritem">
-            <dt>Kategori / Asal</dt>
-            <dd>{prodiFakultas}</dd>
+            <dt>Kategori</dt>
+            <dd>Nasabah Umum</dd>
           </div>
           <div className="dsh__ledgeritem">
             <dt>Skema Akad</dt>

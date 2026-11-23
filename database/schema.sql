@@ -29,10 +29,6 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 DO $$ BEGIN
-  CREATE TYPE public.kategori_nasabah_type AS ENUM ('umum', 'internal');
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-
-DO $$ BEGIN
   CREATE TYPE public.metode_bayar_daftar_type AS ENUM ('qris', 'va', 'tunai');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
@@ -223,11 +219,7 @@ CREATE TABLE IF NOT EXISTS public.nasabah (
   id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id              uuid NOT NULL UNIQUE REFERENCES public.users(id) ON DELETE CASCADE,
   no_buku_tabungan     varchar(50) NOT NULL UNIQUE,
-  kategori             public.kategori_nasabah_type NOT NULL DEFAULT 'umum',
-  fakultas             varchar(100),
-  prodi                varchar(100),
   no_hp                varchar(20),
-  alamat               text,
   rekening_pencairan   varchar(100),
   metode_bayar_daftar  public.metode_bayar_daftar_type NOT NULL DEFAULT 'qris',
   status_pendaftaran   public.status_pendaftaran_type NOT NULL DEFAULT 'menunggu',
@@ -237,7 +229,6 @@ CREATE TABLE IF NOT EXISTS public.nasabah (
   tanggal_upload_bukti timestamptz,
   verified_by          uuid REFERENCES public.users(id) ON DELETE SET NULL,
   verified_at          timestamptz,
-  catatan_verifikasi   text,
   terakhir_setor_at    timestamptz,
   created_at           timestamptz NOT NULL DEFAULT NOW(),
   updated_at           timestamptz NOT NULL DEFAULT NOW()
@@ -365,7 +356,6 @@ CREATE TABLE IF NOT EXISTS public.penarikan_saldo (
   nominal           numeric(12, 2) NOT NULL,
   metode            public.metode_penarikan_type NOT NULL,
   tujuan_pencairan  varchar(150) NOT NULL,
-  is_sedekah        boolean NOT NULL DEFAULT false,
   catatan           text,
   status            public.status_penarikan_type NOT NULL DEFAULT 'menunggu',
   tanggal_pengajuan timestamptz NOT NULL DEFAULT NOW(),
@@ -373,10 +363,7 @@ CREATE TABLE IF NOT EXISTS public.penarikan_saldo (
   created_at        timestamptz NOT NULL DEFAULT NOW(),
   updated_at        timestamptz NOT NULL DEFAULT NOW(),
 
-  CONSTRAINT chk_nominal_penarikan CHECK (
-    (is_sedekah = true AND nominal > 0) OR
-    (is_sedekah = false AND nominal >= 2000)
-  )
+  CONSTRAINT chk_nominal_penarikan CHECK (nominal >= 2000)
 );
 
 -- -----------------------------------------------------------------------------
@@ -461,7 +448,6 @@ BEGIN
     OR NEW.status_pendaftaran IS DISTINCT FROM OLD.status_pendaftaran
     OR NEW.verified_by IS DISTINCT FROM OLD.verified_by
     OR NEW.verified_at IS DISTINCT FROM OLD.verified_at
-    OR NEW.catatan_verifikasi IS DISTINCT FROM OLD.catatan_verifikasi
     OR NEW.terakhir_setor_at IS DISTINCT FROM OLD.terakhir_setor_at
   ) THEN
     SELECT role INTO caller_role FROM public.users WHERE id = (SELECT auth.uid());
@@ -898,8 +884,7 @@ debet AS (
   SELECT
     nasabah_id,
     COALESCE(SUM(nominal) FILTER (WHERE status = 'selesai'), 0) AS total_debet_selesai,
-    COALESCE(SUM(nominal) FILTER (WHERE status = 'menunggu'), 0) AS total_penarikan_menunggu,
-    COALESCE(SUM(nominal) FILTER (WHERE status = 'selesai' AND is_sedekah = true), 0) AS total_sedekah
+    COALESCE(SUM(nominal) FILTER (WHERE status = 'menunggu'), 0) AS total_penarikan_menunggu
   FROM public.penarikan_saldo
   GROUP BY nasabah_id
 )
@@ -909,7 +894,6 @@ SELECT
   n.no_buku_tabungan,
   u.nama_lengkap,
   u.email,
-  n.kategori,
   n.status_pendaftaran,
   n.terakhir_setor_at,
   CASE
@@ -922,7 +906,6 @@ SELECT
   COALESCE(ps.total_menunggu_verifikasi_rp, 0) AS total_menunggu_verifikasi_rp,
   COALESCE(d.total_debet_selesai, 0) AS total_debet_selesai,
   COALESCE(d.total_penarikan_menunggu, 0) AS total_penarikan_menunggu,
-  COALESCE(d.total_sedekah, 0) AS total_sedekah,
   GREATEST(0, COALESCE(k.total_kredit_valid, 0) - COALESCE(d.total_debet_selesai, 0)) AS saldo_tersedia
 FROM public.nasabah n
 JOIN public.users u ON u.id = n.user_id

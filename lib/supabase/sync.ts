@@ -152,9 +152,6 @@ function buildSesi(user: UserRow, nasabah?: NasabahRow | null): Sesi & {
     nama: user.nama_lengkap,
     nomor,
     role,
-    kategori: nasabah?.kategori as KategoriNasabah | undefined,
-    fakultas: nasabah?.fakultas || undefined,
-    prodi: nasabah?.prodi || undefined,
     jabatan: user.jabatan || undefined,
     buktiBayar: nasabah?.bukti_bayar_url || undefined,
     namaFileBukti: nasabah?.bukti_bayar_url ? "bukti-bayar.webp" : undefined,
@@ -417,9 +414,6 @@ export async function sinkronkanDataSupabase(
               u.role === "nasabah"
                 ? n?.no_buku_tabungan || u.username.toUpperCase()
                 : u.nomor_induk_staf || u.username.toUpperCase(),
-            kategori: n?.kategori as KategoriNasabah | undefined,
-            fakultas: n?.fakultas || undefined,
-            prodi: n?.prodi || undefined,
             jabatan: u.jabatan || undefined,
             buktiBayar: n?.bukti_bayar_url || undefined,
             namaFileBukti: n?.bukti_bayar_url ? "bukti-bayar.webp" : undefined,
@@ -470,10 +464,7 @@ export async function sinkronkanDataSupabase(
             )
           : 45;
         const aktif = saldo ? Boolean(saldo.is_aktif_menyetor) : selisihHari <= 30;
-        const fakLabel =
-          n.fakultas && n.prodi
-            ? `${n.fakultas} (${n.prodi})`
-            : n.fakultas || "Umum";
+        const fakLabel = "Nasabah Umum";
         const estimasiBelumTerjual = setoranRows
           .filter(
             (s) => s.nasabah_id === n.id && s.status_penjualan !== "disalurkan"
@@ -1061,7 +1052,6 @@ export async function tambahPenarikanSupabase(input: {
     nominal: input.nominal,
     metode: metodeDb,
     tujuan_pencairan: input.tujuan,
-    is_sedekah: Boolean(input.isSedekah),
     catatan: input.catatan || null,
     status: statusFinal,
     tanggal_pengajuan: nowIso,

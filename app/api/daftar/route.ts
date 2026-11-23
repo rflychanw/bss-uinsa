@@ -65,11 +65,7 @@ export async function POST(request: Request) {
     nama?: string;
     email?: string;
     sandi?: string;
-    kategori?: "umum" | "internal";
-    fakultas?: string;
-    prodi?: string;
     noHp?: string;
-    alamat?: string;
     metodeBayar?: "qris" | "va" | "tunai";
     buktiBayar?: string;
     buktiFollowBss?: string;
@@ -88,11 +84,6 @@ export async function POST(request: Request) {
   const nama = (body.nama || "").trim();
   const email = (body.email || "").trim().toLowerCase();
   const sandi = body.sandi || "";
-  const kategori = body.kategori === "internal" ? "internal" : "umum";
-  const fakultas =
-    kategori === "internal" ? (body.fakultas || "FEBI").trim() : "Umum";
-  const prodi =
-    kategori === "internal" ? (body.prodi || "").trim() || null : null;
   const metodeBayar =
     body.metodeBayar === "va" || body.metodeBayar === "tunai"
       ? body.metodeBayar
@@ -179,10 +170,7 @@ export async function POST(request: Request) {
     .replace(/[^a-z0-9._-]/gi, "")
     .toLowerCase();
   const username = `${usernameBase || "nasabah"}_${Date.now().toString(36).slice(-4)}`;
-  const jabatan =
-    kategori === "internal"
-      ? `Civitas UINSA (${fakultas}${prodi ? ` - ${prodi}` : ""})`
-      : "Nasabah Umum";
+  const jabatan = "Nasabah Umum";
 
   const { data: authCreated, error: authErr } =
     await admin.auth.admin.createUser({
@@ -252,11 +240,7 @@ export async function POST(request: Request) {
     const { error: nasabahErr } = await admin.from("nasabah").insert({
       user_id: userId,
       no_buku_tabungan: noBuku,
-      kategori,
-      fakultas,
-      prodi,
       no_hp: body.noHp?.trim() || null,
-      alamat: body.alamat?.trim() || null,
       metode_bayar_daftar: metodeBayar,
       status_pendaftaran: "menunggu",
       bukti_bayar_url: buktiBayarPath,

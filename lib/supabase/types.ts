@@ -1,6 +1,5 @@
 export type AuthProviderType = "supabase" | "google" | "local";
 export type RoleType = "nasabah" | "petugas" | "bendahara" | "admin";
-export type KategoriNasabahType = "umum" | "internal";
 export type MetodeBayarDaftarType = "qris" | "va" | "tunai";
 export type StatusPendaftaranType = "menunggu" | "aktif" | "ditolak";
 export type StatusVerifikasiSetoranType = "menunggu_verifikasi" | "terverifikasi" | "ditolak";
@@ -34,11 +33,7 @@ export interface NasabahRow {
   id: string;
   user_id: string;
   no_buku_tabungan: string;
-  kategori: KategoriNasabahType;
-  fakultas: string | null;
-  prodi: string | null;
   no_hp: string | null;
-  alamat: string | null;
   rekening_pencairan: string | null;
   metode_bayar_daftar: MetodeBayarDaftarType;
   status_pendaftaran: StatusPendaftaranType;
@@ -48,7 +43,6 @@ export interface NasabahRow {
   tanggal_upload_bukti: string | null;
   verified_by: string | null;
   verified_at: string | null;
-  catatan_verifikasi: string | null;
   terakhir_setor_at: string | null;
   created_at: string;
   updated_at: string;
@@ -109,7 +103,6 @@ export interface PenarikanSaldoRow {
   nominal: number;
   metode: MetodePenarikanType;
   tujuan_pencairan: string;
-  is_sedekah: boolean;
   catatan: string | null;
   status: StatusPenarikanType;
   tanggal_pengajuan: string;
@@ -178,7 +171,6 @@ export interface VSaldoNasabahRow {
   no_buku_tabungan: string;
   nama_lengkap: string;
   email: string;
-  kategori: KategoriNasabahType;
   status_pendaftaran: StatusPendaftaranType;
   terakhir_setor_at: string | null;
   is_aktif_menyetor: boolean;
@@ -187,7 +179,6 @@ export interface VSaldoNasabahRow {
   total_menunggu_verifikasi_rp: number;
   total_debet_selesai: number;
   total_penarikan_menunggu: number;
-  total_sedekah: number;
   saldo_tersedia: number;
 }
 

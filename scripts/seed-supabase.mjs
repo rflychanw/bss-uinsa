@@ -206,11 +206,7 @@ async function run() {
           .insert({
             user_id: authUser.id,
             no_buku_tabungan: u.nasabah.no_buku_tabungan,
-            kategori: u.nasabah.kategori,
-            fakultas: u.nasabah.fakultas || null,
-            prodi: u.nasabah.prodi || null,
             no_hp: u.nasabah.no_hp || null,
-            alamat: u.nasabah.alamat || null,
             rekening_pencairan: u.nasabah.rekening_pencairan || null,
             metode_bayar_daftar: "qris",
             status_pendaftaran: "aktif",
