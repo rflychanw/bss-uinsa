@@ -2,12 +2,13 @@
 
 import { useEffect, useId, useMemo, useState } from "react";
 import {
+  buatLinkWaPenarikanBendahara,
   formatMetodePenarikan,
   getDaftarPenarikan,
   getDaftarSetoran,
   hitungRingkasanSaldoNasabah,
   kg,
-  MINIMAL_PENARIKAN_RP,
+  minimalPenarikanUntukMetode,
   NASABAH_DEMO,
   RIWAYAT_SETORAN_AWAL,
   rp,
@@ -39,6 +40,7 @@ export default function RiwayatNasabah() {
   const [namaPenyedia, setNamaPenyedia] = useState<string>("DANA");
   const [nomorTujuan, setNomorTujuan] = useState<string>("081234567890");
   const [notifTarik, setNotifTarik] = useState<string>("");
+  const [notifWaUrl, setNotifWaUrl] = useState<string>("");
   const [errorTarik, setErrorTarik] = useState<string>("");
 
   const idNominal = useId();
@@ -105,8 +107,15 @@ export default function RiwayatNasabah() {
     ? penarikanNasabah
     : penarikanNasabah.slice(0, 3);
 
+  const minNominalTarik = minimalPenarikanUntukMetode(metodeTarik);
+
   const handlePilihMetode = (m: MetodePenarikan) => {
+    const minBaru = minimalPenarikanUntukMetode(m);
     setMetodeTarik(m);
+    setErrorTarik("");
+    setNotifTarik("");
+    setNotifWaUrl("");
+    setNominalTarik((prev) => (prev < minBaru ? minBaru : prev));
     if (m === "bank") {
       setNamaPenyedia("Bank BSI");
       setNomorTujuan("7182930412");
@@ -120,9 +129,14 @@ export default function RiwayatNasabah() {
     e.preventDefault();
     setErrorTarik("");
     setNotifTarik("");
+    setNotifWaUrl("");
 
-    if (nominalTarik < MINIMAL_PENARIKAN_RP) {
-      setErrorTarik(`Minimal penarikan adalah ${rp(MINIMAL_PENARIKAN_RP)}.`);
+    if (nominalTarik < minNominalTarik) {
+      setErrorTarik(
+        metodeTarik === "tunai"
+          ? `Minimal penarikan tunai adalah ${rp(minNominalTarik)}.`
+          : `Minimal penarikan melalui ${metodeTarik === "ewallet" ? "E-Wallet" : "Transfer Bank"} adalah ${rp(minNominalTarik)} karena ada biaya & pajak admin.`
+      );
       return;
     }
 
@@ -149,6 +163,9 @@ export default function RiwayatNasabah() {
       ? "Tunai di Pos Jaga"
       : `${namaPenyedia} · ${nomorTujuan.trim()}`;
 
+    const waWindow =
+      typeof window !== "undefined" ? window.open("", "_blank") : null;
+
     let trxId = "";
     if (hasSupabaseEnv()) {
       const res = await tambahPenarikanSupabase({
@@ -160,6 +177,7 @@ export default function RiwayatNasabah() {
         status: "menunggu",
       });
       if (!res.ok) {
+        if (waWindow && !waWindow.closed) waWindow.close();
         setErrorTarik(res.pesan);
         return;
       }
@@ -179,6 +197,27 @@ export default function RiwayatNasabah() {
       trxId = baru.id;
     }
 
+    const waUrl = buatLinkWaPenarikanBendahara({
+      id: trxId,
+      nomorNasabah: noNasabah,
+      namaNasabah,
+      nominal: nominalTarik,
+      metode: metodeTarik,
+      tujuan: infoTujuan,
+      tanggal: tanggalHariIni,
+      catatan: "Penarikan saldo tabungan",
+    });
+
+    if (waWindow && !waWindow.closed) {
+      try {
+        waWindow.opener = null;
+        waWindow.location.href = waUrl;
+      } catch {
+        waWindow.close();
+      }
+    }
+
+    setNotifWaUrl(waUrl);
     setDaftarPenarikan(getDaftarPenarikan());
     setNotifTarik(
       `Pengajuan penarikan ${trxId} (${rp(nominalTarik)}) berhasil dikirim dengan status Menunggu Validasi Petugas.`
@@ -232,7 +271,7 @@ export default function RiwayatNasabah() {
           role="tab"
           aria-selected={tabUtama === "buku"}
         >
-          📖 Lembar Buku Tabungan
+          Lembar Buku Tabungan
         </button>
       </div>
 
@@ -318,7 +357,32 @@ export default function RiwayatNasabah() {
         <>
           {notifTarik && (
             <div className="dsh__alert dsh__alert--success" role="alert">
-              {notifTarik}
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <span>{notifTarik}</span>
+                {notifWaUrl && (
+                  <div>
+                    <a
+                      href={notifWaUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "6px 12px",
+                        borderRadius: "6px",
+                        background: "#166534",
+                        color: "#ffffff",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        textDecoration: "none",
+                      }}
+                    >
+                      Kirim Notifikasi ke WhatsApp Bendahara
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -425,14 +489,15 @@ export default function RiwayatNasabah() {
 
                 <div className="dsh__field">
                   <label className="dsh__label" htmlFor={idNominal}>
-                    Nominal (Min. {rp(MINIMAL_PENARIKAN_RP)})
+                    Nominal (Min. {rp(minNominalTarik)}
+                    {metodeTarik !== "tunai" ? " · termasuk pajak & admin" : ""})
                   </label>
                   <input
                     id={idNominal}
                     type="number"
-                    min={MINIMAL_PENARIKAN_RP}
+                    min={minNominalTarik}
                     max={Math.max(
-                      MINIMAL_PENARIKAN_RP,
+                      minNominalTarik,
                       ringkasanSaldo.saldoTersedia
                     )}
                     step="500"
@@ -442,7 +507,9 @@ export default function RiwayatNasabah() {
                     onChange={(e) => setNominalTarik(Number(e.target.value))}
                   />
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "4px" }}>
-                    {[2000, 5000, 10000, 20000, 50000].map((nom) => (
+                    {[2000, 5000, 10000, 20000, 50000]
+                      .filter((nom) => nom >= minNominalTarik)
+                      .map((nom) => (
                       <button
                         key={nom}
                         type="button"

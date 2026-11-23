@@ -495,6 +495,14 @@ BEGIN
       RAISE EXCEPTION 'Nominal penarikan harus lebih dari Rp 0.';
     END IF;
 
+    IF NEW.metode IN ('bank'::public.metode_penarikan_type, 'ewallet'::public.metode_penarikan_type)
+       AND NEW.nominal < 10000 THEN
+      RAISE EXCEPTION 'Minimal penarikan melalui E-Wallet atau Transfer Bank adalah Rp 10.000 karena biaya dan pajak administrasi.';
+    ELSIF NEW.metode = 'tunai'::public.metode_penarikan_type
+       AND NEW.nominal < 2000 THEN
+      RAISE EXCEPTION 'Minimal penarikan tunai adalah Rp 2.000.';
+    END IF;
+
     SELECT COALESCE(SUM(COALESCE(nilai_realisasi, estimasi_nilai_total)), 0)
     INTO v_kredit
     FROM public.setoran_nasabah

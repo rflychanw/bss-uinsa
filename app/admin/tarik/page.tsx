@@ -7,7 +7,9 @@ import {
   getDaftarNasabahMaster,
   getDaftarPenarikan,
   hitungRingkasanSaldoNasabah,
+  MINIMAL_PENARIKAN_NONTUNAI_RP,
   MINIMAL_PENARIKAN_RP,
+  minimalPenarikanUntukMetode,
   rp,
   tambahPenarikan,
   validasiPenarikanTunai,
@@ -50,6 +52,8 @@ export default function TarikTunaiAdminPage() {
   const idMetode = useId();
   const idTujuan = useId();
   const idCatatan = useId();
+
+  const minNominal = minimalPenarikanUntukMetode(metode);
 
   /* Halaman kas & penarikan saldo dibuka untuk Bendahara & Admin. */
   useEffect(() => {
@@ -162,8 +166,12 @@ export default function TarikTunaiAdminPage() {
       alert("Belum ada nasabah yang dipilih.");
       return;
     }
-    if (nominal < MINIMAL_PENARIKAN_RP) {
-      alert(`Minimal penarikan saldo adalah ${rp(MINIMAL_PENARIKAN_RP)}.`);
+    if (nominal < minNominal) {
+      alert(
+        metode === "tunai"
+          ? `Minimal penarikan tunai adalah ${rp(minNominal)}.`
+          : `Minimal penarikan melalui ${metode === "ewallet" ? "E-Wallet" : "Transfer Bank"} adalah ${rp(minNominal)} karena ada biaya & pajak admin.`
+      );
       return;
     }
     if (nominal > ringkasanNasabahTerpilih.saldoTersedia) {
@@ -239,7 +247,8 @@ export default function TarikTunaiAdminPage() {
           <span className="dsh__tagbadge">Layanan Kas & Bendahara</span>
           <span className="dsh__dot" aria-hidden="true">•</span>
           <span className="dsh__meta">
-            Validasi Tarik Tunai, Bank & E-Wallet (Min. {rp(MINIMAL_PENARIKAN_RP)})
+            Validasi Tarik Tunai (Min. {rp(MINIMAL_PENARIKAN_RP)}), Bank &amp; E-Wallet (Min.{" "}
+            {rp(MINIMAL_PENARIKAN_NONTUNAI_RP)})
           </span>
         </div>
         <h1 className="dsh__h1">Validasi & Riwayat Penarikan Saldo</h1>
@@ -453,8 +462,9 @@ export default function TarikTunaiAdminPage() {
             </div>
           </div>
           <p className="dsh__carddesc">
-            Catat dan validasi langsung penarikan saldo nasabah (minimal{" "}
-            <strong>{rp(MINIMAL_PENARIKAN_RP)}</strong>) via Tunai, Bank, atau E-Wallet.
+            Catat dan validasi langsung penarikan saldo nasabah (Tunai min.{" "}
+            <strong>{rp(MINIMAL_PENARIKAN_RP)}</strong>, Bank / E-Wallet min.{" "}
+            <strong>{rp(MINIMAL_PENARIKAN_NONTUNAI_RP)}</strong> karena biaya & pajak admin).
           </p>
 
           <form onSubmit={handleSubmit} className="dsh__form">
@@ -481,14 +491,15 @@ export default function TarikTunaiAdminPage() {
 
             <div className="dsh__field">
               <label className="dsh__label" htmlFor={idNominal}>
-                Nominal Uang yang Ditarik (Min. {rp(MINIMAL_PENARIKAN_RP)})
+                Nominal Uang yang Ditarik (Min. {rp(minNominal)}
+                {metode !== "tunai" ? " · termasuk pajak & admin" : ""})
               </label>
               <input
                 id={idNominal}
                 type="number"
                 step="500"
-                min={MINIMAL_PENARIKAN_RP}
-                max={Math.max(MINIMAL_PENARIKAN_RP, ringkasanNasabahTerpilih.saldoTersedia)}
+                min={minNominal}
+                max={Math.max(minNominal, ringkasanNasabahTerpilih.saldoTersedia)}
                 className="dsh__input"
                 required
                 value={nominal}
@@ -497,7 +508,7 @@ export default function TarikTunaiAdminPage() {
               <span className="dsh__subtext">
                 Saldo valid tersedia saat ini:{" "}
                 <strong>{rp(ringkasanNasabahTerpilih.saldoTersedia)}</strong> (Minimal tarik{" "}
-                <strong>{rp(MINIMAL_PENARIKAN_RP)}</strong>)
+                <strong>{rp(minNominal)}</strong>)
               </span>
             </div>
 
@@ -511,7 +522,9 @@ export default function TarikTunaiAdminPage() {
                 value={metode}
                 onChange={(e) => {
                   const m = e.target.value as MetodePenarikan;
+                  const minBaru = minimalPenarikanUntukMetode(m);
                   setMetode(m);
+                  setNominal((prev) => (prev < minBaru ? minBaru : prev));
                   if (m === "tunai") setTujuan("Tunai di Loket Bendahara");
                   else if (m === "bank") setTujuan("Bank BSI — ");
                   else if (m === "ewallet") setTujuan("DANA — ");

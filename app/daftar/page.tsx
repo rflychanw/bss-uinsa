@@ -745,7 +745,7 @@ export default function DaftarPage() {
                   }}
                   title="Salin nomor Virtual Account ke clipboard"
                 >
-                  {salinVa ? "✓ Tersalin!" : "📋 Salin VA"}
+                  {salinVa ? "✓ Tersalin!" : "Salin VA"}
                 </button>
               </div>
 
@@ -852,7 +852,7 @@ export default function DaftarPage() {
               >
                 {isConvertingBayar ? (
                   <div style={{ color: "#25632d", fontSize: "13px", fontWeight: 600 }}>
-                    ⏳ Memproses gambar...
+                    Memproses gambar...
                   </div>
                 ) : (
                   <>
@@ -869,7 +869,10 @@ export default function DaftarPage() {
                         color: "#544e43",
                       }}
                     >
-                      🧾
+                      <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M4 3h16v18l-2.5-1.5L15 21l-3-1.5L9 21l-2.5-1.5L4 21V3z" />
+                        <path d="M8 8h8M8 12h8M8 16h5" />
+                      </svg>
                     </div>
                     <div style={{ fontSize: "13px", fontWeight: 600, color: "#221f19" }}>
                       Pilih struk transfer / bukti bayar QRIS / VA
@@ -1016,7 +1019,11 @@ export default function DaftarPage() {
                   transition: "background 0.15s ease",
                 }}
               >
-                <span>📸</span>
+                <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="2" y="2" width="20" height="20" rx="5" />
+                  <circle cx="12" cy="12" r="4" />
+                  <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+                </svg>
                 <span>@bss_uinsa ↗</span>
               </a>
 
@@ -1042,7 +1049,11 @@ export default function DaftarPage() {
                   transition: "background 0.15s ease",
                 }}
               >
-                <span>🏛️</span>
+                <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="2" y="2" width="20" height="20" rx="5" />
+                  <circle cx="12" cy="12" r="4" />
+                  <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+                </svg>
                 <span>Lab FEBI UINSA ↗</span>
               </a>
             </div>
@@ -1108,7 +1119,7 @@ export default function DaftarPage() {
               >
                 {isConvertingBss ? (
                   <div style={{ color: "#25632d", fontSize: "13px", fontWeight: 600 }}>
-                    ⏳ Memproses gambar...
+                    Memproses gambar...
                   </div>
                 ) : (
                   <>
@@ -1125,7 +1136,11 @@ export default function DaftarPage() {
                         color: "#544e43",
                       }}
                     >
-                      📸
+                      <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <rect x="3" y="5" width="18" height="14" rx="2" />
+                        <circle cx="8.5" cy="10.5" r="1.5" />
+                        <path d="M21 15l-5-5L5 19" />
+                      </svg>
                     </div>
                     <div style={{ fontSize: "13px", fontWeight: 600, color: "#221f19" }}>
                       Pilih screenshot follow @bss_uinsa
@@ -1279,7 +1294,7 @@ export default function DaftarPage() {
               >
                 {isConvertingLab ? (
                   <div style={{ color: "#25632d", fontSize: "13px", fontWeight: 600 }}>
-                    ⏳ Memproses gambar...
+                    Memproses gambar...
                   </div>
                 ) : (
                   <>
@@ -1296,7 +1311,11 @@ export default function DaftarPage() {
                         color: "#544e43",
                       }}
                     >
-                      🏛️
+                      <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <rect x="3" y="5" width="18" height="14" rx="2" />
+                        <circle cx="8.5" cy="10.5" r="1.5" />
+                        <path d="M21 15l-5-5L5 19" />
+                      </svg>
                     </div>
                     <div style={{ fontSize: "13px", fontWeight: 600, color: "#221f19" }}>
                       Pilih screenshot follow Lab FEBI UINSA
@@ -1459,7 +1478,7 @@ export default function DaftarPage() {
             lineHeight: 1.5,
           }}
         >
-          💳 <strong>Syarat Pendaftaran:</strong> Menyiapkan bukti pembayaran
+          <strong>Syarat Pendaftaran:</strong> Menyiapkan bukti pembayaran
           serta screenshot follow Instagram <b>@bss_uinsa</b> dan <b>Lab FEBI</b> pada
           langkah selanjutnya.
         </div>

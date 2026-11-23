@@ -242,7 +242,7 @@ export default function PricelistAdmin() {
             onClick={() => window.print()}
             style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
           >
-            🖨️ Cetak Pricelist
+            Cetak Pricelist
           </button>
           <button
             type="button"
@@ -250,7 +250,7 @@ export default function PricelistAdmin() {
             onClick={handleEksporCSV}
             style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
           >
-            ⬇️ Ekspor CSV
+            Ekspor CSV
           </button>
         </div>
       </header>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { sesiSekarang, type Sesi } from "../../lib/auth";
 import {
+  buatLinkWaPenarikanBendahara,
   getBatchesPengepul,
   getDaftarNasabahMaster,
   formatMetodePenarikan,
@@ -11,7 +12,9 @@ import {
   getDaftarSetoran,
   hitungRingkasanSaldoNasabah,
   kg,
+  MINIMAL_PENARIKAN_NONTUNAI_RP,
   MINIMAL_PENARIKAN_RP,
+  minimalPenarikanUntukMetode,
   RIWAYAT_SETORAN_AWAL,
   rp,
   tambahPenarikan,
@@ -50,6 +53,9 @@ export default function DashboardNasabah() {
   const [catatanTarik, setCatatanTarik] = useState<string>("Penarikan saldo tabungan");
   const [errorTarik, setErrorTarik] = useState<string>("");
   const [strukBerhasil, setStrukBerhasil] = useState<PenarikanUang | null>(null);
+  const [waLinkStruk, setWaLinkStruk] = useState<string>("");
+
+  const minNominalTarik = minimalPenarikanUntukMetode(metodeTarik);
 
   const muatUlangData = () => {
     setSesi(sesiSekarang());
@@ -90,7 +96,10 @@ export default function DashboardNasabah() {
   const bukaQuickAction = (metode: MetodePenarikan) => {
     setErrorTarik("");
     setStrukBerhasil(null);
+    setWaLinkStruk("");
     setMetodeTarik(metode);
+    const minBaru = minimalPenarikanUntukMetode(metode);
+    setNominalTarik((prev) => (prev < minBaru ? minBaru : prev));
     if (metode === "ewallet") {
       setProvider("DANA");
       setNomorTujuan("081234567890");
@@ -108,8 +117,12 @@ export default function DashboardNasabah() {
     e.preventDefault();
     setErrorTarik("");
 
-    if (nominalTarik < MINIMAL_PENARIKAN_RP) {
-      setErrorTarik(`Minimal penarikan saldo adalah ${rp(MINIMAL_PENARIKAN_RP)}.`);
+    if (nominalTarik < minNominalTarik) {
+      setErrorTarik(
+        metodeTarik === "tunai"
+          ? `Minimal penarikan tunai adalah ${rp(minNominalTarik)}.`
+          : `Minimal penarikan via ${metodeTarik === "ewallet" ? "E-Wallet" : "Transfer Bank"} adalah ${rp(minNominalTarik)} karena ada biaya & pajak admin.`
+      );
       return;
     }
     if (nominalTarik > ringkasan.saldoTersedia) {
@@ -134,6 +147,8 @@ export default function DashboardNasabah() {
       ? "Tunai di Pos Meja Timbang"
       : `${provider} — ${nomorTujuan.trim()}`;
 
+    const waWindow = typeof window !== "undefined" ? window.open("", "_blank") : null;
+
     if (hasSupabaseEnv()) {
       const res = await tambahPenarikanSupabase({
         nomorNasabah,
@@ -144,8 +159,24 @@ export default function DashboardNasabah() {
         status: "menunggu",
       });
       if (!res.ok) {
+        waWindow?.close();
         setErrorTarik(res.pesan);
         return;
+      }
+      const waUrl = buatLinkWaPenarikanBendahara({
+        id: res.id,
+        nomorNasabah,
+        namaNasabah: namaLengkap,
+        nominal: nominalTarik,
+        metode: metodeTarik,
+        tujuan: infoTujuan,
+        tanggal: tanggalHariIni,
+        catatan: catatanTarik || "Penarikan saldo tabungan",
+      });
+      setWaLinkStruk(waUrl);
+      if (waWindow) {
+        waWindow.opener = null;
+        waWindow.location.href = waUrl;
       }
       muatUlangData();
       setStrukBerhasil({
@@ -174,6 +205,22 @@ export default function DashboardNasabah() {
       status: "menunggu",
       petugas: "Menunggu Validasi Petugas / Kasir BSS",
     });
+
+    const waUrl = buatLinkWaPenarikanBendahara({
+      id: trxBaru.id,
+      nomorNasabah,
+      namaNasabah: namaLengkap,
+      nominal: nominalTarik,
+      metode: metodeTarik,
+      tujuan: infoTujuan,
+      tanggal: tanggalHariIni,
+      catatan: catatanTarik || "Penarikan saldo tabungan",
+    });
+    setWaLinkStruk(waUrl);
+    if (waWindow) {
+      waWindow.opener = null;
+      waWindow.location.href = waUrl;
+    }
 
     muatUlangData();
     setStrukBerhasil(trxBaru);
@@ -252,7 +299,7 @@ export default function DashboardNasabah() {
                 fontWeight: 600,
               }}
             >
-              {tabTampilan === "buku_tabungan" ? "Tutup Lembar Buku" : "📖 Buka Buku Tabungan"}
+              {tabTampilan === "buku_tabungan" ? "Tutup Lembar Buku" : "Buka Buku Tabungan"}
             </button>
             <Link
               href="/nasabah/profil"
@@ -286,7 +333,8 @@ export default function DashboardNasabah() {
             </div>
             <div className="dsh__walletmeta">
               <span>
-                Minimal penarikan <strong>{rp(MINIMAL_PENARIKAN_RP)}</strong>
+                Min. Tunai <strong>{rp(MINIMAL_PENARIKAN_RP)}</strong> · Bank / E-Wallet{" "}
+                <strong>{rp(MINIMAL_PENARIKAN_NONTUNAI_RP)}</strong>
               </span>
               {ringkasan.totalMenungguVerifikasiRp > 0 && (
                 <span>
@@ -476,17 +524,37 @@ export default function DashboardNasabah() {
                   </p>
                 )}
 
-                <button
-                  type="button"
-                  className="dsh__btn"
-                  style={{ width: "100%" }}
-                  onClick={() => {
-                    setStrukBerhasil(null);
-                    setBukaModalTarik(false);
-                  }}
-                >
-                  Tutup
-                </button>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {waLinkStruk && (
+                    <a
+                      href={waLinkStruk}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="dsh__btn"
+                      style={{
+                        width: "100%",
+                        textAlign: "center",
+                        textDecoration: "none",
+                        background: "#1b7a38",
+                        borderColor: "#15632d",
+                      }}
+                    >
+                      Kirim Notifikasi ke WhatsApp Bendahara
+                    </a>
+                  )}
+                  <button
+                    type="button"
+                    className="dsh__btnoutline"
+                    style={{ width: "100%" }}
+                    onClick={() => {
+                      setStrukBerhasil(null);
+                      setWaLinkStruk("");
+                      setBukaModalTarik(false);
+                    }}
+                  >
+                    Tutup
+                  </button>
+                </div>
               </div>
             ) : (
               <>
@@ -627,12 +695,13 @@ export default function DashboardNasabah() {
 
                   <div className="dsh__field">
                     <label className="dsh__label">
-                      Nominal Penarikan (Minimal {rp(MINIMAL_PENARIKAN_RP)})
+                      Nominal Penarikan (Minimal {rp(minNominalTarik)}
+                      {metodeTarik !== "tunai" ? " · termasuk biaya/pajak admin" : ""})
                     </label>
                     <input
                       type="number"
-                      min={MINIMAL_PENARIKAN_RP}
-                      max={Math.max(MINIMAL_PENARIKAN_RP, ringkasan.saldoTersedia)}
+                      min={minNominalTarik}
+                      max={Math.max(minNominalTarik, ringkasan.saldoTersedia)}
                       step="500"
                       required
                       className="dsh__input"
@@ -647,7 +716,9 @@ export default function DashboardNasabah() {
                         marginTop: "4px",
                       }}
                     >
-                      {[2000, 5000, 10000, 20000, 50000].map((nom) => (
+                      {[2000, 5000, 10000, 20000, 50000]
+                        .filter((nom) => nom >= minNominalTarik)
+                        .map((nom) => (
                         <button
                           key={nom}
                           type="button"
@@ -670,7 +741,7 @@ export default function DashboardNasabah() {
                           {rp(nom)}
                         </button>
                       ))}
-                      {ringkasan.saldoTersedia >= MINIMAL_PENARIKAN_RP && (
+                      {ringkasan.saldoTersedia >= minNominalTarik && (
                         <button
                           type="button"
                           onClick={() => setNominalTarik(ringkasan.saldoTersedia)}
@@ -735,7 +806,7 @@ export default function DashboardNasabah() {
           role="tab"
           aria-selected={tabTampilan === "buku_tabungan"}
         >
-          📖 Lembar Tabungan Nasabah
+          Lembar Tabungan Nasabah
         </button>
       </div>
 
@@ -805,7 +876,7 @@ export default function DashboardNasabah() {
                 style={{ flex: 1, textAlign: "center" }}
                 onClick={() => setTabTampilan("buku_tabungan")}
               >
-                Buka Lembar Buku Tabungan Asli 📖
+                Buka Lembar Buku Tabungan Asli
               </button>
               <Link
                 href="/nasabah/riwayat"

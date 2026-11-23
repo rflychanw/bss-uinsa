@@ -297,7 +297,7 @@ export default function RekapKeuanganAdmin() {
             onClick={() => window.print()}
             style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
           >
-            🖨️ Cetak Laporan
+            Cetak Laporan
           </button>
           <button
             type="button"

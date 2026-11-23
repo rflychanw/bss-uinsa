@@ -20,6 +20,50 @@ export type Status = "selesai" | "menunggu";
 export type MetodePenarikan = "tunai" | "bank" | "ewallet" | "transfer";
 
 export const MINIMAL_PENARIKAN_RP = 2000;
+export const MINIMAL_PENARIKAN_NONTUNAI_RP = 10000;
+export const WA_BENDAHARA_NOMOR = "6282142877426";
+
+export function minimalPenarikanUntukMetode(metode: MetodePenarikan): number {
+  return metode === "tunai"
+    ? MINIMAL_PENARIKAN_RP
+    : MINIMAL_PENARIKAN_NONTUNAI_RP;
+}
+
+export function buatLinkWaPenarikanBendahara(data: {
+  id: string;
+  nomorNasabah: string;
+  namaNasabah: string;
+  nominal: number;
+  metode: MetodePenarikan;
+  tujuan: string;
+  tanggal: string;
+  catatan?: string;
+}): string {
+  const labelMetode =
+    data.metode === "tunai"
+      ? "Tunai di Pos Jaga"
+      : data.metode === "ewallet"
+      ? "E-Wallet"
+      : "Transfer Bank";
+
+  const lines = [
+    "Assalamu'alaikum Ibu/Bapak Bendahara BSS UINSA,",
+    "",
+    "Saya mengajukan *Pencairan Saldo Tabungan Sampah* dengan rincian berikut:",
+    `- No. Pengajuan: ${data.id}`,
+    `- Nama Nasabah: ${data.namaNasabah} (${data.nomorNasabah})`,
+    `- Nominal Pencairan: Rp ${Math.round(data.nominal).toLocaleString("id-ID")}`,
+    `- Metode: ${labelMetode}`,
+    `- Tujuan: ${data.tujuan}`,
+    `- Tanggal: ${data.tanggal}`,
+  ];
+  if (data.catatan && data.catatan.trim()) {
+    lines.push(`- Catatan: ${data.catatan.trim()}`);
+  }
+  lines.push("", "Mohon dibantu verifikasi dan proses pencairannya. Terima kasih.");
+
+  return `https://wa.me/${WA_BENDAHARA_NOMOR}?text=${encodeURIComponent(lines.join("\n"))}`;
+}
 
 export type PenarikanUang = {
   id: string;

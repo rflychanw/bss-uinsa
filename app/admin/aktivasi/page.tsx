@@ -265,7 +265,7 @@ export default function AktivasiAkunPage() {
                       }}
                     >
                       <span style={{ fontSize: "12px", fontWeight: 700, color: "#1f1b13" }}>
-                        🧾 Struk / Bukti Bayar
+                        Struk / Bukti Bayar
                       </span>
                       <span
                         style={{
@@ -315,7 +315,7 @@ export default function AktivasiAkunPage() {
                       }}
                     >
                       <span style={{ fontSize: "12px", fontWeight: 700, color: "#25632d" }}>
-                        📸 Follow IG @bss_uinsa
+                        Follow IG @bss_uinsa
                       </span>
                       <span
                         style={{
@@ -377,7 +377,7 @@ export default function AktivasiAkunPage() {
                       }}
                     >
                       <span style={{ fontSize: "12px", fontWeight: 700, color: "#25632d" }}>
-                        🏛️ Follow IG Lab FEBI
+                        Follow IG Lab FEBI
                       </span>
                       <span
                         style={{
@@ -659,7 +659,7 @@ export default function AktivasiAkunPage() {
                               })
                             }
                           >
-                            👁 Lihat Bukti
+                            Lihat Bukti
                           </button>
                         </div>
                       ) : (

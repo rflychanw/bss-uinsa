@@ -293,7 +293,7 @@ export default function PengepulAdmin() {
                     lineHeight: 1.5,
                   }}
                 >
-                  ℹ️ <strong>Hak Akses Pemantauan Admin (BR-011):</strong> Administrator memantau alur penyaluran dana secara read-only. Perubahan status menjadi <em>"Uang Telah Disalurkan"</em> dicatat oleh Bendahara (BR-012).
+                  <strong>Hak Akses Pemantauan Admin (BR-011):</strong> Administrator memantau alur penyaluran dana secara read-only. Perubahan status menjadi <em>"Uang Telah Disalurkan"</em> dicatat oleh Bendahara (BR-012).
                 </div>
               ) : (
                 <button

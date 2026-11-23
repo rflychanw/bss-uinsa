@@ -147,7 +147,7 @@ export default function NasabahBendaharaPage() {
             onClick={() => window.print()}
             style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
           >
-            🖨️ Cetak
+            Cetak
           </button>
           <button
             type="button"
@@ -376,7 +376,7 @@ export default function NasabahBendaharaPage() {
                         onClick={() => setNasabahTerpilih(n)}
                         title="Buka rincian buku tabungan nasabah"
                       >
-                        📖 Lembar Buku
+                        Lembar Buku
                       </button>
                     </td>
                   </tr>

@@ -7,6 +7,7 @@ import {
   getDaftarNasabahMaster,
   hitungRingkasanSaldoNasabah,
   kg,
+  MINIMAL_PENARIKAN_NONTUNAI_RP,
   MINIMAL_PENARIKAN_RP,
   NASABAH_DEMO,
   rp,
@@ -51,13 +52,13 @@ export default function ProfilNasabah() {
   const ringkasan = mounted
     ? hitungRingkasanSaldoNasabah(nomor)
     : {
-        totalBeratTerverifikasiKg: 48.9,
-        totalSaldoTerverifikasi: 203300,
-        totalMenungguVerifikasiRp: 18000,
-        totalMenungguVerifikasiKg: 3.0,
-        totalDitarikSelesai: 125000,
-        saldoTersedia: 78300,
-      };
+      totalBeratTerverifikasiKg: 48.9,
+      totalSaldoTerverifikasi: 203300,
+      totalMenungguVerifikasiRp: 18000,
+      totalMenungguVerifikasiKg: 3.0,
+      totalDitarikSelesai: 125000,
+      saldoTersedia: 78300,
+    };
 
   return (
     <div className="dsh__page">
@@ -75,7 +76,7 @@ export default function ProfilNasabah() {
             className="dsh__btnoutline"
             onClick={() => window.print()}
           >
-            🖨️ Cetak Buku
+            Cetak Buku
           </button>
           <Link href="/nasabah/riwayat?tab=penarikan" className="dsh__btn">
             Tarik Saldo →
@@ -105,7 +106,10 @@ export default function ProfilNasabah() {
               <span>·</span>
               <span>Nasabah Umum</span>
               <span>·</span>
-              <span>Min. Tarik {rp(MINIMAL_PENARIKAN_RP)}</span>
+              <span>
+                Min. Tarik Tunai {rp(MINIMAL_PENARIKAN_RP)} · Bank/E-Wallet{" "}
+                {rp(MINIMAL_PENARIKAN_NONTUNAI_RP)}
+              </span>
             </div>
           </div>
 
@@ -192,7 +196,10 @@ export default function ProfilNasabah() {
           </div>
           <div className="dsh__ledgeritem">
             <dt>Ketentuan Pencairan</dt>
-            <dd>Bebas biaya admin · Minimal penarikan {rp(MINIMAL_PENARIKAN_RP)}</dd>
+            <dd>
+              Tunai bebas admin (min. {rp(MINIMAL_PENARIKAN_RP)}) · Bank &amp; E-Wallet
+              min. {rp(MINIMAL_PENARIKAN_NONTUNAI_RP)} (biaya &amp; pajak admin)
+            </dd>
           </div>
         </dl>
       </section>

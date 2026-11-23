@@ -435,7 +435,7 @@ export default function LembarBukuTabungan({
               style={{ fontSize: "12px", padding: "5px 12px", display: "inline-flex", alignItems: "center", gap: "6px" }}
               onClick={handleCetak}
             >
-              🖨️ Cetak
+              Cetak
             </button>
           )}
         </div>
