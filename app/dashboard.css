@@ -56,12 +56,160 @@
   border-radius: 50%;
 }
 
-.dsh__topwho {
+/* ---------- profil & logout di bar atas (ponsel) ---------- */
+
+.dsh__topme {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.dsh__topprofil {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-height: 40px;
+  padding: 4px 8px 4px 5px;
+  margin-right: -6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--ink);
+  font: inherit;
   font-size: var(--small);
+  cursor: pointer;
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.dsh__topprofil:hover {
+  background: rgba(23, 20, 15, 0.05);
+}
+
+.dsh__topprofil[aria-expanded="true"] {
+  background: #ffffff;
+  border-color: #dedad0;
+}
+
+.dsh__topname {
+  font-weight: 600;
+  max-width: 11ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dsh__topchevron {
+  flex: 0 0 auto;
   color: var(--ink-soft);
+  transition: transform 0.16s ease;
+}
+
+.dsh__topprofil[aria-expanded="true"] .dsh__topchevron {
+  transform: rotate(180deg);
+}
+
+@keyframes dshProfilIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.dsh__profilmenu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 90;
+  display: grid;
+  gap: 12px;
+  width: min(272px, calc(100vw - 28px));
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #e5e3db;
+  border-radius: 12px;
+  box-shadow: 0 18px 44px rgba(23, 20, 15, 0.18);
+  box-sizing: border-box;
+  animation: dshProfilIn 0.16s ease both;
+}
+
+.dsh__profilhead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.dsh__profilhead .dsh__mewho {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.dsh__profilhead .dsh__mewho strong {
+  font-size: var(--small);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dsh__profilhead .dsh__mewho em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dsh__profilrole {
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #f7f6f1;
+  border: 1px solid #e7e5de;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5c5546;
+}
+
+.dsh__profillogout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  background: #fff5f5;
+  border: 1px solid #f5c2c2;
+  border-radius: 8px;
+  color: #991b1b;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.dsh__profillogout:hover {
+  background: #ffeaea;
+  border-color: #eab0b0;
+}
+
+.dsh__profillogout:active {
+  transform: scale(0.99);
 }
 
 /* ---------- isi ---------- */
@@ -739,6 +887,10 @@
   .dsh__page > * {
     animation: none;
   }
+
+  .dsh__profilmenu {
+    animation: none;
+  }
 }
 
 /* ---------- angka & fokus ---------- */
@@ -755,6 +907,8 @@
 .dsh__exit:focus-visible,
 .dsh__logout:focus-visible,
 .dsh__toplogout:focus-visible,
+.dsh__topprofil:focus-visible,
+.dsh__profillogout:focus-visible,
 .dsh__page .btn:focus-visible {
   outline: 2px solid var(--amber-deep);
   outline-offset: 3px;

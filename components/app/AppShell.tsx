@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { keluar, sesiSekarang, type Sesi } from "../../lib/auth";
 import { hasSupabaseEnv } from "../../lib/supabase/client";
 import { subscribeBssDataUpdated } from "../../lib/supabase/store";
@@ -126,6 +126,25 @@ const ICONS: Record<string, ReactNode> = {
   ),
 };
 
+const LOGOUT_ICON = (
+  <svg
+    viewBox="0 0 20 20"
+    fill="none"
+    aria-hidden="true"
+    className="dsh__logoutico"
+    width={15}
+    height={15}
+  >
+    <path
+      d="M7.5 17.5h-3a2 2 0 0 1-2-2V4.5a2 2 0 0 1 2-2h3M13.5 14.5l4-4.5-4-4.5M17.5 10H7.5"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 const NAV_NASABAH = [
   { href: "/nasabah", label: "Ringkasan", mobileLabel: "Ringkasan", icon: "home" },
   { href: "/nasabah/riwayat", label: "Riwayat Transaksi", mobileLabel: "Riwayat", icon: "list" },
@@ -167,6 +186,8 @@ export default function AppShell({
   const router = useRouter();
   const pathname = usePathname();
   const [sesi, setSesi] = useState<Sesi | null>(null);
+  const [menuProfil, setMenuProfil] = useState(false);
+  const menuProfilRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setSesi(sesiSekarang());
@@ -174,6 +195,36 @@ export default function AppShell({
       setSesi(sesiSekarang());
     });
   }, [pathname]);
+
+  // Tutup menu profil setiap kali berpindah halaman.
+  useEffect(() => {
+    setMenuProfil(false);
+  }, [pathname]);
+
+  // Tutup menu profil saat klik di luar atau tekan Escape.
+  useEffect(() => {
+    if (!menuProfil) return;
+
+    const onPointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (target && menuProfilRef.current?.contains(target)) return;
+      setMenuProfil(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuProfil(false);
+    };
+
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("touchstart", onPointerDown);
+    document.addEventListener("click", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("touchstart", onPointerDown);
+      document.removeEventListener("click", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [menuProfil]);
 
   const roleAktif = sesi?.role || role;
 
@@ -219,6 +270,7 @@ export default function AppShell({
       : "Ruang Nasabah";
 
   const onKeluar = async () => {
+    setMenuProfil(false);
     const tujuanKeluar = roleAktif === "nasabah" ? "/masuk" : "/portal-bss";
     if (hasSupabaseEnv()) {
       await keluarSupabase();
@@ -250,8 +302,73 @@ export default function AppShell({
             Bank Sampah Syariah <em>UINSA</em>
           </span>
         </Link>
-        <div className="dsh__topwho">
-          <span>{namaUser.split(" ")[0]}</span>
+        <div className="dsh__topme" ref={menuProfilRef}>
+          <button
+            type="button"
+            className="dsh__topprofil"
+            onClick={() => setMenuProfil((buka) => !buka)}
+            aria-expanded={menuProfil}
+            aria-haspopup="menu"
+            aria-controls="profil-menu-mobile"
+            aria-label={
+              menuProfil
+                ? `Tutup menu profil ${namaUser}`
+                : `Buka menu profil ${namaUser}`
+            }
+          >
+            <span className="dsh__avatar dsh__avatar--sm" aria-hidden="true">
+              {initial}
+            </span>
+            <span className="dsh__topname">{namaUser.split(" ")[0]}</span>
+            <svg
+              viewBox="0 0 20 20"
+              fill="none"
+              aria-hidden="true"
+              className="dsh__topchevron"
+              width={14}
+              height={14}
+            >
+              <path
+                d="m5.5 8 4.5 4.5L14.5 8"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+
+          {menuProfil ? (
+            <div
+              className="dsh__profilmenu"
+              id="profil-menu-mobile"
+              role="menu"
+              aria-label="Menu profil"
+            >
+              <div className="dsh__profilhead">
+                <span className="dsh__avatar" aria-hidden="true">
+                  {initial}
+                </span>
+                <span className="dsh__mewho">
+                  <strong>{namaUser}</strong>
+                  <em>{subUser}</em>
+                </span>
+              </div>
+
+              <p className="dsh__profilrole">{roleLabel}</p>
+
+              <button
+                type="button"
+                role="menuitem"
+                onClick={onKeluar}
+                className="dsh__profillogout"
+                aria-label="Logout / Keluar dari akun"
+              >
+                {LOGOUT_ICON}
+                Logout / Keluar
+              </button>
+            </div>
+          ) : null}
         </div>
       </header>
 
@@ -306,22 +423,7 @@ export default function AppShell({
           }}
           aria-label="Logout / Keluar dari akun"
         >
-          <svg
-            viewBox="0 0 20 20"
-            fill="none"
-            aria-hidden="true"
-            className="dsh__logoutico"
-            width={15}
-            height={15}
-          >
-            <path
-              d="M7.5 17.5h-3a2 2 0 0 1-2-2V4.5a2 2 0 0 1 2-2h3M13.5 14.5l4-4.5-4-4.5M17.5 10H7.5"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          {LOGOUT_ICON}
           Logout / Keluar
         </button>
       </aside>
