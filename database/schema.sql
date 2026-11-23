@@ -991,7 +991,7 @@ SELECT
   COALESCE(ps.total_menunggu_verifikasi_rp, 0) AS total_menunggu_verifikasi_rp,
   COALESCE(d.total_debet_selesai, 0) AS total_debet_selesai,
   COALESCE(d.total_penarikan_menunggu, 0) AS total_penarikan_menunggu,
-  n.saldo_akhir AS saldo_tersedia
+  n.saldo_akhir::numeric AS saldo_tersedia
 FROM public.nasabah n
 JOIN public.users u ON u.id = n.user_id
 LEFT JOIN kredit k ON k.nasabah_id = n.id
