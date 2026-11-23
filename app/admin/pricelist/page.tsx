@@ -15,6 +15,53 @@ import {
   updateHargaPricelistSupabase,
 } from "../../../lib/supabase/sync";
 
+const KELOMPOK_JENIS_DEFAULT = [
+  "[A] KERTAS",
+  "[B] PLASTIK 1",
+  "[C] PLASTIK 2",
+  "[C] PLASTIK 3",
+  "[D] LOGAM & BESI",
+  "[E] KACA & LAINNYA",
+];
+
+function ekstrakPrefixKode(jenis: string): string {
+  const match = jenis.match(/^\[\s*([A-Z])\s*\]/i);
+  if (match) return match[1].toUpperCase();
+  const upper = jenis.toUpperCase();
+  if (upper.includes("KERTAS")) return "A";
+  if (upper.includes("PLASTIK 2") || upper.includes("PLASTIK 3")) return "C";
+  if (upper.includes("PLASTIK")) return "B";
+  if (upper.includes("LOGAM") || upper.includes("BESI")) return "D";
+  return "E";
+}
+
+function buatKodeSampahOtomatis(jenis: string, daftar: JenisSampah[]): string {
+  const prefix = ekstrakPrefixKode(jenis);
+  const terpakai = new Set(
+    daftar.map((p) => (p.kode || "").trim().toUpperCase())
+  );
+  let nomor = 1;
+  while (terpakai.has(`${prefix}${nomor}`)) {
+    nomor += 1;
+  }
+  return `${prefix}${nomor}`;
+}
+
+function hariIniYmd(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function formatYmdIndo(ymd: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return "Hari ini";
+  const [y, m, d] = ymd.split("-").map(Number);
+  const bln = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+  return `${String(d).padStart(2, "0")} ${bln[(m - 1) % 12] || "Jan"} ${y}`;
+}
+
 export default function PricelistAdmin() {
   const [pricelist, setPricelist] = useState<JenisSampah[]>(() => getPricelist());
   const [selectedId, setSelectedId] = useState<string>(
@@ -26,13 +73,22 @@ export default function PricelistAdmin() {
   const [satuanEdit, setSatuanEdit] = useState<string>(
     () => getPricelist()[0]?.satuan || "kg"
   );
+  const [tanggalBerlakuEdit, setTanggalBerlakuEdit] = useState<string>(() =>
+    hariIniYmd()
+  );
 
   // State Tambah Barang Baru
   const [namaBaru, setNamaBaru] = useState<string>("");
   const [jenisBaru, setJenisBaru] = useState<string>("[A] KERTAS");
-  const [kodeBaru, setKodeBaru] = useState<string>("");
+  const [kodeBaru, setKodeBaru] = useState<string>(() =>
+    buatKodeSampahOtomatis("[A] KERTAS", getPricelist())
+  );
+  const [kodeManual, setKodeManual] = useState<boolean>(false);
   const [hargaBaru, setHargaBaru] = useState<number>(1000);
   const [satuanBaru, setSatuanBaru] = useState<string>("kg");
+  const [tanggalBerlakuBaru, setTanggalBerlakuBaru] = useState<string>(() =>
+    hariIniYmd()
+  );
 
   // State Filter & Tampilan
   const [cari, setCari] = useState<string>("");
@@ -42,11 +98,13 @@ export default function PricelistAdmin() {
 
   const idSelectPricelist = useId();
   const idHargaEdit = useId();
+  const idTanggalBerlakuEdit = useId();
   const idNamaBaru = useId();
   const idJenisBaru = useId();
   const idKodeBaru = useId();
   const idHargaBaru = useId();
   const idSatuanBaru = useId();
+  const idTanggalBerlakuBaru = useId();
 
   useEffect(() => {
     const segarkan = () => {
@@ -65,12 +123,24 @@ export default function PricelistAdmin() {
     return subscribeBssDataUpdated(segarkan);
   }, []);
 
+  const kodeOtomatisSaatIni = useMemo(
+    () => buatKodeSampahOtomatis(jenisBaru, pricelist),
+    [jenisBaru, pricelist]
+  );
+
+  useEffect(() => {
+    if (!kodeManual) {
+      setKodeBaru(kodeOtomatisSaatIni);
+    }
+  }, [kodeOtomatisSaatIni, kodeManual]);
+
   const handlePilihEdit = (id: string) => {
     setSelectedId(id);
     const item = pricelist.find((p) => p.id === id);
     if (item) {
       setHargaEdit(item.hargaPerKg);
       setSatuanEdit(item.satuan || "kg");
+      setTanggalBerlakuEdit(item.berlakuMulaiYmd || hariIniYmd());
     }
   };
 
@@ -80,12 +150,18 @@ export default function PricelistAdmin() {
       alert("Harga harus lebih besar dari Rp 0.");
       return;
     }
+    if (!tanggalBerlakuEdit) {
+      alert("Tanggal berlaku harga wajib diisi.");
+      return;
+    }
 
     const itemTarget = pricelist.find((p) => p.id === selectedId);
+    const labelBerlaku = formatYmdIndo(tanggalBerlakuEdit);
     if (hasSupabaseEnv()) {
       const res = await updateHargaPricelistSupabase(
         itemTarget?.kode || selectedId,
-        hargaEdit
+        hargaEdit,
+        tanggalBerlakuEdit
       );
       if (!res.ok) {
         alert(res.pesan);
@@ -98,14 +174,15 @@ export default function PricelistAdmin() {
           ? {
               ...p,
               hargaPerKg: hargaEdit,
-              updateTerakhir: "Hari ini",
+              updateTerakhir: labelBerlaku,
+              berlakuMulaiYmd: tanggalBerlakuEdit,
             }
           : p
       );
       setPricelist(updated);
       simpanPricelist(updated);
     }
-    setPesan(`Harga acuan "${itemTarget?.kode} · ${itemTarget?.nama}" berhasil diperbarui menjadi ${rp(hargaEdit)}/${satuanEdit}.`);
+    setPesan(`Harga acuan "${itemTarget?.kode} · ${itemTarget?.nama}" berhasil diperbarui menjadi ${rp(hargaEdit)}/${satuanEdit} (berlaku mulai ${labelBerlaku}).`);
     setTimeout(() => setPesan(""), 4000);
   };
 
@@ -115,19 +192,24 @@ export default function PricelistAdmin() {
       alert("Nama barang dan harga acuan wajib diisi.");
       return;
     }
+    if (!tanggalBerlakuBaru) {
+      alert("Tanggal berlaku harga wajib diisi.");
+      return;
+    }
 
-    const prefix = jenisBaru.includes("KERTAS")
-      ? "A"
-      : jenisBaru.includes("PLASTIK")
-      ? "B"
-      : jenisBaru.includes("LOGAM")
-      ? "D"
-      : "E";
+    const idKode = kodeBaru.trim().toUpperCase() || kodeOtomatisSaatIni;
 
-    const idKode =
-      kodeBaru.trim().toUpperCase() ||
-      `${prefix}${pricelist.filter((p) => p.kode.startsWith(prefix)).length + 1}`;
+    const sudahAda = pricelist.some(
+      (p) => p.kode.trim().toUpperCase() === idKode
+    );
+    if (sudahAda) {
+      alert(
+        `Kode sampah "${idKode}" sudah terdaftar. Gunakan kode lain atau pakai kode otomatis (${kodeOtomatisSaatIni}).`
+      );
+      return;
+    }
 
+    const labelBerlaku = formatYmdIndo(tanggalBerlakuBaru);
     const baru: JenisSampah = {
       id: idKode,
       kode: idKode,
@@ -137,7 +219,8 @@ export default function PricelistAdmin() {
       satuan: satuanBaru || "kg",
       hargaPerKg: hargaBaru,
       deskripsi: `Kategori ${namaBaru.trim()} (${jenisBaru})`,
-      updateTerakhir: "Hari ini",
+      updateTerakhir: labelBerlaku,
+      berlakuMulaiYmd: tanggalBerlakuBaru,
     };
 
     if (hasSupabaseEnv()) {
@@ -148,6 +231,7 @@ export default function PricelistAdmin() {
         satuan: baru.satuan,
         hargaPerKg: baru.hargaPerKg,
         deskripsi: baru.deskripsi,
+        berlakuMulai: tanggalBerlakuBaru,
       });
       if (!res.ok) {
         alert(res.pesan);
@@ -159,20 +243,22 @@ export default function PricelistAdmin() {
       setPricelist(updated);
       simpanPricelist(updated);
     }
-    setPesan(`Barang baru "${baru.kode} · ${baru.nama}" (${baru.jenis}) berhasil ditambahkan.`);
+    setPesan(`Barang baru "${baru.kode} · ${baru.nama}" (${baru.jenis}) berhasil ditambahkan (berlaku mulai ${labelBerlaku}).`);
     setNamaBaru("");
-    setKodeBaru("");
+    setKodeManual(false);
+    setKodeBaru(buatKodeSampahOtomatis(jenisBaru, getPricelist()));
     setTimeout(() => setPesan(""), 4000);
   };
 
   // Ekspor CSV
   const handleEksporCSV = () => {
-    const headers = ["JENIS", "KATEGORI", "KODE", "HARGA PER"];
+    const headers = ["JENIS", "KATEGORI", "KODE", "HARGA PER", "BERLAKU MULAI"];
     const rows = pricelist.map((p) => [
       `"${p.jenis || p.kategori}"`,
       `"${p.nama || p.kategori}"`,
       `"${p.kode}"`,
       `"${p.hargaPerKg.toLocaleString("id-ID")}/${p.satuan || "kg"}"`,
+      `"${p.updateTerakhir || "-"}"`,
     ]);
 
     const csvContent =
@@ -213,8 +299,14 @@ export default function PricelistAdmin() {
     pricelist.forEach((p) => {
       setJenis.add(p.jenis || `[${p.kode.charAt(0)}] ${p.kategori.toUpperCase()}`);
     });
-    return Array.from(setJenis);
+    return Array.from(setJenis).sort((a, b) => a.localeCompare(b));
   }, [pricelist]);
+
+  const daftarKelompokTambah = useMemo(() => {
+    const setJenis = new Set<string>(KELOMPOK_JENIS_DEFAULT);
+    daftarPilihanJenis.forEach((j) => setJenis.add(j));
+    return Array.from(setJenis).sort((a, b) => a.localeCompare(b));
+  }, [daftarPilihanJenis]);
 
   const daftarTampil = tampilSemua ? listTerfilter : listTerfilter.slice(0, 8);
   const selectedItem = pricelist.find((p) => p.id === selectedId) || pricelist[0];
@@ -363,11 +455,14 @@ export default function PricelistAdmin() {
                           <code className="dsh__code">{p.kode}</code>
                         </td>
 
-                        {/* Harga Per (Contoh: "1.000/kg" atau "Rp 1.000/kg") */}
+                        {/* Harga Per + Tanggal Berlaku */}
                         <td style={{ textAlign: "right" }}>
                           <strong className="dsh__green">
                             {p.hargaPerKg.toLocaleString("id-ID")}/{p.satuan || "kg"}
                           </strong>
+                          <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>
+                            Berlaku {p.updateTerakhir || "-"}
+                          </div>
                         </td>
 
                         {/* Aksi */}
@@ -446,28 +541,49 @@ export default function PricelistAdmin() {
                     borderRadius: "6px",
                     fontSize: "12.5px",
                     marginBottom: "12px",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "6px",
                   }}
                 >
                   <span>Kelompok: <strong>{selectedItem.jenis || selectedItem.kategori}</strong></span>
-                  <span style={{ margin: "0 6px" }}>·</span>
+                  <span>·</span>
                   <span>Kode: <strong>{selectedItem.kode}</strong></span>
+                  <span>·</span>
+                  <span>Berlaku: <strong>{selectedItem.updateTerakhir || "-"}</strong></span>
                 </div>
               )}
 
-              <div className="dsh__field">
-                <label className="dsh__label" htmlFor={idHargaEdit}>
-                  Harga Baru (Rp per {satuanEdit})
-                </label>
-                <input
-                  id={idHargaEdit}
-                  type="number"
-                  step="50"
-                  min="1"
-                  className="dsh__input"
-                  value={hargaEdit}
-                  onChange={(e) => setHargaEdit(Number(e.target.value))}
-                  required
-                />
+              <div className="dsh__grid2">
+                <div className="dsh__field">
+                  <label className="dsh__label" htmlFor={idHargaEdit}>
+                    Harga Baru (Rp per {satuanEdit})
+                  </label>
+                  <input
+                    id={idHargaEdit}
+                    type="number"
+                    step="1"
+                    min="1"
+                    className="dsh__input"
+                    value={hargaEdit}
+                    onChange={(e) => setHargaEdit(Number(e.target.value))}
+                    required
+                  />
+                </div>
+
+                <div className="dsh__field">
+                  <label className="dsh__label" htmlFor={idTanggalBerlakuEdit}>
+                    Tanggal Berlaku
+                  </label>
+                  <input
+                    id={idTanggalBerlakuEdit}
+                    type="date"
+                    className="dsh__input"
+                    value={tanggalBerlakuEdit}
+                    onChange={(e) => setTanggalBerlakuEdit(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
 
               <button type="submit" className="dsh__btn">
@@ -511,32 +627,73 @@ export default function PricelistAdmin() {
                   id={idJenisBaru}
                   className="dsh__select"
                   value={jenisBaru}
-                  onChange={(e) => setJenisBaru(e.target.value)}
+                  onChange={(e) => {
+                    const j = e.target.value;
+                    setJenisBaru(j);
+                    setKodeManual(false);
+                    setKodeBaru(buatKodeSampahOtomatis(j, pricelist));
+                  }}
                 >
-                  {daftarPilihanJenis.map((j) => (
+                  {daftarKelompokTambah.map((j) => (
                     <option key={j} value={j}>
                       {j}
                     </option>
                   ))}
-                  <option value="[C] PLASTIK 2">[C] PLASTIK 2</option>
-                  <option value="[C] PLASTIK 3">[C] PLASTIK 3</option>
-                  <option value="[D] LOGAM & BESI">[D] LOGAM & BESI</option>
-                  <option value="[E] KACA & LAINNYA">[E] KACA & LAINNYA</option>
                 </select>
               </div>
 
               <div className="dsh__grid2">
                 <div className="dsh__field">
-                  <label className="dsh__label" htmlFor={idKodeBaru}>
-                    Kode (Otomatis/Manual)
-                  </label>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    <label className="dsh__label" htmlFor={idKodeBaru}>
+                      Kode (Otomatis/Manual)
+                    </label>
+                    {kodeManual && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setKodeManual(false);
+                          setKodeBaru(kodeOtomatisSaatIni);
+                        }}
+                        style={{
+                          border: "none",
+                          background: "none",
+                          padding: 0,
+                          fontSize: "11px",
+                          fontWeight: 600,
+                          color: "#25632d",
+                          cursor: "pointer",
+                          textDecoration: "underline",
+                        }}
+                      >
+                        Otomatis ({kodeOtomatisSaatIni})
+                      </button>
+                    )}
+                  </div>
                   <input
                     id={idKodeBaru}
                     type="text"
-                    placeholder="mis. A9 / B5"
+                    placeholder={`Otomatis: ${kodeOtomatisSaatIni}`}
                     className="dsh__input"
                     value={kodeBaru}
-                    onChange={(e) => setKodeBaru(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase();
+                      setKodeBaru(val);
+                      setKodeManual(true);
+                    }}
+                    onBlur={() => {
+                      if (!kodeBaru.trim()) {
+                        setKodeManual(false);
+                        setKodeBaru(kodeOtomatisSaatIni);
+                      }
+                    }}
                   />
                 </div>
 
@@ -557,20 +714,36 @@ export default function PricelistAdmin() {
                 </div>
               </div>
 
-              <div className="dsh__field">
-                <label className="dsh__label" htmlFor={idHargaBaru}>
-                  Harga (Rp/{satuanBaru})
-                </label>
-                <input
-                  id={idHargaBaru}
-                  type="number"
-                  step="50"
-                  min="1"
-                  className="dsh__input"
-                  value={hargaBaru}
-                  onChange={(e) => setHargaBaru(Number(e.target.value))}
-                  required
-                />
+              <div className="dsh__grid2">
+                <div className="dsh__field">
+                  <label className="dsh__label" htmlFor={idHargaBaru}>
+                    Harga (Rp/{satuanBaru})
+                  </label>
+                  <input
+                    id={idHargaBaru}
+                    type="number"
+                    step="1"
+                    min="1"
+                    className="dsh__input"
+                    value={hargaBaru}
+                    onChange={(e) => setHargaBaru(Number(e.target.value))}
+                    required
+                  />
+                </div>
+
+                <div className="dsh__field">
+                  <label className="dsh__label" htmlFor={idTanggalBerlakuBaru}>
+                    Tanggal Berlaku
+                  </label>
+                  <input
+                    id={idTanggalBerlakuBaru}
+                    type="date"
+                    className="dsh__input"
+                    value={tanggalBerlakuBaru}
+                    onChange={(e) => setTanggalBerlakuBaru(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
 
               <button type="submit" className="dsh__btnoutline">

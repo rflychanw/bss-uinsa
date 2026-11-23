@@ -98,6 +98,7 @@ export type JenisSampah = {
   satuan: string;
   deskripsi: string;
   updateTerakhir?: string;
+  berlakuMulaiYmd?: string;
 };
 
 export type NasabahMaster = {
@@ -105,6 +106,7 @@ export type NasabahMaster = {
   nama: string;
   email: string;
   fakultas: string;
+  saldoAkhir?: number;
   totalSetorKg?: number;
   totalBeratKg?: number;
   totalDisalurkan?: number;
@@ -1084,10 +1086,17 @@ export function hitungRingkasanSaldoNasabah(nomorNasabah: string) {
     .filter((p) => p.status === "menunggu")
     .reduce((acc, p) => acc + p.nominal, 0);
 
-  const saldoTersedia = Math.max(
-    0,
-    totalSaldoTerverifikasi - totalDitarikSelesai
-  );
+  const nasabahTersimpan =
+    hasSupabaseEnv() && adaJendela() && getSupabaseStore().ready
+      ? getSupabaseStore().nasabahMasterList.find(
+          (n) => n.nomor === nomorNasabah
+        )
+      : undefined;
+
+  const saldoTersedia =
+    typeof nasabahTersimpan?.saldoAkhir === "number"
+      ? Math.max(0, nasabahTersimpan.saldoAkhir)
+      : Math.max(0, totalSaldoTerverifikasi - totalDitarikSelesai);
 
   return {
     semuaSetoran,

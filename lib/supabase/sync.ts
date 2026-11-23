@@ -100,6 +100,29 @@ export function formatTanggalJamIndo(iso?: string | null): string {
   return `${tgl}, ${hh}:${mi}`;
 }
 
+function toYmdWib(iso?: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(d);
+  const y = parts.find((p) => p.type === "year")?.value;
+  const m = parts.find((p) => p.type === "month")?.value;
+  const day = parts.find((p) => p.type === "day")?.value;
+  return y && m && day ? `${y}-${m}-${day}` : "";
+}
+
+function toIsoWibStartOfDay(ymd?: string): string {
+  if (ymd && /^\d{4}-\d{2}-\d{2}$/.test(ymd.trim())) {
+    return new Date(`${ymd.trim()}T00:00:00+07:00`).toISOString();
+  }
+  return new Date().toISOString();
+}
+
 function parseDateSafe(tgl?: string | null): Date | null {
   if (!tgl) return null;
   const iso = new Date(tgl);
@@ -207,6 +230,7 @@ export async function muatPricelistPublik(force = false): Promise<JenisSampah[]>
         satuan: r.satuan || "kg",
         deskripsi: r.deskripsi || "",
         updateTerakhir: formatTanggalIndo(r.berlaku_mulai),
+        berlakuMulaiYmd: toYmdWib(r.berlaku_mulai),
       }));
 
       const jenisByKode: Record<string, VPricelistAktifRow> = {};
@@ -369,6 +393,7 @@ export async function sinkronkanDataSupabase(
           satuan: r.satuan || "kg",
           deskripsi: r.deskripsi || "",
           updateTerakhir: formatTanggalIndo(r.berlaku_mulai),
+          berlakuMulaiYmd: toYmdWib(r.berlaku_mulai),
         };
       });
 
@@ -490,6 +515,10 @@ export async function sinkronkanDataSupabase(
           nama: u?.nama_lengkap || "Nasabah BSS",
           email: u?.email || "",
           fakultas: fakLabel,
+          saldoAkhir:
+            n.saldo_akhir != null && n.saldo_akhir !== ""
+              ? Number(n.saldo_akhir)
+              : undefined,
           totalSetorKg: saldo ? Number(saldo.total_berat_semua_kg) : 0,
           totalBeratKg: saldo ? Number(saldo.total_berat_semua_kg) : 0,
           estimasiBelumTerjual,
@@ -1091,7 +1120,8 @@ export async function validasiPenarikanSupabase(
 
 export async function updateHargaPricelistSupabase(
   kodeSampah: string,
-  hargaBaru: number
+  hargaBaru: number,
+  berlakuMulai?: string
 ): Promise<{ ok: true } | { ok: false; pesan: string }> {
   const store = getSupabaseStore();
   const jenis = store.jenisByKode[kodeSampah];
@@ -1111,7 +1141,7 @@ export async function updateHargaPricelistSupabase(
   const { error: insErr } = await supabase.from("pricelist").insert({
     jenis_sampah_id: jenis.jenis_sampah_id,
     harga_per_satuan: hargaBaru,
-    berlaku_mulai: new Date().toISOString(),
+    berlaku_mulai: toIsoWibStartOfDay(berlakuMulai),
     created_by: store.sesi.dbId,
     is_active: true,
   });
@@ -1128,6 +1158,7 @@ export async function tambahJenisSampahSupabase(input: {
   satuan: string;
   hargaPerKg: number;
   deskripsi: string;
+  berlakuMulai?: string;
 }): Promise<{ ok: true } | { ok: false; pesan: string }> {
   const store = getSupabaseStore();
   if (!store.sesi?.dbId) {
@@ -1155,7 +1186,7 @@ export async function tambahJenisSampahSupabase(input: {
   const { error: pErr } = await supabase.from("pricelist").insert({
     jenis_sampah_id: insertedJenis.id,
     harga_per_satuan: input.hargaPerKg,
-    berlaku_mulai: new Date().toISOString(),
+    berlaku_mulai: toIsoWibStartOfDay(input.berlakuMulai),
     created_by: store.sesi.dbId,
     is_active: true,
   });

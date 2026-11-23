@@ -497,7 +497,7 @@ export default function TarikTunaiAdminPage() {
               <input
                 id={idNominal}
                 type="number"
-                step="500"
+                step="1"
                 min={minNominal}
                 max={Math.max(minNominal, ringkasanNasabahTerpilih.saldoTersedia)}
                 className="dsh__input"

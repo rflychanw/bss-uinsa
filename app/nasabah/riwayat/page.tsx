@@ -500,7 +500,7 @@ export default function RiwayatNasabah() {
                       minNominalTarik,
                       ringkasanSaldo.saldoTersedia
                     )}
-                    step="500"
+                    step="1"
                     required
                     className="dsh__input"
                     value={nominalTarik}

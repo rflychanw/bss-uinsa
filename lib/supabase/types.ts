@@ -44,6 +44,7 @@ export interface NasabahRow {
   verified_by: string | null;
   verified_at: string | null;
   terakhir_setor_at: string | null;
+  saldo_akhir?: number | string;
   created_at: string;
   updated_at: string;
 }

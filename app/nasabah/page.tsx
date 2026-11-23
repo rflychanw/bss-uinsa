@@ -702,7 +702,7 @@ export default function DashboardNasabah() {
                       type="number"
                       min={minNominalTarik}
                       max={Math.max(minNominalTarik, ringkasan.saldoTersedia)}
-                      step="500"
+                      step="1"
                       required
                       className="dsh__input"
                       value={nominalTarik}
